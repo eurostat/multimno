@@ -1,0 +1,7 @@
+pandas
+pyarrow
+numpy
+requests
+ujson
+shapely
+geopandas

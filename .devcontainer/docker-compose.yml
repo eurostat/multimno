@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  jupyter:
+    image: multimno-pyspark
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - PYTHON_VERSION=${PYTHON_VERSION}
+        - JDK_VERSION=${JDK_VERSION}
+        - SPARK_VERSION=${SPARK_VERSION}
+    container_name: multimno-pyspark_dev
+    hostname: multimno-pyspark_dev
+    command: sleep infinity
+    volumes:
+      - ..:/opt/dev
+      - ../sample_data:/opt/data
+      # - ${SPARK_LOGS_DIR}:/opt/spark/spark-events
+    ports:
+      - "${JL_PORT}:8888"
+      - "4040:4040"
+    deploy:
+      resources:
+        limits:
+          cpus: ${JL_CPU}
+          memory: ${JL_MEM}
