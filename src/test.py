@@ -11,8 +11,8 @@ def build_local_session():
     return SparkSession.builder\
         .config("spark.driver.host", "localhost")\
         .config("spark.eventLog.enabled", "true")\
-        .config("spark.eventLog.dir", "/tmp")\
-        .config("spark.history.fs.logDirectory", "/tmp")\
+        .config("spark.eventLog.dir", "/opt/spark/spark-events")\
+        .config("spark.history.fs.logDirectory", "/opt/spark/spark-events")\
             .appName("Test-multimno-submit").getOrCreate()
 
 build_session = {SESSION_TYPES.LOCAL_SESSION: build_local_session}

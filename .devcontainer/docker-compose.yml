@@ -10,13 +10,13 @@ services:
         - PYTHON_VERSION=${PYTHON_VERSION}
         - JDK_VERSION=${JDK_VERSION}
         - SPARK_VERSION=${SPARK_VERSION}
-    container_name: multimno-pyspark_dev
-    hostname: multimno-pyspark_dev
+    container_name: ${CONTAINER_NAME}
+    hostname: ${CONTAINER_NAME}
     command: sleep infinity
     volumes:
       - ..:/opt/dev
-      - ../sample_data:/opt/data
-      # - ${SPARK_LOGS_DIR}:/opt/spark/spark-events
+      - ${DATA_DIR}:/opt/data
+      - ${SPARK_LOGS_DIR}:/opt/spark/spark-events
     ports:
       - "${JL_PORT}:8888"
       - "4040:4040"
