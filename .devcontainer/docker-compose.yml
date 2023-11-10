@@ -19,7 +19,7 @@ services:
       - ${SPARK_LOGS_DIR}:/opt/spark/spark-events
     ports:
       - "${JL_PORT}:8888"
-      - "4040:4040"
+      - "4040-4045:4040-4045"
     deploy:
       resources:
         limits:
