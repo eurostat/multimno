@@ -2,7 +2,7 @@ version: '3'
 
 services:
   jupyter:
-    image: multimno-pyspark
+    image: multimno-py${PYTHON_VERSION}-spark${SPARK_VERSION}
     build:
       context: .
       dockerfile: Dockerfile
