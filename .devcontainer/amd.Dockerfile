@@ -31,6 +31,10 @@ RUN pip install -r ${install_dir}/requirements/dev_requirements.txt
 RUN echo "alias jl='jupyter lab --ip=0.0.0.0 --port=8888 --no-browser  \
     --allow-root --NotebookApp.base_url=${JUPYTER_BASE_URL} --NotebookApp.token='" >> ~/.bashrc
 
+RUN apt update && apt install -y nano \
+    vim \
+    screenfetch
+
 # ----------- CLEANUP -----------
 RUN rm -r ${install_dir}
 RUN rm -rf /var/lib/apt/lists/*

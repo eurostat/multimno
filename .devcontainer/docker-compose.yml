@@ -2,10 +2,10 @@ version: '3'
 
 services:
   jupyter:
-    image: multimno-py${PYTHON_VERSION}-spark${SPARK_VERSION}
+    image: multimno-${DOCKER_ARCH}-py${PYTHON_VERSION}-spark${SPARK_VERSION}
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ${DOCKER_ARCH}.Dockerfile
       args:
         - PYTHON_VERSION=${PYTHON_VERSION}
         - JDK_VERSION=${JDK_VERSION}
