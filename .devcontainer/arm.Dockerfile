@@ -11,7 +11,7 @@ RUN apt update && apt install -y \
 
 # Set JAVA_HOME environment variable
 # TODO: Change JAVA_HOME path for ARM architecture
-ENV JAVA_HOME="/usr/lib/jvm/java-${JDK_VERSION}-openjdk-amd64"
+ENV JAVA_HOME="/usr/lib/jvm/java-${JDK_VERSION}-openjdk-arm64"
 ENV PATH="${PATH}:${JAVA_HOME}/bin"
 
 # ---------- INSTALL poetry / pip-tools ----------
