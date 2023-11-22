@@ -2,17 +2,22 @@ version: '3'
 
 services:
   jupyter:
-    image: multimno-${DOCKER_ARCH}-py${PYTHON_VERSION}-spark${SPARK_VERSION}
+    image: multimno-py${PYTHON_VERSION}-spark${SPARK_VERSION}
     build:
       context: .
-      dockerfile: ${DOCKER_ARCH}.Dockerfile
+      dockerfile: Dockerfile
       args:
         - PYTHON_VERSION=${PYTHON_VERSION}
         - JDK_VERSION=${JDK_VERSION}
         - SPARK_VERSION=${SPARK_VERSION}
+        - SEDONA_VERSION=${SEDONA_VERSION}
+        - GEOTOOLS_WRAPPER=${GEOTOOLS_WRAPPER}
     container_name: ${CONTAINER_NAME}
     hostname: ${CONTAINER_NAME}
     command: sleep infinity
+    environment:
+      - PYTHONPATH=/opt/spark/python:/opt/dev/src
+      - PATH=${PATH}:/opt/spark/bin:/opt/spark/sbin
     volumes:
       - ..:/opt/dev
       - ${DATA_DIR}:/opt/data

@@ -1,7 +1,25 @@
+# ------ Project ------
 pandas
 pyarrow
 numpy
 requests
 ujson
-shapely
-geopandas
+
+# ------ Pyspark ------
+py4j>=0.10.9.7
+grpcio>=1.48,<1.57
+grpcio-status>=1.48,<1.57
+googleapis-common-protos==1.56.4
+
+# ------ sedona ------
+apache-sedona
+keplergl
+pydeck
+matplotlib
+geopandas==0.11.1 # Must for Sedona
+shapely==1.8.4 # Must for Sedona
+
+# --- geopandas ---
+folium
+mapclassify
+# matplotlib
