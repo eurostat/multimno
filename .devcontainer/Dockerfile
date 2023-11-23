@@ -1,10 +1,10 @@
 ##########################################################################
-# SPARK - BASE
+# MULTIMNO - BASE
 ##########################################################################
 
 ARG PYTHON_VERSION
 
-FROM python:${PYTHON_VERSION} as multimno-spark-base
+FROM python:${PYTHON_VERSION} as multimno-base
 
 ARG JDK_VERSION
 # ---------- INSTALL System Libraries ----------
@@ -23,10 +23,9 @@ RUN apt-get update && \
 # ---------- SPARK ----------
 # Setup the directories for Spark/Hadoop installation
 ENV SPARK_HOME=${SPARK_HOME:-"/opt/spark"}
-ENV HADOOP_HOME=${HADOOP_HOME:-"/opt/hadoop"}
 
 # Create spark folder
-RUN mkdir -p ${HADOOP_HOME} && mkdir -p ${SPARK_HOME}
+RUN mkdir -p ${SPARK_HOME}
 WORKDIR ${SPARK_HOME}
 
 ARG SPARK_VERSION
@@ -35,16 +34,13 @@ RUN wget https://dlcdn.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VER
   && tar -xvzf spark-${SPARK_VERSION}-bin-hadoop3.tgz --directory /opt/spark --strip-components 1 \
   && rm -rf spark-${SPARK_VERSION}-bin-hadoop3.tgz
 
-ENV PYTHONPATH=${SPARK_HOME}/python
-# RUN pip install pyspark==${SPARK_VERSION}
-
 # ---------- SEDONA ----------
 # Args
 ARG SEDONA_VERSION
 ARG GEOTOOLS_WRAPPER
 
 # Install sedona jars
-COPY resources/scripts/install_sedona_jars.sh ${install_dir}/scripts/install_sedona_jars.sh
+COPY scripts/install_sedona_jars.sh ${install_dir}/scripts/install_sedona_jars.sh
 RUN ${install_dir}/scripts/install_sedona_jars.sh ${SEDONA_VERSION} ${GEOTOOLS_WRAPPER} ${SPARK_VERSION} $PYTHON_VERSION
 
 # ---------- PYTHON DEPENDENCIES ----------
@@ -55,11 +51,11 @@ RUN pip3 install poetry pip-tools
 ARG install_dir=/tmp/install
 
 # Standard requirements
-COPY resources/requirements/requirements.in ${install_dir}/requirements/requirements.in
+COPY requirements/requirements.in ${install_dir}/requirements/requirements.in
 RUN pip-compile ${install_dir}/requirements/requirements.in 
 RUN pip install -r ${install_dir}/requirements/requirements.txt
 # Dev requirements
-COPY resources/requirements/dev_requirements.in ${install_dir}/requirements/dev_requirements.in
+COPY requirements/dev_requirements.in ${install_dir}/requirements/dev_requirements.in
 RUN pip-compile ${install_dir}/requirements/dev_requirements.in
 RUN pip install -r ${install_dir}/requirements/dev_requirements.txt
 
@@ -67,15 +63,26 @@ RUN pip install -r ${install_dir}/requirements/dev_requirements.txt
 RUN echo "alias jl='jupyter lab --ip=0.0.0.0 --port=8888 --no-browser  \
     --allow-root --NotebookApp.base_url=${JUPYTER_BASE_URL} --NotebookApp.token='" >> ~/.bashrc
 
+# Set Path environment variable
+ENV PATH="${PATH}:$SPARK_HOME/bin:$SPARK_HOME/sbin"
 
 # ----------- CLEANUP -----------
 RUN rm -r ${install_dir}
 RUN rm -rf /var/lib/apt/lists/*
 
+
+##########################################################################
+# MULTIMNO - DEV
+##########################################################################
+FROM multimno-base as multimno-dev
+
 # ----------- RUNTIME -----------
 # Copy the default configurations into $SPARK_HOME/conf
-COPY resources/conf/spark-defaults.conf "$SPARK_HOME/conf/spark-defaults.conf"
+COPY conf/spark-defaults.conf "$SPARK_HOME/conf/spark-defaults.conf"
+
+ENV PYTHONPATH=${SPARK_HOME}/python:/opt/dev/src
 
 EXPOSE 8888
+EXPOSE 4040
 
 CMD ["bash"]

@@ -4,8 +4,9 @@ services:
   jupyter:
     image: multimno-py${PYTHON_VERSION}-spark${SPARK_VERSION}
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../resources
+      dockerfile: ../.devcontainer/Dockerfile
+      target: multimno-dev
       args:
         - PYTHON_VERSION=${PYTHON_VERSION}
         - JDK_VERSION=${JDK_VERSION}
@@ -15,16 +16,13 @@ services:
     container_name: ${CONTAINER_NAME}
     hostname: ${CONTAINER_NAME}
     command: sleep infinity
-    environment:
-      - PYTHONPATH=/opt/spark/python:/opt/dev/src
-      - PATH=${PATH}:/opt/spark/bin:/opt/spark/sbin
     volumes:
       - ..:/opt/dev
       - ${DATA_DIR}:/opt/data
       - ${SPARK_LOGS_DIR}:/opt/spark/spark-events
     ports:
       - "${JL_PORT}:8888"
-      - "4040-4045:4040-4045"
+      - "4040:4040"
     deploy:
       resources:
         limits:
