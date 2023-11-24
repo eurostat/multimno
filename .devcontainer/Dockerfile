@@ -82,6 +82,8 @@ COPY conf/spark-defaults.conf "$SPARK_HOME/conf/spark-defaults.conf"
 
 ENV PYTHONPATH=${SPARK_HOME}/python:/opt/dev/src
 
+WORKDIR /opt/dev
+
 EXPOSE 8888
 EXPOSE 4040
 
