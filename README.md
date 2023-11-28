@@ -66,7 +66,31 @@ spark-submit src/hello_world.py
 
 Try a hello world jupyter notebook stored in `notebooks/hello_world.ipynb` with:  
 * Opening it with VsCode within the devcontainer.
-* Starting a jupyterlab service with the command within the container and going to the address http://localhost:8888/lab.
+* Starting a jupyterlab service with the command within the container and going to the address http://localhost:${JL_PORT}/lab
+  * JL_PORT was defined in the `.devcontainer/.env` file.
 ```bash
 jl
 ```
+
+### Launching a single component
+```bash
+spark-submit src/main.py <path_to_general_config> <path_to_component_config>
+```
+
+### Launching a pipeline
+```bash
+python src/orchestrator.py <pipeline_json_path>
+```
+
+### Launching a spark history server
+The history server will access SparkUI logs stored at the path ${SPARK_LOGS_DIR} defined in the `.devcontainer/.env` file.
+
+Starting the history server
+```bash
+start-history-server.sh 
+```
+Accesing the history server
+* Go to the address http://localhost:18080
+
+
+

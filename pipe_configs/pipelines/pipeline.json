@@ -1,0 +1,21 @@
+{
+    "general_config_path": "/opt/dev/general_config.ini",
+    "pipeline": [
+        {
+            "component_id": "event_ingestion",
+            "component_config_path": "/opt/dev/event.ini"
+        },
+        {
+            "component_id": "network_ingestion",
+            "component_config_path": "/opt/dev/event.ini"
+        },
+        {
+            "component_id": "event_cleaning",
+            "component_config_path": "/opt/dev/event.ini"
+        },
+        {
+            "component_id": "network_cleaning",
+            "component_config_path": "/opt/dev/event.ini"
+        }
+    ]
+}
