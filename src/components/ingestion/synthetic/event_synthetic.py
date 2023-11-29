@@ -8,20 +8,17 @@ from core.settings import CONFIG_BRONZE_PATHS_KEY
 class EventSynthetic(Component):
     COMPONENT_ID = "EventSynthetic"
 
-    def __init__(self, general_config_path: str, component_config_path: str) -> None:
-        super().__init__(general_config_path, component_config_path)
-
     def initalize_data_objects(self):
         # Output
         bronze_event_path = self.config.get(
             CONFIG_BRONZE_PATHS_KEY, "event_data_bronze")
-        bronze_event = BronzeEventDataObject(self.spark)
+        bronze_event = BronzeEventDataObject(self.spark, bronze_event_path)
         self.output_data_objects = {
             BronzeEventDataObject.ID: bronze_event
         }
 
     def read(self):
-        pass
+        pass # Data is not read
 
     def transform(self):
         self.logger.info("Starting Synthetic data generation")
@@ -34,14 +31,13 @@ class EventSynthetic(Component):
         n_events = self.config.getint(EventSynthetic.COMPONENT_ID, 'n_events')
         seed = self.config.getint(EventSynthetic.COMPONENT_ID, 'seed')
 
-        sdate = self.config.getint(EventSynthetic.COMPONENT_ID, 'dates_string')
+        sdate = self.config.get(EventSynthetic.COMPONENT_ID, 'dates_string')
+        year = sdate[:4]
+        month = sdate[4:6]
+        day = sdate[6:8]
 
         data = []
         for _ in range(n_agents):
-
-            # Empty dataframe
-            # df = spark.sparkContext.emptyRDD().toDF(schema)
-
             # Random user_id
             # random.seed(seed)
             user_id = random.randbytes(32)
@@ -49,7 +45,7 @@ class EventSynthetic(Component):
 
             for _ in range(n_events):
                 # Random timestamp in path
-                random_date = f"{sdate}T{random.randint(0, 23):02}:{random.randint(0, 59):02}:{random.randint(0, 59):02}"
+                random_date = f"{year}-{month}-{day}T{random.randint(0, 23):02}:{random.randint(0, 59):02}:{random.randint(0, 59):02}"
                 # random mcc
                 random_mcc = random.randint(0, 999)
                 # random cell_id
@@ -73,8 +69,9 @@ class EventSynthetic(Component):
         self.output_data_objects[BronzeEventDataObject.ID].df = df_events
 
     def write(self):
-        event_do = self.output_data_objects[BronzeEventDataObject.ID]
+        event_do: BronzeEventDataObject = self.output_data_objects[BronzeEventDataObject.ID]
         sdate = self.config.get(EventSynthetic.COMPONENT_ID, 'dates_string')
-        path = f"{event_do.interface.path}/{sdate}"
+        path = f"{event_do.default_path}/{sdate}"
+        
         event_do.write(path)
         self.logger.info("Synthetic data generation finished!")

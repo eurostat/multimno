@@ -17,7 +17,7 @@ class BronzeEventDataObject(PathDataObject):
         StructField("loc_error", FloatType(), nullable=True)
     ])
 
-    def __init__(self, spark: SparkSession) -> None:
-        super().__init__(spark)
+    def __init__(self, spark: SparkSession, default_path: str) -> None:
+        super().__init__(spark, default_path)
         self.interface = ParquetInterface()
 

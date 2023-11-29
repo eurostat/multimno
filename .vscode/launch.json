@@ -11,6 +11,15 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true
+        },
+        {
+            "name": "Launch Component",
+            "type": "python",
+            "request": "launch",
+            "program": "src/main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["EventCleaning", "pipe_configs/configurations/general_config.ini", "pipe_configs/configurations/event/event_cleaning.ini"]
         }
     ]
 }

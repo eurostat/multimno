@@ -33,4 +33,9 @@ def generate_spark_session(config: ConfigParser):
     sc = spark.sparkContext
     sc.setSystemProperty("sedona.global.charset", "utf8")
 
+    # Set log
+    sc.setLogLevel('ERROR')
+    log4j = sc._jvm.org.apache.log4j
+    log4j.LogManager.getRootLogger().setLevel(log4j.Level.ERROR)
+
     return spark

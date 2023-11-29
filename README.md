@@ -74,7 +74,7 @@ jl
 
 ### Launching a single component
 ```bash
-spark-submit src/main.py <path_to_general_config> <path_to_component_config>
+spark-submit src/main.py <component_id> <path_to_general_config> <path_to_component_config>
 ```
 
 ### Launching a pipeline
