@@ -2,6 +2,7 @@ import random
 
 from core.component import Component
 from core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObject
+from core.settings import CONFIG_BRONZE_PATHS_KEY
 
 
 class EventSynthetic(Component):
@@ -13,8 +14,8 @@ class EventSynthetic(Component):
     def initalize_data_objects(self):
         # Output
         bronze_event_path = self.config.get(
-            "Paths.Bronze", "event_data_bronze")
-        bronze_event = BronzeEventDataObject(self.spark, bronze_event_path)
+            CONFIG_BRONZE_PATHS_KEY, "event_data_bronze")
+        bronze_event = BronzeEventDataObject(self.spark)
         self.output_data_objects = {
             BronzeEventDataObject.ID: bronze_event
         }
@@ -29,11 +30,11 @@ class EventSynthetic(Component):
         spark = self.spark
         schema = self.output_data_objects[BronzeEventDataObject.ID].SCHEMA
 
-        n_agents = self.config.getint('Component.EventSynthetic', 'n_agents')
-        n_events = self.config.getint('Component.EventSynthetic', 'n_events')
-        seed = self.config.getint('Component.EventSynthetic', 'seed')
+        n_agents = self.config.getint(EventSynthetic.COMPONENT_ID, 'n_agents')
+        n_events = self.config.getint(EventSynthetic.COMPONENT_ID, 'n_events')
+        seed = self.config.getint(EventSynthetic.COMPONENT_ID, 'seed')
 
-        sdate = self.config.getint('Component.EventSynthetic', 'dates_string')
+        sdate = self.config.getint(EventSynthetic.COMPONENT_ID, 'dates_string')
 
         data = []
         for _ in range(n_agents):
@@ -73,7 +74,7 @@ class EventSynthetic(Component):
 
     def write(self):
         event_do = self.output_data_objects[BronzeEventDataObject.ID]
-        sdate = self.config.get('Component.EventSynthetic', 'dates_string')
+        sdate = self.config.get(EventSynthetic.COMPONENT_ID, 'dates_string')
         path = f"{event_do.interface.path}/{sdate}"
         event_do.write(path)
         self.logger.info("Synthetic data generation finished!")
