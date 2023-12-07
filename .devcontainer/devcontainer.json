@@ -38,6 +38,7 @@
 			"extensions": [
 				"ms-python.python",
 				"njpwerner.autodocstring",
+				"ms-python.autopep8",
 				"vivaxy.vscode-conventional-commits",
 				"mhutchie.git-graph",
 				"yzhang.markdown-all-in-one",
