@@ -1,8 +1,9 @@
 from pyspark.sql import SparkSession, Row
-from pyspark.sql.functions import udf
-from pyspark.sql.types import IntegerType
+from pyspark.sql.functions import udf, explode
+from pyspark.sql.types import IntegerType, TimestampType, ArrayType, StructType, StructField
 import random
-
+import datetime
+from common.constants.columns import ColNames
 """ 
 Input parameters:
 
@@ -28,8 +29,24 @@ Functionalities:
     Generation of Optional fields
 """
 
-@udf#(returnType=IntegerType())
+return_type = ArrayType(StructType([StructField(name="event_id", dataType=IntegerType(), nullable=False), 
+                                   StructField(name="timestamp", dataType=TimestampType(), nullable=False),
+                                   StructField(name="cell_id", dataType=IntegerType(), nullable=False)]))
+@udf(returnType=return_type)
 def generate_agent_records(n_events, starting_event_id, timestamp_generator_params, cell_id_generator_params):
+    """
+    UDF to generate records from agent parameters.
+    Generates an array of (event_id, timestamp, cell_id) tuples.
+
+    Args:
+        n_events (_type_): _description_
+        starting_event_id (_type_): _description_
+        timestamp_generator_params (_type_): _description_
+        cell_id_generator_params (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     #TODO timestamp generator types
     timestamp_generator_type = timestamp_generator_params[0]
     if (timestamp_generator_type == "equal_gaps"):
@@ -46,11 +63,10 @@ def generate_agent_records(n_events, starting_event_id, timestamp_generator_para
     if (cell_id_generator_type == "random_cell_id"):
         cell_id_min = cell_id_generator_params[1]
         cell_id_max = cell_id_generator_params[2]
-        random = random.seed(cell_id_generator_params[3])
-        cell_ids = []
-        for i in range(n_events):
-            cell_ids.append(random.randint(cell_id_min, cell_id_max))
-    event_ids = [range(starting_event_id, starting_event_id + n_events)]
+        #TODO might want to add user_id to random seed, otherwise the cell ids are identical for all users 
+        random.seed(cell_id_generator_params[3]) #Is this independent enough from the other parallel randoms to ensure the same results each run? 
+        cell_ids = [random.randint(cell_id_min, cell_id_max) for i in range(n_events)]
+    event_ids = [i for i in range(starting_event_id, starting_event_id + n_events)]
     events = zip(event_ids, timestamps, cell_ids)
     return events
 
@@ -61,12 +77,14 @@ class SyntheticEvents:
     n_events_per_agent = 1000
     n_partitions = 24
     timestamp_generator_type = "equal_gaps" # "equal_gaps" is 
-    starting_timestamp = "2020-01-01T00:00:00"
-    ending_timestamp = "2020-04-01T00:00:00"
+    timestamp_format = "%Y-%m-%dT%H:%M:%S"
+    starting_timestamp = datetime.datetime.strptime("2020-01-01T00:00:00", timestamp_format)
+    ending_timestamp = datetime.datetime.strptime("2020-04-01T00:00:00", timestamp_format)
     location_generator_type = "random_cell_id" # also needs support for "lat_lon" generators
     cell_id_min = 1
     cell_id_max = 200
     mcc = 123 # Will we need better mcc generation later?
+    output_records_path = "/opt/dev/data/synthetic_events"
 
     def __init__(self, config: dict):
         self.config = config
@@ -99,10 +117,8 @@ class SyntheticEvents:
                     starting_event_id=starting_event_id, 
                     mcc=self.mcc, 
                     n_events=self.n_events_per_agent,
-                    starting_timestamp = self.starting_timestamp,
-                    ending_timestamp = self.ending_timestamp,
                     timestamp_generator_params = (self.timestamp_generator_type, self.starting_timestamp, self.ending_timestamp),
-                    cell_id_generator_params = (self.location_generator_type, self.cell_id_min, self.cell_id_max)
+                    cell_id_generator_params = (self.location_generator_type, self.cell_id_min, self.cell_id_max, self.seed)
                 )
             )
             starting_event_id += self.n_events_per_agent
@@ -120,12 +136,27 @@ class SyntheticEvents:
         # Parallelize agents in Spark
         agents_df = spark.createDataFrame(agents)
         agents_df.show(10)
+        agents_df.printSchema()
         # For each agent, run event generation
-        agents_df.select(generate_agent_records("n_events", "starting_event_id", "timestamp_generator_params", "cell_id_generator_params").alias("Wadup")).show(10)
-        #   Set user_id to agent's user_id
-        #   Set timestamp according to timestamp generator
-        # Write records partitioned by partition_id
+        records_df = agents_df.withColumn("record_tuple", explode(generate_agent_records("n_events", "starting_event_id", "timestamp_generator_params", "cell_id_generator_params")))\
+            .select(["*", "record_tuple.*"])
+        records_df = records_df.select(
+            ColNames.user_id,
+            ColNames.partition_id,
+            ColNames.timestamp,
+            ColNames.mcc,
+            ColNames.cell_id#,
+            #ColNames.latitude,
+            #ColNames.longitude
+        )
 
+        #TODO create DataObject of records df
+        #TODO create config and parse
+        #TODO create test file to run this?
+
+        records_df.show(10, False)
+        # Write records partitioned by partition_id
+        records_df.write.mode("append").partitionBy("partition_id").format("parquet").save(self.output_records_path)
         return None
 
 
