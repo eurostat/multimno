@@ -2,12 +2,16 @@
 Module responsible for adding synthetic errors to existing synthetic event data.
 """
 
+import random
+import string
+
 import pyspark
 import pyspark.sql.functions as F
 from pyspark.sql import SparkSession
+
 import pandas as pd
-from pyspark.sql.types import StructType, StructField, LongType, ArrayType, TimestampType, BooleanType, IntegerType, \
-    StringType
+from src.common.constants.columns import ColNames
+
 
 # TODO as common function
 def create_spark_session(config_dict, appname: str):
@@ -35,17 +39,26 @@ class SyntheticErrorGenerator:
     def __init__(self, config: dict):
         self.config = config
 
+        # Timezones to use for random generation of erronous values
+        self.timezones = [
+            'Europe/Helsinki',
+            'America/New_York',
+            'Europe/Berlin',
+            'Asia/Tokyo',
+            'Australia/Sydney',
+            'America/Los_Angeles',
+            'Africa/Cairo'
+        ]
+
     
-    def read_synthetic_events(self) -> pyspark.sql.DataFrame:
+    def read_synthetic_events(self, spark: SparkSession) -> pyspark.sql.DataFrame:
         """
         Reads synthetically generated events.
 
         Returns:
             pyspark.sql.DataFrame: clean synthetic events
         """
-        
-        spark = create_spark_session(self.config["spark"], "Synthetic Error Generator")  
-
+    
         if self.config["synthetic_events_format"] == "parquet":
             df = spark.read.parquet(self.config["synthetic_events_folder_path"])
         if self.config["synthetic_events_format"] == "csv":
@@ -70,30 +83,33 @@ class SyntheticErrorGenerator:
         # If 1.0, it means that all mandatory columns can be allowed to be null-s for rows that are selected as including nulls
 
         null_row_prob = self.config["null_row_probability"]
+        
+        if null_row_prob == 0:
+            return df
+
         max_ratio_of_mandatory_columns = self.config["max_ratio_of_mandatory_columns_to_generate_as_null"]
         seed_param = 999 if self.config["use_fixed_seed"] else None
         mandatory_columns = self.config["mandatory_columns"]
 
         # 1) sample rows 2) sample columns 3) do a final join/union 
         # Sampling a new dataframe
-        df = df.withColumn("user_id_copy", F.col("user"))
+        
         sampled_df = df.sample(null_row_prob, seed = seed_param)
         df_with_nulls = sampled_df
 
         # Selecting columns based on ratio param
         for column in mandatory_columns:
-            df_with_nulls = df_with_nulls.withColumn(column, F.when(F.rand(seed_param) < max_ratio_of_mandatory_columns, 
+            df_with_nulls = df_with_nulls.withColumn(column, F.when(F.rand() < max_ratio_of_mandatory_columns, 
                                                               F.lit(None)).otherwise(F.col(column)))
 
         result_df = df\
-            .join(df_with_nulls, on = ["user_id_copy", "event_id"], how = "leftanti")\
+            .join(df_with_nulls, on = ["user_id_copy", ColNames.event_id], how = "leftanti")\
                 [[df.columns]]\
-                .unionAll(df_with_nulls)\
-                .drop(F.col("user_id_copy"))
+                .unionAll(df_with_nulls)
         
         # TODO
         # optional sorting here, in case of visual overview based on original ordering? 
-        # .orderBy([F.col("user_id_copy"), F.col("event_id")])
+        # .orderBy([F.col("user_id_copy"), F.col(ColNames.event_id)])
 
         return result_df
 
@@ -109,20 +125,23 @@ class SyntheticErrorGenerator:
         """
         
         out_of_bounds_prob = self.config["out_of_bounds_prob"]
+        
+        if out_of_bounds_prob == 0:
+            return df
+
         date_bounds = self.config["date_bounds"]
         seed_param = 999 if self.config["use_fixed_seed"] else None
         events_span_in_months = pd.Timestamp(date_bounds[1]).month - pd.Timestamp(date_bounds[0]).month
 
         # Current idea is to 1) sample rows 2) sample columns 3) do a final join/union 4) sort
-        df = df.withColumn("user_id_copy", F.col("user"))
         df_not_null_dates = df.where(F.col("timestamp").isNotNull()) 
 
         # TODO this should account for wrong type as well
         # Current approach means that this should be run after nulls, but before wrong type generation
 
         df_with_sample_column = df_not_null_dates.join(
-            df_not_null_dates[["event_id", "user"]].sample(out_of_bounds_prob, seed = seed_param).withColumn("out_of_bounds", F.lit(True)),
-            on = ["user", "event_id"],
+            df_not_null_dates[[ColNames.event_id, ColNames.user_id]].sample(out_of_bounds_prob, seed = seed_param).withColumn("out_of_bounds", F.lit(True)),
+            on = [ColNames.user_id, ColNames.event_id],
             how = "left"
         ).withColumn("out_of_bounds", F.when(
             F.col("out_of_bounds").isNull(), F.lit(False)).otherwise(F.col("out_of_bounds")))
@@ -141,18 +160,15 @@ class SyntheticErrorGenerator:
             .where(F.col("timestamp").isNull())\
             .withColumn("out_of_bounds", F.lit(None))\
                 [df.columns + ["out_of_bounds"]]\
-        .unionAll(df_with_sample_column[df.columns + ["out_of_bounds"]])\
-        .drop(F.col("user_id_copy"))
+        .unionAll(df_with_sample_column[df.columns + ["out_of_bounds"]])
 
         # TODO
         # optional sorting here, in case of visual overview based on original ordering? 
-        # .orderBy([F.col("user_id_copy"), F.col("event_id")])
-
-        result_df.dropna().show()
+        # .orderBy([F.col("user_id_copy"), F.col(ColNames.event_id)])
 
         return result_df
 
-    def cast_and_mutate_row(self, df: pyspark.sql.DataFrame, column_name: str, to_type: str, to_value: any) -> pyspark.sql.DataFrame:
+    def cast_and_mutate_row(self, df: pyspark.sql.DataFrame, column_name: str, to_type: str, to_value: F) -> pyspark.sql.DataFrame:
         """
         Casts a column from some types to another for a particular row.
         Adds selected value for that row. 
@@ -170,18 +186,21 @@ class SyntheticErrorGenerator:
 
         df = df\
             .withColumn(column_name, F.when(
-                F.col("error_row"),
+                F.col("mutate_to_error"),
                     F.col(column_name).cast(to_type))
                         .otherwise(F.col(column_name))
             )\
             .withColumn(column_name, F.when(
-                F.col("error_row"),
-                    F.lit(to_value))
+                F.col("mutate_to_error"),
+                    to_value)
                         .otherwise(F.col(column_name))
             )
 
         return df
     
+        import pytz
+
+
 
     def generate_erroneous_type_values(self, df: pyspark.sql.DataFrame) -> pyspark.sql.DataFrame:
         """
@@ -198,8 +217,12 @@ class SyntheticErrorGenerator:
         # Format check
         if self.config["synthetic_events_format"] == "parquet":
             raise ValueError("Cannot generate erronous values for parquet format.")
-    
+
         error_prob = self.config["data_type_error_probability"]
+
+        if error_prob == 0:
+            return df
+
         mandatory_columns = self.config["mandatory_columns"]    
         seed_param = 999 if self.config["use_fixed_seed"] else None
 
@@ -212,7 +235,7 @@ class SyntheticErrorGenerator:
         # as expected (for instance, the ratio of error records may be much smaller than the probability assigned,
         # because some nulls are re-done as errors)
 
-        # In case the pipeline is such that out of bounds comes later
+        # In case the pipeline is such that out of bounds comes later, or out_of_bounds probability = 0
         if "out_of_bounds" not in df.columns:
             df = df.withColumn("out_of_bounds", F.lit(False))
 
@@ -220,12 +243,10 @@ class SyntheticErrorGenerator:
         df = df.drop(F.col("out_of_bounds"))
 
         df_with_sample_column = df_not_null.join(
-            df_not_null[["event_id", "user"]].sample(error_prob, seed = seed_param).withColumn("error_row", F.lit(True)),
-            on = ["user", "event_id"],
+            df_not_null[[ColNames.event_id, ColNames.user_id]].sample(error_prob, seed = seed_param).withColumn("mutate_to_error", F.lit(True)),
+            on = [ColNames.user_id, ColNames.event_id],
             how = "left"
         )
-
-        df_with_sample_column.show()
 
         # Iterate over mandatory columns to mutate the type for a sampled row
         # First cast sampled rows, then fill with values
@@ -236,16 +257,22 @@ class SyntheticErrorGenerator:
             
             if col_dtype in ["string", "str"]:
                 to_type = "float",
-                to_value = F.lit(F.rand(seed_param))
+                to_value = F.rand(seed_param)
             
             if col_dtype in ["int", "float"]:
                 to_type = "string"
-                to_value =  F.lit("error_row")
+                random_string = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6)) + "_"
+                to_value =  F.concat(F.lit(random_string), (F.rand() * 100).cast("int"))
             
             if col_dtype in ["date", "timestamp"]:
                 to_type = "string"
-                to_value =  F.lit("random_str")
-            
+                timezone_to = random.randint(0, 12) # statically one timezone difference
+                to_value = F.concat(
+                    F.substring(F.col(column), 1, 10), 
+                    F.lit("T"), F.substring(F.col(column), 12, 9), 
+                    F.lit(f"+0{timezone_to}:00")
+                )
+
             df_with_sample_column = self.cast_and_mutate_row(
                 df_with_sample_column,
                 column, 
@@ -254,17 +281,15 @@ class SyntheticErrorGenerator:
             )
         
         # TODO check a more optional join
-        result_df = df.join(df_with_sample_column, on = ["user", "event_id"], how = "leftanti")\
+        result_df = df.join(df_with_sample_column, on = [ColNames.user_id, ColNames.event_id], how = "leftanti")\
             [df.columns]\
-            .unionAll(df_with_sample_column)\
-            [df.columns]
+            .unionAll(df_with_sample_column[df.columns])
         
         return result_df
 
 
     def generate_optional_column(self, df: pyspark.sql.DataFrame) -> pyspark.sql.DataFrame:
         """
-        Generates an optional column with a given probability.
         Generates erronous values in optional column.
 
         Args:
@@ -273,10 +298,10 @@ class SyntheticErrorGenerator:
         Returns:
             pyspark.sql.DataFrame: dataframe with optional column.
         """
+
         optional_col_probability = self.config["optional_col_probability"]
         use_fixed_seed = self.config["use_fixed_seed"]
         optional_columns = self.config["optional_columns"]    
-
 
         pass
 
@@ -298,6 +323,33 @@ class SyntheticErrorGenerator:
         if synthetic_events_format == "csv":
             df.write.option("header", "true").mode("overwrite").format("csv").save(output_dir)
 
+    def run(self) -> None:
+        """
+        Starts spark session and runs the error generation process.
+        """
+
+        spark_session = create_spark_session(self.config["spark"], "Synthetic Error Generator")  
+        synth_df = self.read_synthetic_events(spark_session)
+
+        # Create a copy of original MSID column for final sorting
+        synth_df = synth_df.withColumn("user_id_copy", F.col(ColNames.user_id))
+
+        synth_df_w_nulls = self.generate_nulls_in_mandatory_fields(synth_df)
+        synth_df_w_out_of_bounds_and_nulls = self.generate_out_of_bounds_dates(synth_df_w_nulls) 
+        synth_df_w_out_of_bounds_nulls_errors = self.generate_erroneous_type_values(synth_df_w_out_of_bounds_and_nulls) 
+        
+        # Sort
+        if self.config["sort_output"]:
+            synth_df_w_out_of_bounds_nulls_errors = synth_df_w_out_of_bounds_nulls_errors.orderBy(["user_id_copy", ColNames.event_id])
+        
+        synth_df_w_out_of_bounds_nulls_errors = synth_df_w_out_of_bounds_nulls_errors\
+            .drop(F.col("user_id_copy"))\
+            .drop(F.col(ColNames.event_id))
+        
+        # write results
+        
+        test_generator.write_erroneous_records(synth_df_w_out_of_bounds_nulls_errors)
+        
 
 if __name__ == "__main__":
 
@@ -310,36 +362,28 @@ if __name__ == "__main__":
     #   timestamp is not parsable
     #   timestamp is not within acceptable bounds
     #   timestamp has/lacks timezone 
-    
-    generator_config = {"null_row_probability":0.2, 
-            "data_type_error_probability": 0.2,
-            "out_of_bounds_prob": 0.2,
+
+          
+    generator_config = {"null_row_probability":0, 
+            "data_type_error_probability": 0.5,
+            "out_of_bounds_prob": 0,
               "max_ratio_of_mandatory_columns_to_generate_as_null": 0.5,
               "use_fixed_seed": True,
-              "synthetic_events_folder_path": "/opt/dev/sample_data/synth_modified",
+              "synthetic_events_folder_path": "/opt/dev/sample_data/synth_modified_small", # "synthetic_events_folder_path": "/opt/dev/sample_data/synth_modified",
               "synthetic_erroneous_records_path":"/opt/dev/sample_data/synth_errors",
-              "mandatory_columns": ["user", "timestamp", "cellid"],
-              "partition_columns": ["user"],
+              "mandatory_columns": [ColNames.user_id, ColNames.timestamp, ColNames.cell_id],
+              "partition_columns": [ColNames.user_id],
+                         "synthetic_events_format": "csv" ,
+                         "date_bounds": ["2021-01-01", "2021-05-01"],
+                         "sort_output": True,
               "spark": {"spark.driver.host": "localhost",
-                        "spark.driver.memory": "4g",
+                        "spark.driver.memory": "8g",
                         "spark.driver.cores": "4",
-                        "spark.executor.memory": "4g",
+                        "spark.executor.memory": "8g",
                         "spark.eventLog.enabled": "true",
                         "spark.eventLog.dir": "/opt/spark/spark-events",
                         "spark.history.fs.logDirectory": "/opt/spark/spark-events",
-                        },
-                         "synthetic_events_format": "csv" ,
-                         "date_bounds": ["2021-01-01", "2021-05-01"]} #...
-    
+                        }} 
+
     test_generator = SyntheticErrorGenerator(generator_config)
-    synth_data = test_generator.read_synthetic_events()
-    synth_data_w_nulls = test_generator.generate_nulls_in_mandatory_fields(synth_data)
-    synth_data_w_out_of_bounds_and_nulls = test_generator.generate_out_of_bounds_dates(synth_data_w_nulls) 
-    synth_data_w_out_of_bounds_nulls_errors = test_generator.generate_erroneous_type_values(synth_data_w_out_of_bounds_and_nulls) 
-    
-    # write results
-    test_generator.write_erroneous_records(synth_data_w_out_of_bounds_nulls_errors)
-    
-    synth_data_w_out_of_bounds_nulls_errors\
-        .write.option("header", "true").mode("overwrite").format("csv").save("/opt/dev/sample_data/synth_w_nulls/synth_events")
-    
+    test_generator.run()    
