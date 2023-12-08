@@ -1,0 +1,12 @@
+import pytest
+from core.configuration import parse_configuration
+from core.spark_session import generate_spark_session
+from pyspark.sql import SparkSession
+
+
+@pytest.fixture
+def spark_fixture():
+    config_path = "/opt/dev/src/tests/test_resources/testing_spark.ini"
+    config = parse_configuration(config_path)
+    spark = generate_spark_session(config)
+    yield spark
