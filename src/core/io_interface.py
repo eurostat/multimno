@@ -39,12 +39,11 @@ class PathInterface(IOInterface, metaclass=ABCMeta):
     FILE_FORMAT = ''
 
     def read_from_interface(self, spark: SparkSession, path: str, schema: StructType = None):
-        return spark.read.schema(
-            schema  # Read schema
-        ).format(
-            self.FILE_FORMAT  # File format
-        ).load(
-            path  # Load path
+        # changed to make possible to read input that do not have schema (this is the case of landing DO)
+        return spark.read.load(
+            path,
+            self.FILE_FORMAT, 
+            schema
         )
 
     def write_from_interface(self, df: DataFrame, path: str, partition_columns: list[str] = None):
