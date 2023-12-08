@@ -1,8 +1,11 @@
+from core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObject
 from pyspark.sql import SparkSession, Row
 from pyspark.sql.functions import udf, explode
 from pyspark.sql.types import IntegerType, TimestampType, ArrayType, StructType, StructField
 import random
 import datetime
+
+from core.component import Component
 from common.constants.columns import ColNames
 """ 
 Input parameters:
@@ -70,45 +73,86 @@ def generate_agent_records(n_events, starting_event_id, timestamp_generator_para
     events = zip(event_ids, timestamps, cell_ids)
     return events
 
-class SyntheticEvents:
-    appname = "synthetic_events_generator"
-    seed = 12345
-    n_agents = 100
-    n_events_per_agent = 1000
-    n_partitions = 24
-    timestamp_generator_type = "equal_gaps" # "equal_gaps" is 
-    timestamp_format = "%Y-%m-%dT%H:%M:%S"
-    starting_timestamp = datetime.datetime.strptime("2020-01-01T00:00:00", timestamp_format)
-    ending_timestamp = datetime.datetime.strptime("2020-04-01T00:00:00", timestamp_format)
-    location_generator_type = "random_cell_id" # also needs support for "lat_lon" generators
-    cell_id_min = 1
-    cell_id_max = 200
-    mcc = 123 # Will we need better mcc generation later?
-    output_records_path = "/opt/dev/data/synthetic_events"
+class SyntheticEvents(Component):
+    COMPONENT_ID = "SyntheticEventsGenerator"
 
-    def __init__(self, config: dict):
-        self.config = config
+    supported_timestamp_generator_types = ["equal_gaps"]
+    supported_location_generator_types = ["random_cell_id"]
 
-    def start_spark(self):
-        spark = SparkSession.builder\
-            .config("spark.driver.host", "localhost")\
-            .config("spark.eventLog.enabled", "true")\
-            .config("spark.eventLog.dir", "/opt/spark/spark-events")\
-            .config("spark.history.fs.logDirectory", "/opt/spark/spark-events")\
-            .appName(self.appname).getOrCreate()
-        return spark
+    def __init__(self, general_config_path: str, component_config_path: str):
+        super().__init__(general_config_path=general_config_path, component_config_path=component_config_path)
+        self.seed = self.config.getint(self.COMPONENT_ID, "seed")
+        self.n_agents = self.config.getint(self.COMPONENT_ID, "n_agents")
+        self.n_events_per_agent = self.config.getint(self.COMPONENT_ID, "n_events_per_agent")
+        self.n_partitions = self.config.getint(self.COMPONENT_ID, "n_partitions")
+
+        self.timestamp_generator_type = self.config.get(self.COMPONENT_ID, "timestamp_generator_type") #TODO support for other timestamp generation methods
+        if self.timestamp_generator_type not in self.supported_timestamp_generator_types:
+            raise ValueError(f"Unsupported timestamp_generator_type: {self.timestamp_generator_type}. Supported types are: {self.supported_timestamp_generator_types}")
+        timestamp_format = self.config.get(self.COMPONENT_ID, "timestamp_format")
+        self.starting_timestamp = datetime.datetime.strptime(self.config.get(self.COMPONENT_ID, "starting_timestamp"), timestamp_format) 
+        self.ending_timestamp = datetime.datetime.strptime(self.config.get(self.COMPONENT_ID, "ending_timestamp"), timestamp_format)
+        
+        self.location_generator_type = self.config.get(self.COMPONENT_ID, "location_generator_type") # TODO support for "lat_lon" generator, other cell_id based generator 
+        if self.location_generator_type not in self.supported_location_generator_types:
+            raise ValueError(f"Unsupported location_generator_type: {self.location_generator_type}. Supported types are: {self.supported_location_generator_types}")
+        self.cell_id_min = self.config.getint(self.COMPONENT_ID, "cell_id_min")
+        self.cell_id_max = self.config.getint(self.COMPONENT_ID, "cell_id_max")
+        
+        self.mcc = self.config.getint(self.COMPONENT_ID, "mcc") # Will we need better mcc generation later? 
+
+    def initalize_data_objects(self):
+        #init output object: bronze synthetic events
+        output_records_path = self.config.get(self.COMPONENT_ID, "output_records_path")
+
+        bronze_event = BronzeEventDataObject(self.spark, output_records_path)
+        self.output_data_objects = {
+            "SyntheticEvents": bronze_event
+        }
+
+    def read(self):
+        pass # No input datasets are used in this component
+
+    def transform(self):
+        spark = self.spark
+        # Initialize each agent, generate Spark dataframe
+        agents = self.generate_agents()
+        agents_df = spark.createDataFrame(agents)
+        # Generate events for each agent. Since the UDF generates a list, it has to be exploded to separate the rows.
+        records_df = agents_df.withColumn("record_tuple", explode(generate_agent_records("n_events", "starting_event_id", "timestamp_generator_params", "cell_id_generator_params")))\
+            .select(["*", "record_tuple.*"])
+        
+        #TODO use DataObject schema for selecting the columns?
+        records_df = records_df.select(
+            ColNames.user_id,
+            ColNames.partition_id,
+            ColNames.timestamp,
+            ColNames.mcc,
+            ColNames.cell_id#,
+            #ColNames.latitude,
+            #ColNames.longitude,
+            #ColNames.loc_error
+        )
+        # Assign output data object dataframe
+        self.output_data_objects["SyntheticEvents"].df = records_df
+
+    def write(self):
+        super().write()
+        # self.output_data_objects["SyntheticEvents"].write(partition_columns="partition_id")
+
+    def execute(self):
+        super().execute()
 
     def generate_agents(self) -> []:
         """
-        Generate agents according to parameters. 
-        Each agent should contain the information needed to generate the specified number of records for that user.
+        Generate agent rows according to parameters.
+        Each agent should include the information needed to generate the records for that user.
         """
         # Initialize agents sequentially
         #TODO event ids should be numbered per partition, not global?
         agents = []
         starting_event_id = 0
-        for i in range(self.n_agents):
-            user_id = i
+        for user_id in range(self.n_agents):
             partition_id = user_id % self.n_partitions
             agents.append(
                 Row(
@@ -125,45 +169,12 @@ class SyntheticEvents:
         return agents
     
 
-
-    def run(self):
-        """
-        """
-        # Init Spark
-        spark = self.start_spark()
-        agents = self.generate_agents()
-        print(agents)
-        # Parallelize agents in Spark
-        agents_df = spark.createDataFrame(agents)
-        agents_df.show(10)
-        agents_df.printSchema()
-        # For each agent, run event generation
-        records_df = agents_df.withColumn("record_tuple", explode(generate_agent_records("n_events", "starting_event_id", "timestamp_generator_params", "cell_id_generator_params")))\
-            .select(["*", "record_tuple.*"])
-        records_df = records_df.select(
-            ColNames.user_id,
-            ColNames.partition_id,
-            ColNames.timestamp,
-            ColNames.mcc,
-            ColNames.cell_id#,
-            #ColNames.latitude,
-            #ColNames.longitude
-        )
-
-        #TODO create DataObject of records df
-        #TODO create config and parse
-        #TODO create test file to run this?
-
-        records_df.show(10, False)
-        # Write records partitioned by partition_id
-        records_df.write.mode("append").partitionBy("partition_id").format("parquet").save(self.output_records_path)
-        return None
-
-
-
 if __name__ == "__main__":
-
+    #TODO Remove code execution from here. Implement in notebook and/or test.
     # test start
-    myconf = {"a":"b"} #...
-    test_generator = SyntheticEvents(myconf)
-    test_data = test_generator.run()
+    root_path = "/opt/dev"
+    general_config = f"{root_path}/pipe_configs/configurations/general_config.ini"
+    component_config = f"{root_path}/pipe_configs/configurations/synthetic_events/synthetic_events.ini"
+    test_generator = SyntheticEvents(general_config, component_config)
+
+    test_generator.execute()
