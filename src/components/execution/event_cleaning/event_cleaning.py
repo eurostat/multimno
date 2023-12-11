@@ -42,12 +42,8 @@ class EventCleaning(Component):
 
     def initalize_data_objects(self):
         # Input
-        bronze_event_path = self.config.get(
+        self.bronze_event_path = self.config.get(
             CONFIG_BRONZE_PATHS_KEY, "event_data_bronze")
-        bronze_event_do = BronzeEventDataObject(self.spark, bronze_event_path)
-        self.input_data_objects = {
-            BronzeEventDataObject.ID: bronze_event_do
-        }
 
         # Output
         silver_event_path = self.config.get(
@@ -76,11 +72,72 @@ class EventCleaning(Component):
         self.output_qa_frequency_distribution = event_syntactic_quality_metrics_frequency_distribution
 
     def read(self):
-        do = self.input_data_objects[BronzeEventDataObject.ID]
-        do.read(f"{do.default_path}/{self.dates_string}/")
-        self.input_df = do.df
+        bronze_event_do = BronzeEventDataObject(self.spark, f"{self.bronze_event_path}/{self.input_date_suffix}")
+        bronze_event_do.read()
+        self.events_df = bronze_event_do.df
+        # TODO: make the list of dates for bronze data objects
+
 
     def write(self):
+        # TODO: save this
+        self.events_silver_df
+        # self.output_qa_frequency_distribution
+       
+    def execute(self):
+        self.logger.info(f"Starting {self.COMPONENT_ID}...")
+        for date in self.date_list:
+            self.input_date_suffix = date 
+            self.read() # Read using the input_date_suffix, creates BronzeDataObject and self.df
+            self.transform() # Transforms the input_df
+            self.write()
+        self.save_syntactic_quality_metrics_by_column()
+        self.logger.info(f"Finished {self.COMPONENT_ID}")
+
+    def transform(self):
+
+        self.logger.info(f"Transform method {self.COMPONENT_ID}")
+        df_events = self.events_df
+        # TODO: Create Frequency quality metrics object
+
+        # Parse timestamp to timestamp
+        df_events = df_events.withColumn(
+            'timestamp', psf.to_timestamp('timestamp'))
+
+        # Extract year month day
+        df_events = df_events.withColumns({
+            'year': psf.year('timestamp'),
+            'month': psf.month('timestamp'),
+            'day': psf.dayofmonth('timestamp'),
+        })
+
+        df_events = self.handle_nulls(df_events, [ColNames.user_id, ColNames.timestamp])
+
+        df_events = self.convert_time_column_to_timestamp(
+            df_events, self.timestamp_format, self.input_timezone)
+
+        df_events = self.data_period_filtering(
+            df_events, self.data_period_start, self.data_period_end)
+
+        if self.do_bounding_box_filtering:
+            df_events = self.bounding_box_filtering(df_events, self.bounding_box)
+
+        df_events = self.cast_columns(
+            df_events, self.mandatory_columns_casting_dict, self.optional_columns_casting_dict)
+
+        df_events = df_events.withColumns({
+            ColNames.year: psf.year(ColNames.timestamp).cast('smallint'),
+            ColNames.month: psf.month(ColNames.timestamp).cast('tinyint'),
+            ColNames.day: psf.dayofmonth(
+                ColNames.timestamp).cast('tinyint')
+        })
+
+        df_events = df_events.sort([ColNames.user_id, ColNames.timestamp])
+
+        df_events = df_events.to(BronzeEventDataObject.SCHEMA)
+        self.events_silver_df = df_events
+        # TODO: update and write output_qa_frequency_distribution
+
+    def save_syntactic_quality_metrics_by_column(self):
         # self.output_qa_by_column( variable, type_of_error, type_of_transformation) : value
         # 3 Nones to match the expected schema
         df_tuples = [(variable, type_of_error, type_of_transformation, value) for (
@@ -107,64 +164,6 @@ class EventCleaning(Component):
                            self.output_qa_by_column.SCHEMA)
 
         self.output_qa_by_column.write()
-
-        # self.output_qa_frequency_distribution
-        # TODO: write output_qa_frequency_distribution
-
-    def execute(self):
-        self.logger.info(f"Starting {self.COMPONENT_ID}...")
-        self.read()
-        self.transform()
-        self.write()
-        self.logger.info(f"Finished {self.COMPONENT_ID}")
-
-    def transform(self):
-
-        self.logger.info(f"Transform method {self.COMPONENT_ID}")
-
-
-        # Read and save chunk by chunk
-        # TODO: read by chunks
-        for df_events in [self.input_df]:
-            # TODO: Update Frequency quality metrics object
-
-            # Parse timestamp to timestamp
-            df_events = df_events.withColumn(
-                'timestamp', psf.to_timestamp('timestamp'))
-
-            # Extract year month day
-            df_events = df_events.withColumns({
-                'year': psf.year('timestamp'),
-                'month': psf.month('timestamp'),
-                'day': psf.dayofmonth('timestamp'),
-            })
-
-            df_events = self.handle_nulls(df_events, [ColNames.user_id, ColNames.timestamp])
-
-            df_events = self.convert_time_column_to_timestamp(
-                df_events, self.timestamp_format, self.input_timezone)
-
-            df_events = self.data_period_filtering(
-                df_events, self.data_period_start, self.data_period_end)
-
-            if self.do_bounding_box_filtering:
-                df_events = self.bounding_box_filtering(df_events, self.bounding_box)
-
-            df_events = self.cast_columns(
-                df_events, self.mandatory_columns_casting_dict, self.optional_columns_casting_dict)
-
-            df_events = df_events.withColumns({
-                ColNames.year: psf.year(ColNames.timestamp).cast('smallint'),
-                ColNames.month: psf.month(ColNames.timestamp).cast('tinyint'),
-                ColNames.day: psf.dayofmonth(
-                    ColNames.timestamp).cast('tinyint')
-            })
-
-            df_events = df_events.sort([ColNames.user_id, ColNames.timestamp])
-
-            df_events = df_events.to(BronzeEventDataObject.SCHEMA)
-            # TODO: save df_events
-            # TODO: Update Frequency quality metrics object
 
     def handle_nulls(self,
                      df: pyspark.sql.dataframe.DataFrame,

@@ -26,6 +26,14 @@ class SilverEventDataObject(PathDataObject):
         self.partition_columns = ["year", "month", "day"]
 
     def write(self, path: str = None, partition_columns: list[str] = None):
+        # TODO: change this to append 
+
+        """return spark.read.load(
+            path,
+            self.FILE_FORMAT, 
+            schema, mode = "append"
+        )"""
+
         if path is None:
             path = self.default_path
         if partition_columns is None:
