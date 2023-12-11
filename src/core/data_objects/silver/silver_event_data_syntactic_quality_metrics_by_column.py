@@ -14,7 +14,7 @@ class SilverEventDataSyntacticQualityMetricsByColumn(PathDataObject):
         StructField("result_timestamp", TimestampType(), nullable=False),
         StructField("data_period_start", DateType(), nullable=False),
         StructField("data_period_end", DateType(), nullable=False),
-        StructField("variable", StringType(), nullable=False),
+        StructField("variable", StringType(), nullable=True),
         StructField("type_of_error", ShortType(), nullable=True),
         StructField("type_of_transformation", ShortType(), nullable=True),
         StructField("value", IntegerType(), nullable=False),
