@@ -18,7 +18,7 @@ class SilverEventDataSyntacticQualityMetricsFrequencyDistribution(PathDataObject
     def __init__(self, spark: SparkSession, default_path: str) -> None:
         super().__init__(spark, default_path)
         self.interface: ParquetInterface = ParquetInterface()
-        self.partition_columns = None
+        self.partition_columns = ["date"]
 
     def write(self, path: str = None, partition_columns: list[str] = None):
         if path is None:

@@ -32,10 +32,6 @@ class EventCleaning(Component):
             EventCleaning.COMPONENT_ID, 'do_bounding_box_filtering', fallback=False)
         self.bounding_box = self.config.geteval(
             EventCleaning.COMPONENT_ID, 'bounding_box')
-        self.mandatory_columns_casting_dict = self.config.geteval(
-            EventCleaning.COMPONENT_ID, 'mandatory_columns_casting_dict')
-        self.optional_columns_casting_dict = self.config.geteval(
-            EventCleaning.COMPONENT_ID, 'optional_columns_casting_dict')
 
     def initalize_data_objects(self):
         # Input
@@ -85,6 +81,9 @@ class EventCleaning(Component):
         # TODO: use this later
         event_syntactic_quality_metrics_frequency_distribution_path = self.config.get(
             CONFIG_SILVER_PATHS_KEY, "event_syntactic_quality_metrics_frequency_distribution")
+        event_syntactic_quality_metrics_frequency_distribution = SilverEventDataSyntacticQualityMetricsFrequencyDistribution(
+            self.spark, event_syntactic_quality_metrics_frequency_distribution_path)
+        self.output_data_objects[SilverEventDataSyntacticQualityMetricsFrequencyDistribution.ID] = event_syntactic_quality_metrics_frequency_distribution
 
     def read(self):
         self.current_input_do.read()
@@ -92,7 +91,7 @@ class EventCleaning(Component):
     def write(self):
         self.output_data_objects[SilverEventDataObject.ID].write()
         # TODO: save this
-        # self.output_qa_frequency_distribution
+        self.output_data_objects[SilverEventDataSyntacticQualityMetricsFrequencyDistribution.ID].write()
 
     def execute(self):
         self.logger.info(f"Starting {self.COMPONENT_ID}...")
@@ -109,26 +108,48 @@ class EventCleaning(Component):
 
         self.logger.info(f"Transform method {self.COMPONENT_ID}")
         df_events = self.current_input_do.df
-
-        # TODO: Create Frequency quality metrics object
-
-        # Parse timestamp to timestamp
-        df_events = df_events.withColumn(
-            'timestamp', psf.to_timestamp('timestamp'))
-
+        df_events = df_events.cache()
+        quality_metrics_distribution_before = df_events.groupBy(ColNames.cell_id, ColNames.user_id)\
+                                                       .agg(psf.count("*").alias(ColNames.initial_frequency))
+        
         df_events = self.handle_nulls(
             df_events, [ColNames.user_id, ColNames.timestamp])
-
+        
+        # already cached in previous function
         df_events = self.convert_time_column_to_timestamp(
             df_events, self.timestamp_format, self.input_timezone)
-
+        
+        df_events = df_events.cache()
+        # TODO: discuss is it even needed
         df_events = self.data_period_filtering(
             df_events, self.data_period_start, self.data_period_end)
 
         if self.do_bounding_box_filtering:
+            df_events = df_events.cache()
             df_events = self.bounding_box_filtering(
                 df_events, self.bounding_box)
 
+
+        self.spark.catalog.clearCache()
+
+        quality_metrics_distribution_after = df_events.groupBy(ColNames.cell_id, ColNames.user_id)\
+                                                      .agg(psf.count("*").alias(ColNames.final_frequency))
+        
+        quality_metrics_distribution = quality_metrics_distribution_before.join(
+            quality_metrics_distribution_after, [ColNames.cell_id, ColNames.user_id], 'left'
+        ).select(quality_metrics_distribution_before.columns + [ColNames.final_frequency])
+
+        quality_metrics_distribution = quality_metrics_distribution.fillna(0, ColNames.final_frequency)
+        print(self.current_input_do.default_path)
+        curr_data = self.current_input_do.default_path.split("/")[-1]
+        # TODO: discuss should "yyyyMMdd" go to config? or find format that suites noth pandas and spark
+        quality_metrics_distribution = quality_metrics_distribution.withColumn(
+            ColNames.date, psf.to_date(psf.lit(curr_data), "yyyyMMdd")
+        )
+
+        # TODO: discuss
+        # if we impose the rule on input data that data in a folder 
+        # is of date specified in folder name - maybe better to use F.lit()
         df_events = df_events.withColumns({
             ColNames.year: psf.year(ColNames.timestamp).cast('smallint'),
             ColNames.month: psf.month(ColNames.timestamp).cast('tinyint'),
@@ -139,7 +160,7 @@ class EventCleaning(Component):
         df_events = df_events.sort([ColNames.user_id, ColNames.timestamp])
 
         self.output_data_objects[SilverEventDataObject.ID].df = df_events
-        # TODO: Assign output_qa_frequency_distribution to self
+        self.output_data_objects[SilverEventDataSyntacticQualityMetricsFrequencyDistribution.ID].df = quality_metrics_distribution
 
     def save_syntactic_quality_metrics_by_column(self):
         # self.output_qa_by_column( variable, type_of_error, type_of_transformation) : value
@@ -148,23 +169,24 @@ class EventCleaning(Component):
             variable, type_of_error, type_of_transformation), value in self.output_qa_by_column.error_and_transformation_counts.items()]
 
         temp_schema = StructType([
-            StructField("variable", StringType(), nullable=True),
-            StructField("type_of_error", ShortType(), nullable=True),
-            StructField("type_of_transformation", ShortType(), nullable=True),
-            StructField("value", IntegerType(), nullable=False),
+            StructField(ColNames.variable, StringType(), nullable=True),
+            StructField(ColNames.type_of_error, ShortType(), nullable=True),
+            StructField(ColNames.type_of_transformation, ShortType(), nullable=True),
+            StructField(ColNames.value, IntegerType(), nullable=False),
         ])
         # TODO: use column names from Columns
         self.output_qa_by_column.df = self.spark.createDataFrame(
             df_tuples, temp_schema)
 
-        self.output_qa_by_column.df = self.output_qa_by_column.df.withColumns({
-            "result_timestamp": psf.lit(psf.current_timestamp()),
-            "data_period_start": psf.to_date(psf.lit("2023-01-01")),
-            "data_period_end": psf.to_date(psf.lit("2023-05-01"))
-        })
+        self.output_qa_by_column.df = self.output_qa_by_column.df\
+                                    .withColumns({
+                                        ColNames.result_timestamp: psf.lit(psf.current_timestamp()),
+                                        ColNames.data_period_start: psf.to_date(psf.lit(self.data_period_start)),
+                                        ColNames.data_period_end: psf.to_date(psf.lit(self.data_period_end))
+                                    })\
+                                    .select(
+                                        self.output_qa_by_column.SCHEMA.fieldNames())
 
-        self.output_qa_by_column.df = self.output_qa_by_column.df.select(
-            self.output_qa_by_column.SCHEMA.fieldNames())
         self.output_qa_by_column.df = self.spark.createDataFrame(self.output_qa_by_column.df.rdd,
                                                                  self.output_qa_by_column.SCHEMA)
 
@@ -185,20 +207,26 @@ class EventCleaning(Component):
                      filter_columns: list[str] = None
                      ) -> pyspark.sql.dataframe.DataFrame:
 
-        df = df.na.drop(how='any', subset=filter_columns)
-        # TODO: update self.output_qa_by_column.error_and_transformation_counts
-        # self.output_qa_by_column.error_and_transformation_counts[('cell_id', ErrorTypes.missing_value, None)] += 100
+        for filter_column in filter_columns:
+
+            filtered_df = df.na.drop(how='any', subset=filter_column)
+            self.output_qa_by_column.error_and_transformation_counts[(filter_column, ErrorTypes.missing_value, None)] += df.count() - filtered_df.count()
+            self.output_qa_by_column.error_and_transformation_counts[(filter_column, ErrorTypes.no_error, None)] += filtered_df.count()
+
+            df = filtered_df.cache()
+
         return df
 
     def filter_null_locations(self,
                               df: pyspark.sql.dataframe.DataFrame
                               ) -> pyspark.sql.dataframe.DataFrame:
 
-        df = df.filter((psf.col(ColNames.cell_id).isNotNull()) |
+        filtered_df = df.filter((psf.col(ColNames.cell_id).isNotNull()) |
                        (psf.col(ColNames.longitude).isNotNull() & psf.col(ColNames.latitude).isNotNull()))
+        
+        self.output_qa_by_column.error_and_transformation_counts[(None, ErrorTypes.no_location, None)] += df.count() - filtered_df.count()
 
-        # TODO: update self.output_qa_by_column.error_and_transformation_counts
-        return df
+        return filtered_df
 
     def convert_time_column_to_timestamp(self,
                                          df: pyspark.sql.dataframe.DataFrame,
@@ -206,11 +234,14 @@ class EventCleaning(Component):
                                          input_timezone: str
                                          ) -> pyspark.sql.dataframe.DataFrame:
 
-        df = df.withColumn(ColNames.timestamp,
+        filtered_df = df.withColumn(ColNames.timestamp,
                            psf.to_utc_timestamp(psf.to_timestamp(ColNames.timestamp, timestampt_format), input_timezone))\
             .filter(psf.col(ColNames.timestamp).isNotNull())
-        # TODO: update self.output_qa_by_column.error_and_transformation_counts
-        return df
+        
+        self.output_qa_by_column.error_and_transformation_counts[(ColNames.timestamp, None, Transformations.converted_timestamp)] += filtered_df.count()
+        self.output_qa_by_column.error_and_transformation_counts[(ColNames.timestamp, ErrorTypes.not_right_syntactic_format, None)] += df.count() - filtered_df.count()
+
+        return filtered_df
 
     def data_period_filtering(self,
                               df: pyspark.sql.dataframe.DataFrame,
@@ -220,10 +251,14 @@ class EventCleaning(Component):
 
         data_period_start = pd.to_datetime(data_period_start)
         data_period_end = pd.to_datetime(data_period_end)+pd.Timedelta(days=1)
-        df = df.filter(psf.col(ColNames.timestamp).between(
+        filtered_df = df.filter(psf.col(ColNames.timestamp).between(
             data_period_start, data_period_end))
-        # TODO: update self.output_qa_by_column.error_and_transformation_counts
-        return df
+        
+        self.output_qa_by_column.error_and_transformation_counts[(ColNames.timestamp, ErrorTypes.out_of_admissable_values, None)] += df.count() - filtered_df.count()
+        # TODO: if we do not use data_period_filtering don't forget to put this in convert_time_column_to_timestamp
+        self.output_qa_by_column.error_and_transformation_counts[(ColNames.timestamp, ErrorTypes.no_error, None)] += filtered_df.count()
+
+        return filtered_df
 
     def bounding_box_filtering(self,
                                df: pyspark.sql.dataframe.DataFrame,
@@ -235,30 +270,7 @@ class EventCleaning(Component):
         lon_condition = (psf.col(ColNames.longitude).between(
             bounding_box['min_lon'], bounding_box['max_lon']) | psf.col(ColNames.longitude).isNull())
 
-        df = df.filter(lat_condition & lon_condition)
-        # TODO: update self.output_qa_by_column.error_and_transformation_counts
-        return df
+        filtered_df = df.filter(lat_condition & lon_condition)
+        self.output_qa_by_column.error_and_transformation_counts[(None, ErrorTypes.out_of_bounding_box, None)] += df.count() - filtered_df.count()
 
-    def cast_columns(self,
-                     df: pyspark.sql.dataframe.DataFrame,
-                     mandatory_columns_casting_dict: dict,
-                     optional_columns_casting_dict: dict
-                     ) -> pyspark.sql.dataframe.DataFrame:
-
-        # for python 3.9 and greater
-        columns_casting_dict = mandatory_columns_casting_dict | optional_columns_casting_dict
-
-        # based on optimized logical plan and physical plan spark is smart enough to not cast twice
-        for col, dtype in columns_casting_dict.items():
-            df = df.withColumn(col, psf.col(col).cast(dtype))
-
-        # nulls in location columns are treated differently
-        # optional columns can have null values
-        # spark understands that timestamp should not be checked for nulls twice (already done in convert_time_column_to_timestamp function)
-        filter_columns = list(set(mandatory_columns_casting_dict.keys())
-                              - set([ColNames.cell_id, ColNames.latitude, ColNames.longitude] +
-                                    list(optional_columns_casting_dict.keys())))
-
-        df = self.handle_nulls(df, filter_columns)
-
-        return df
+        return filtered_df
