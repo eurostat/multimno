@@ -183,6 +183,7 @@ class EventCleaning(Component):
 
         df = df.na.drop(how='any', subset=filter_columns)
         # TODO: update self.output_qa_by_column.error_and_transformation_counts
+        # self.output_qa_by_column.error_and_transformation_counts[('cell_id', ErrorTypes.missing_value, None)] += 100
         return df
 
     def filter_null_locations(self,
