@@ -14,7 +14,7 @@ class SilverEventDataObject(PathDataObject):
         StructField("user_id", BinaryType(), nullable=False),
         StructField("timestamp", TimestampType(), nullable=False),
         StructField("mcc", IntegerType(), nullable=False),
-        StructField("cell_id", StringType(), nullable=False),
+        StructField("cell_id", StringType(), nullable=True),
         StructField("latitude", FloatType(), nullable=True),
         StructField("longitude", FloatType(), nullable=True),
         StructField("loc_error", FloatType(), nullable=True)
