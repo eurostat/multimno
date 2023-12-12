@@ -91,7 +91,7 @@ class EventCleaning(Component):
     def write(self):
         self.output_data_objects[SilverEventDataObject.ID].write()
         # TODO: save this
-        self.output_data_objects[SilverEventDataSyntacticQualityMetricsFrequencyDistribution.ID].write()
+        self.output_data_objects[SilverEventDataSyntacticQualityMetricsFrequencyDistribution.ID].write(self.output_quality_metrics_distribution_path)
 
     def execute(self):
         self.logger.info(f"Starting {self.COMPONENT_ID}...")
@@ -142,7 +142,7 @@ class EventCleaning(Component):
         quality_metrics_distribution = quality_metrics_distribution.fillna(0, ColNames.final_frequency)
         print(self.current_input_do.default_path)
         curr_data = self.current_input_do.default_path.split("/")[-1]
-        # TODO: discuss should "yyyyMMdd" go to config? or find format that suites noth pandas and spark
+        # TODO: discuss should "yyyyMMdd" go to config? or find format that suites both pandas and spark
         quality_metrics_distribution = quality_metrics_distribution.withColumn(
             ColNames.date, psf.to_date(psf.lit(curr_data), "yyyyMMdd")
         )
@@ -161,6 +161,7 @@ class EventCleaning(Component):
 
         self.output_data_objects[SilverEventDataObject.ID].df = df_events
         self.output_data_objects[SilverEventDataSyntacticQualityMetricsFrequencyDistribution.ID].df = quality_metrics_distribution
+        self.output_quality_metrics_distribution_path = f"{self.output_data_objects[SilverEventDataSyntacticQualityMetricsFrequencyDistribution.ID].default_path}/{curr_data}"
 
     def save_syntactic_quality_metrics_by_column(self):
         # self.output_qa_by_column( variable, type_of_error, type_of_transformation) : value
