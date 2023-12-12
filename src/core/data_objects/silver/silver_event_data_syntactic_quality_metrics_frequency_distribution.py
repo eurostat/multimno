@@ -10,9 +10,9 @@ class SilverEventDataSyntacticQualityMetricsFrequencyDistribution(PathDataObject
     SCHEMA = StructType([
         StructField("cell_id", StringType(), nullable=True),
         StructField("user_id", BinaryType(), nullable=True),
-        StructField("date", DateType(), nullable=False),
         StructField("initial_frequency", IntegerType(), nullable=False),
-        StructField("final_frequency", IntegerType(), nullable=False)
+        StructField("final_frequency", IntegerType(), nullable=False), 
+        StructField("date", DateType(), nullable=False)
     ])
 
     def __init__(self, spark: SparkSession, default_path: str) -> None:

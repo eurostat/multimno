@@ -13,7 +13,6 @@ from core.transformations import Transformations
 
 from pyspark.sql.types import StructType, StructField, StringType, TimestampType, FloatType, BinaryType, IntegerType, ShortType, DateType
 import pandas as pd
-import datetime
 import os
 
 
@@ -84,14 +83,14 @@ class EventCleaning(Component):
         event_syntactic_quality_metrics_frequency_distribution = SilverEventDataSyntacticQualityMetricsFrequencyDistribution(
             self.spark, event_syntactic_quality_metrics_frequency_distribution_path)
         self.output_data_objects[SilverEventDataSyntacticQualityMetricsFrequencyDistribution.ID] = event_syntactic_quality_metrics_frequency_distribution
+        self.output_qa_freq_distribution = event_syntactic_quality_metrics_frequency_distribution
 
     def read(self):
         self.current_input_do.read()
 
     def write(self):
         self.output_data_objects[SilverEventDataObject.ID].write()
-        # TODO: save this
-        self.output_data_objects[SilverEventDataSyntacticQualityMetricsFrequencyDistribution.ID].write(self.output_quality_metrics_distribution_path)
+        self.save_syntatctic_quality_metrics_frequency_distribution()
 
     def execute(self):
         self.logger.info(f"Starting {self.COMPONENT_ID}...")
@@ -109,7 +108,8 @@ class EventCleaning(Component):
         self.logger.info(f"Transform method {self.COMPONENT_ID}")
         df_events = self.current_input_do.df
         df_events = df_events.cache()
-        quality_metrics_distribution_before = df_events.groupBy(ColNames.cell_id, ColNames.user_id)\
+        # TODO: discuss should null cases also go there e.g. cell_id = 1, user_id = null, by now - yes
+        self.quality_metrics_distribution_before = df_events.groupBy(ColNames.cell_id, ColNames.user_id)\
                                                        .agg(psf.count("*").alias(ColNames.initial_frequency))
         
         df_events = self.handle_nulls(
@@ -129,23 +129,11 @@ class EventCleaning(Component):
             df_events = self.bounding_box_filtering(
                 df_events, self.bounding_box)
 
-
         self.spark.catalog.clearCache()
 
-        quality_metrics_distribution_after = df_events.groupBy(ColNames.cell_id, ColNames.user_id)\
+        self.quality_metrics_distribution_after = df_events.groupBy(ColNames.cell_id, ColNames.user_id)\
                                                       .agg(psf.count("*").alias(ColNames.final_frequency))
         
-        quality_metrics_distribution = quality_metrics_distribution_before.join(
-            quality_metrics_distribution_after, [ColNames.cell_id, ColNames.user_id], 'left'
-        ).select(quality_metrics_distribution_before.columns + [ColNames.final_frequency])
-
-        quality_metrics_distribution = quality_metrics_distribution.fillna(0, ColNames.final_frequency)
-        print(self.current_input_do.default_path)
-        curr_data = self.current_input_do.default_path.split("/")[-1]
-        # TODO: discuss should "yyyyMMdd" go to config? or find format that suites both pandas and spark
-        quality_metrics_distribution = quality_metrics_distribution.withColumn(
-            ColNames.date, psf.to_date(psf.lit(curr_data), "yyyyMMdd")
-        )
 
         # TODO: discuss
         # if we impose the rule on input data that data in a folder 
@@ -159,9 +147,31 @@ class EventCleaning(Component):
 
         df_events = df_events.sort([ColNames.user_id, ColNames.timestamp])
 
-        self.output_data_objects[SilverEventDataObject.ID].df = df_events
-        self.output_data_objects[SilverEventDataSyntacticQualityMetricsFrequencyDistribution.ID].df = quality_metrics_distribution
-        self.output_quality_metrics_distribution_path = f"{self.output_data_objects[SilverEventDataSyntacticQualityMetricsFrequencyDistribution.ID].default_path}/{curr_data}"
+        self.output_data_objects[SilverEventDataObject.ID].df = self.spark.createDataFrame(df_events.rdd, 
+                                                                                           SilverEventDataObject.SCHEMA
+                                                                                          )
+                                                                                          
+    
+    def save_syntatctic_quality_metrics_frequency_distribution(self): 
+
+        self.output_qa_freq_distribution.df = self.quality_metrics_distribution_before.join(
+            self.quality_metrics_distribution_after, [ColNames.cell_id, ColNames.user_id], 'left'
+        ).select(
+            self.quality_metrics_distribution_before.columns + [ColNames.final_frequency]
+        )
+
+        self.output_qa_freq_distribution.df = self.output_qa_freq_distribution.df.fillna(0, ColNames.final_frequency)
+
+        curr_data = self.current_input_do.default_path.split("/")[-1]
+        # TODO: discuss should "yyyyMMdd" go to config? or find format that suites both pandas and spark
+        self.output_qa_freq_distribution.df = self.output_qa_freq_distribution.df.withColumn(
+            ColNames.date, psf.to_date(psf.lit(curr_data), "yyyyMMdd")
+        )
+
+        self.output_qa_freq_distribution.df = self.spark.createDataFrame(self.output_qa_freq_distribution.df.rdd,
+                                                                         self.output_qa_freq_distribution.SCHEMA)
+    
+        self.output_qa_freq_distribution.write(f"{self.output_qa_freq_distribution.default_path}/{curr_data}")
 
     def save_syntactic_quality_metrics_by_column(self):
         # self.output_qa_by_column( variable, type_of_error, type_of_transformation) : value
@@ -212,7 +222,9 @@ class EventCleaning(Component):
 
             filtered_df = df.na.drop(how='any', subset=filter_column)
             self.output_qa_by_column.error_and_transformation_counts[(filter_column, ErrorTypes.missing_value, None)] += df.count() - filtered_df.count()
-            self.output_qa_by_column.error_and_transformation_counts[(filter_column, ErrorTypes.no_error, None)] += filtered_df.count()
+            # because timestamp columns is then also used in another filters, and no error count should be done in the last filter
+            if filter_column != ColNames.timestamp:
+                self.output_qa_by_column.error_and_transformation_counts[(filter_column, ErrorTypes.no_error, None)] += filtered_df.count()
 
             df = filtered_df.cache()
 
