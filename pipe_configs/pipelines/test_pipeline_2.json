@@ -1,9 +1,0 @@
-{
-    "general_config_path": "/opt/dev/pipe_configs/configurations/general_config.ini",
-    "pipeline": [
-        {
-            "component_id": "EventCleaning",
-            "component_config_path": "/opt/dev/pipe_configs/configurations/event/event_cleaning_2.ini"
-        }
-    ]
-}
