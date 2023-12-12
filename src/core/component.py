@@ -37,6 +37,7 @@ class Component(metaclass=ABCMeta):
 
     def write(self):
         for data_object in self.output_data_objects.values():
+            # print(data_object)
             data_object.write()
 
     def execute(self):

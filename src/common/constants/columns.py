@@ -9,3 +9,4 @@ class ColNames:
     latitude = "latitude"
     longitude = "longitude"
     loc_error = "loc_error"
+    event_id = "event_id"

@@ -2,8 +2,8 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType, BinaryType
 
 from core.data_objects.data_object import PathDataObject
-from core.io_interface import ParquetInterface
-
+from core.io_interface import PathInterface
+# from core.io_interface import ParquetInterface
 
 class BronzeEventDataObject(PathDataObject):
     ID = "BronzeEventDO"
@@ -17,7 +17,15 @@ class BronzeEventDataObject(PathDataObject):
         StructField("loc_error", FloatType(), nullable=True)
     ])
 
-    def __init__(self, spark: SparkSession, default_path: str) -> None:
+    def __init__(self, spark: SparkSession, default_path: str, interface: PathInterface) -> None:
         super().__init__(spark, default_path)
-        self.interface = ParquetInterface()
+        self.interface = interface
 
+
+
+print(BronzeEventDataObject.SCHEMA)
+
+# for i in BronzeEventDataObject.SCHEMA:
+    # print(i.simpleString)
+    # print(i.name)
+    #print()

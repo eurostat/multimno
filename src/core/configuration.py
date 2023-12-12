@@ -27,3 +27,5 @@ def parse_configuration(general_config_path: str, component_config_path: str = "
     parser.read(config_paths)
 
     return parser
+
+

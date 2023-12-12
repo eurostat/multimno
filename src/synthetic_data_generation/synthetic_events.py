@@ -2,6 +2,8 @@ from core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObj
 from pyspark.sql import SparkSession, Row
 from pyspark.sql.functions import udf, explode
 from pyspark.sql.types import IntegerType, TimestampType, ArrayType, StructType, StructField
+from core.io_interface import ParquetInterface, CsvInterface
+
 import random
 import datetime
 
@@ -105,7 +107,10 @@ class SyntheticEvents(Component):
         #init output object: bronze synthetic events
         output_records_path = self.config.get(self.COMPONENT_ID, "output_records_path")
 
-        bronze_event = BronzeEventDataObject(self.spark, output_records_path)
+        # TODO csv interface support needed ?
+        bronze_event = BronzeEventDataObject(self.spark, output_records_path, ParquetInterface())
+        # def __init__(self, spark: SparkSession, default_path: str, interface: PathInterface)
+
         self.output_data_objects = {
             "SyntheticEvents": bronze_event
         }
@@ -123,16 +128,22 @@ class SyntheticEvents(Component):
             .select(["*", "record_tuple.*"])
         
         #TODO use DataObject schema for selecting the columns?
+        bronze_columns = [i.name for i in BronzeEventDataObject.SCHEMA]
+        for unsupported_column in ["longitude", "latitude", "loc_error"]: # TODO integrate with ColNames
+            bronze_columns.remove(unsupported_column)
+
         records_df = records_df.select(
-            ColNames.user_id,
-            ColNames.partition_id,
-            ColNames.timestamp,
-            ColNames.mcc,
-            ColNames.cell_id#,
+            bronze_columns
+            # ColNames.user_id,
+            # ColNames.partition_id,
+            # ColNames.timestamp,
+            # ColNames.mcc,
+            # ColNames.cell_id#,
             #ColNames.latitude,
             #ColNames.longitude,
             #ColNames.loc_error
         )
+
         # Assign output data object dataframe
         self.output_data_objects["SyntheticEvents"].df = records_df
 
@@ -141,7 +152,11 @@ class SyntheticEvents(Component):
         # self.output_data_objects["SyntheticEvents"].write(partition_columns="partition_id")
 
     def execute(self):
-        super().execute()
+        # super().execute()
+        self.logger.info(f"Starting {self.COMPONENT_ID}...")
+        self.transform()
+        self.write()
+        self.logger.info(f"Finished {self.COMPONENT_ID}")
 
     def generate_agents(self) -> []:
         """
