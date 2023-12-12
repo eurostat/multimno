@@ -8,11 +8,11 @@ from core.io_interface import ParquetInterface
 class SilverEventDataSyntacticQualityMetricsFrequencyDistribution(PathDataObject):
     ID = "SilverEventDataSyntacticQualityMetricsFrequencyDistribution"
     SCHEMA = StructType([
-        StructField("cell_id", StringType(), nullable=False),
-        StructField("user_id", BinaryType(), nullable=False),
+        StructField("cell_id", StringType(), nullable=True),
+        StructField("user_id", BinaryType(), nullable=True),
         StructField("date", DateType(), nullable=False),
         StructField("initial_frequency", IntegerType(), nullable=False),
-        StructField("final_frequency", StringType(), nullable=False)
+        StructField("final_frequency", IntegerType(), nullable=False)
     ])
 
     def __init__(self, spark: SparkSession, default_path: str) -> None:
