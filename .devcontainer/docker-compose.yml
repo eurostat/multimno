@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  jupyter:
+    image: multimno-py${PYTHON_VERSION}-spark${SPARK_VERSION}
+    build:
+      context: ../resources
+      dockerfile: ../.devcontainer/Dockerfile
+      target: multimno-dev
+      args:
+        - PYTHON_VERSION=${PYTHON_VERSION}
+        - JDK_VERSION=${JDK_VERSION}
+        - SPARK_VERSION=${SPARK_VERSION}
+        - SEDONA_VERSION=${SEDONA_VERSION}
+        - GEOTOOLS_WRAPPER=${GEOTOOLS_WRAPPER}
+    container_name: ${CONTAINER_NAME}
+    hostname: ${CONTAINER_NAME}
+    command: sleep infinity
+    volumes:
+      - ..:/opt/dev
+      - ${DATA_DIR}:/opt/data
+      - ${SPARK_LOGS_DIR}:/opt/spark/spark-events
+    ports:
+      - "${JL_PORT}:8888"
+      - "4040:4040"
+      - "18080:18080"
+    deploy:
+      resources:
+        limits:
+          cpus: ${JL_CPU}
+          memory: ${JL_MEM}
