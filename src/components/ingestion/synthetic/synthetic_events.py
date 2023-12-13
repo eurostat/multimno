@@ -1,9 +1,7 @@
 from core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObject
 from pyspark.sql import Row, DataFrame
-from pyspark.sql.functions import udf, explode, conv, substring, sha2, shiftRightUnsigned, col
+from pyspark.sql.functions import udf, explode, sha2, col
 from pyspark.sql.types import IntegerType, TimestampType, ArrayType, StructType, StructField, BinaryType
-from core.io_interface import ParquetInterface
-
 
 import random
 import datetime
@@ -105,11 +103,13 @@ class SyntheticEvents(Component):
         self.mcc = self.config.getint(self.COMPONENT_ID, "mcc") # Will we need better mcc generation later? 
 
     def initalize_data_objects(self):
-        #init output object: bronze synthetic events
+    
         output_records_path = self.config.get(self.COMPONENT_ID, "output_records_path")
 
         # TODO csv interface support needed ?
-        bronze_event = BronzeEventDataObject(self.spark, output_records_path, ParquetInterface()) # ParquetInterface()
+        bronze_event = BronzeEventDataObject(self.spark, output_records_path, 
+                                             #partition_columns = [ColNames.year, ColNames.month, ColNames.day]
+                                            ) # ParquetInterface()
 
         self.output_data_objects = {
             "SyntheticEvents": bronze_event
@@ -120,6 +120,7 @@ class SyntheticEvents(Component):
 
     def transform(self):
         spark = self.spark
+    
         # Initialize each agent, generate Spark dataframe
         agents = self.generate_agents()
         agents_df = spark.createDataFrame(agents)
@@ -141,11 +142,16 @@ class SyntheticEvents(Component):
             bronze_columns
         )
 
+        #records_df = records_df.withColumn(ColNames.year, year(col(ColNames.timestamp)))
+        #records_df = records_df.withColumn(ColNames.month, month(col(ColNames.timestamp)))
+        #records_df = records_df.withColumn(ColNames.day, dayofmonth(col(ColNames.timestamp)))
+        
         # Assign output data object dataframe
         self.output_data_objects["SyntheticEvents"].df = records_df
 
     def write(self):
         super().write()
+
         # self.output_data_objects["SyntheticEvents"].write(partition_columns="partition_id")
 
     def execute(self):

@@ -1,11 +1,6 @@
 
 from configparser import ConfigParser
-try:
-    from sedona.spark import SedonaContext
-except ImportError as importerror:
-    print("Unable to import Sedona")
-
-from pyspark.sql import SparkSession
+from sedona.spark import SedonaContext
 
 SPARK_CONFIG_KEY = "Spark"
 
@@ -20,44 +15,27 @@ def generate_spark_session(config: ConfigParser):
         SparkSession: Session of spark.
     """
     conf_dict = dict(config[SPARK_CONFIG_KEY])
+    master = conf_dict.pop('spark.master')
+    session_name = conf_dict.pop('session_name')
 
-    if "sedona_enabled" in conf_dict.keys():
-        sedona_enabled = eval(conf_dict.pop("sedona_enabled"))
-    else:
-        sedona_enabled = True
-    
-    if sedona_enabled == False:
-        master = conf_dict.pop('spark.master')
-        session_name = conf_dict.pop('session_name')
+    builder = SedonaContext.builder().appName(
+        f'{session_name}'
+    ).master(
+        master
+    )
 
-        # Generic Spark session
-        spark = SparkSession.builder.appName(session_name).master(master)
+    # Configuration file spark configs
+    for k, v in conf_dict.items():
+        builder = builder.config(k, v)
 
-        for key, value in conf_dict.items():
-            spark = spark.config(key, value)
+    # Set sedona session
+    spark = SedonaContext.create(builder.getOrCreate())
+    sc = spark.sparkContext
+    sc.setSystemProperty("sedona.global.charset", "utf8")
 
-        session = spark.getOrCreate()
-        session.conf.set("spark.sql.session.timeZone", "UTC")
-        
-        return session 
+    # Set log
+    sc.setLogLevel('ERROR')
+    log4j = sc._jvm.org.apache.log4j
+    log4j.LogManager.getRootLogger().setLevel(log4j.Level.ERROR)
 
-    else:
-        builder = SedonaContext.builder().appName(
-            f'{session_name}'
-        ).master(
-            master
-        )
-
-        # Configuration file spark configs
-        for k, v in conf_dict.items():
-            builder = builder.config(k, v)
-        
-        sc = spark.sparkContext
-        sc.setSystemProperty("sedona.global.charset", "utf8")
-
-        # Set log
-        sc.setLogLevel('ERROR')
-        log4j = sc._jvm.org.apache.log4j
-        log4j.LogManager.getRootLogger().setLevel(log4j.Level.ERROR)
-
-        return spark
+    return spark

@@ -2,7 +2,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType, BinaryType
 
 from core.data_objects.data_object import PathDataObject
-from core.io_interface import PathInterface
+from core.io_interface import ParquetInterface
 from common.constants.columns import ColNames
 
 class BronzeEventDataObject(PathDataObject):
@@ -17,9 +17,18 @@ class BronzeEventDataObject(PathDataObject):
         StructField(ColNames.loc_error, FloatType(), nullable=True)
     ])
 
-    def __init__(self, spark: SparkSession, default_path: str, interface: PathInterface) -> None:
+    def __init__(self, spark: SparkSession, default_path: str, partition_columns: list[str] = None) -> None:
         super().__init__(spark, default_path)
-        self.interface = interface
+        self.interface: ParquetInterface = ParquetInterface()
+        self.partition_columns = partition_columns 
+
+    def write(self, path: str = None, partition_columns: list[str] = None):
+        if path is None:
+            path = self.default_path
+        if partition_columns is None:
+            partition_columns = self.partition_columns
+
+        self.interface.write_from_interface(self.df, path, partition_columns)
 
 
 

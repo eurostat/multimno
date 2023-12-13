@@ -14,7 +14,6 @@ import pandas as pd
 from core.component import Component
 from common.constants.columns import ColNames
 from core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObject
-from core.io_interface import ParquetInterface, CsvInterface
 from pyspark.sql.types import StringType, IntegerType, FloatType, BinaryType
 
     
@@ -37,20 +36,21 @@ class SyntheticErrors(Component):
         self.out_of_bounds_prob =  self.config.getfloat(self.COMPONENT_ID, 
                                                            "out_of_bounds_probability")  
         
-        self.optional_columns = [ColNames.loc_error] 
+        self.optional_columns = [ColNames.loc_error] #static definition at the moment  #self.config.get(self.COMPONENT_ID, "optional_columns")
 
         bronze_columns = [i.name for i in BronzeEventDataObject.SCHEMA]
 
         for optional_column in self.optional_columns:
             bronze_columns.remove(optional_column)
         
-        self.unsupported_columns = [Colnames.longitude, ColNames.latitude]
+        self.unsupported_columns = [ColNames.longitude, ColNames.latitude]
 
         for unsupported_column in self.unsupported_columns: 
             # TODO integrate with ColNames
             # TODO support for lon, lat
             bronze_columns.remove(unsupported_column)
 
+        # bronze_columns.remove(ColNames.date)
         self.mandatory_columns = bronze_columns
         self.seed = self.config.getint(self.COMPONENT_ID, "seed")
         
@@ -70,25 +70,24 @@ class SyntheticErrors(Component):
                                                            "data_type_error_probability") 
         
         self.output_file_format = self.config.get(self.COMPONENT_ID, "output_file_format")
-        
-        if self.output_file_format == "parquet" and self.error_prob != 0:
-            raise ValueError("Cannot generate erronous (data mismatch) values for parquet format.")
-
-        if self.output_file_format == "csv":
-            self.output_interface = CsvInterface()
-        elif self.output_file_format == "parquet":
-            self.output_interface = ParquetInterface()
-        else:
-            raise ValueError("Invalid output format for synthetic errors.")
+        # if self.output_file_format == "csv":
+        #     self.output_interface = CsvInterface()
+        # elif self.output_file_format == "parquet":
+        #     self.output_interface = ParquetInterface()
+        # else:
+        #     raise ValueError("Invalid output format for synthetic errors.")
         
         #init output object: bronze synthetic events
-        input_bronze_event = BronzeEventDataObject(self.spark, self.error_generator_input_path, interface = ParquetInterface())
+
+        input_bronze_event = BronzeEventDataObject(self.spark, self.error_generator_input_path,
+                                                   partition_columns = [ColNames.year, ColNames.month, ColNames.day]) 
 
         self.input_data_objects = {
             "SyntheticEvents": input_bronze_event
         }
         
-        output_bronze_event = BronzeEventDataObject(self.spark, self.error_generator_output_path , interface = self.output_interface)
+        output_bronze_event = BronzeEventDataObject(self.spark, self.error_generator_output_path ,
+                                                     partition_columns = [ColNames.year, ColNames.month, ColNames.day])
         self.output_data_objects = {
             "SyntheticErrors": output_bronze_event
         }
@@ -101,18 +100,21 @@ class SyntheticErrors(Component):
         # spark = self.spark
         
         # Read in clean records and proceed with transformations
-        synth_df = self.input_data_objects["SyntheticEvents"].df
-        synth_df = synth_df[[self.mandatory_columns]] # TODO optional column support
+        synth_df_raw = self.input_data_objects["SyntheticEvents"].df  #includes date partition column
 
+        synth_df_raw = synth_df_raw.withColumn(ColNames.year, F.year(F.col(ColNames.timestamp)))
+        synth_df_raw = synth_df_raw.withColumn(ColNames.month, F.month(F.col(ColNames.timestamp)))
+        synth_df_raw = synth_df_raw.withColumn(ColNames.day, F.dayofmonth(F.col(ColNames.timestamp)))
 
-        # Create a copy of original MSID column for final sorting
-        synth_df = synth_df.withColumn("user_id_copy", F.col(ColNames.user_id))
+        # Create a copy of original MSID column for final sorting and joining
+        synth_df_raw = synth_df_raw.withColumn("user_id_copy", F.col(ColNames.user_id))
 
         # Create event id column if missing
-        if ColNames.event_id not in synth_df.columns:
+        if ColNames.event_id not in synth_df_raw.columns:
             windowSpec = Window.partitionBy(F.col(ColNames.user_id)).orderBy(F.col(ColNames.timestamp))
-            synth_df = synth_df.withColumn(ColNames.event_id, F.row_number().over(windowSpec))
+            synth_df_raw = synth_df_raw.withColumn(ColNames.event_id, F.row_number().over(windowSpec))
 
+        synth_df = synth_df_raw[self.mandatory_columns + ["user_id_copy", ColNames.event_id]] # TODO optional column support
         synth_df_w_nulls = self.generate_nulls_in_mandatory_fields(synth_df)
         synth_df_w_out_of_bounds_and_nulls = self.generate_out_of_bounds_dates(synth_df_w_nulls) 
         synth_df_w_out_of_bounds_nulls_errors = self.generate_erroneous_type_values(synth_df_w_out_of_bounds_and_nulls) 
@@ -121,6 +123,11 @@ class SyntheticErrors(Component):
         if self.sort_output:
             synth_df_w_out_of_bounds_nulls_errors = synth_df_w_out_of_bounds_nulls_errors.orderBy(["user_id_copy", ColNames.event_id])
         
+        synth_df_w_out_of_bounds_nulls_errors = synth_df_w_out_of_bounds_nulls_errors\
+            .join(synth_df_raw[["user_id_copy", ColNames.year, ColNames.month, ColNames.day, ColNames.event_id]],
+                  on = ["user_id_copy", ColNames.event_id],
+                  how = "left")
+
         error_df = synth_df_w_out_of_bounds_nulls_errors\
             .drop(F.col("user_id_copy"))\
             .drop(F.col(ColNames.event_id))
@@ -137,6 +144,7 @@ class SyntheticErrors(Component):
     
     def write(self):
         super().write()
+        # write results
 
       
     def generate_nulls_in_mandatory_fields(self, df: pyspark.sql.DataFrame) -> pyspark.sql.DataFrame:
@@ -177,47 +185,6 @@ class SyntheticErrors(Component):
         
         return result_df
 
-    def generate_nulls_in_mandatory_fields_columnwise(self, df: pyspark.sql.DataFrame) -> pyspark.sql.DataFrame:
-        """
-        Generates null values in mandatory field columns based on probabilities from config.
-
-        Args:
-            df (pyspark.sql.DataFrame): clean synthetic data
-
-        Returns:
-            pyspark.sql.DataFrame: synthetic records dataframe with nulls in some rows
-        """
-        
-        # Reading in two probability parameters from config:
-        # First one describes how many rows to create null values for
-        # Second one selects the maximum ratio of columns that are allowed to be nulls for rows, that are selected for error generation
-        # If 1.0, it means that all mandatory columns can be allowed to be null-s for rows that are selected as including nulls
-
-        if self.null_row_prob == 0:
-            # TODO logging
-            return df
-
-        # 1) sample rows 2) sample columns 3) do a final join/union 
-        # Sampling a new dataframe
-        
-        sampled_df = df.sample(self.null_row_prob, seed = self.seed)
-        df_with_nulls = sampled_df
-
-        # Selecting columns based on ratio param
-        for column in self.mandatory_columns:
-            
-            column_null_row_prob = 0
-            df_with_nulls = df[["user_id_copy", ColNames.event_id]]\
-                .sample(column_null_row_prob, seed = self.seed)\
-                .withColumn(column, F.lit(None))
-
-            result_df = df\
-                .join(df_with_nulls, on = ["user_id_copy", ColNames.event_id], how = "leftanti")\
-                    [[df.columns]]\
-                    .unionAll(df_with_nulls)
-            
-        return result_df
-    
     
     def generate_out_of_bounds_dates(self, df: pyspark.sql.DataFrame) -> pyspark.sql.DataFrame:
         """
@@ -256,7 +223,8 @@ class SyntheticErrors(Component):
                                            F.when(F.col("out_of_bounds"), 
                                                   F.add_months(F.col("timestamp"), F.col("months_to_add"))
                                            ).otherwise(F.col("timestamp"))
-        ).drop(F.col("months_to_add"))
+        ).drop(F.col("months_to_add"))#\
+            #.drop(F.col("out_of_bounds"))
 
         columns_to_error_generation = ["out_of_bounds"]
 
@@ -271,16 +239,13 @@ class SyntheticErrors(Component):
 
         return result_df
 
-    def cast_and_mutate_row(self, df: pyspark.sql.DataFrame, column_name: str, to_type: str, to_value: F) -> pyspark.sql.DataFrame:
+    def mutate_row(self, df: pyspark.sql.DataFrame, column_name: str, to_value: F) -> pyspark.sql.DataFrame:
         """
-        Casts a column from some types to another for a particular row.
-        Adds selected value for that row. 
+        Mutates a row when mutate_to_error = True. changes the value accordingly.
 
         Args:
-            df (pyspark.sql.DataFrame): dataframe to add erronous rows to
+            df (pyspark.sql.DataFrame): dataframe, the rows of which to make erronous
             column_name (str): column to change
-            from_types (list): list of types to convert from
-            to_type (str): type to convert to
             to_value (any): pyspark sql function statement
 
         Returns:
@@ -288,11 +253,6 @@ class SyntheticErrors(Component):
         """
 
         df = df\
-            .withColumn(column_name, F.when(
-                F.col("mutate_to_error"),
-                    F.col(column_name).cast(to_type))
-                        .otherwise(F.col(column_name))
-            )\
             .withColumn(column_name, F.when(
                 F.col("mutate_to_error"),
                     to_value)
@@ -356,23 +316,19 @@ class SyntheticErrors(Component):
         for struct_schema in BronzeEventDataObject.SCHEMA:
             if struct_schema.name not in self.mandatory_columns:
                 continue
+
             column = struct_schema.name
             col_dtype = struct_schema.dataType
-            # col_dtype = [dtype for name, dtype in df_with_sample_column.dtypes if name == column][0]
             
             if col_dtype in [BinaryType()]:
-                to_type = "string"
-                random_string = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6)) + "_"
-                to_value =  F.concat(F.lit(random_string), (F.rand() * 100).cast("int"))
-
+                to_value = F.md5(F.col(column)) # numBits=224
 
             if col_dtype in [FloatType(), IntegerType()]:
-                to_type = "string"
-                random_string = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6)) + "_"
-                to_value =  F.concat(F.lit(random_string), (F.rand() * 100).cast("int"))
+                # changes mcc, lat, lon
+                to_value =  F.col(column) + (F.rand() * 10000).cast("int") #F.concat(F.lit(random_string), (F.rand() * 100).cast("int"))
             
-            if column == ColNames.timestamp:
-                to_type = "string"
+            if column == ColNames.timestamp and col_dtype == StringType():
+                # to_type = "string"
                 timezone_to = random.randint(0, 12) # statically one timezone difference
                 to_value = F.concat(
                     F.substring(F.col(column), 1, 10), 
@@ -380,10 +336,13 @@ class SyntheticErrors(Component):
                     F.lit(f"+0{timezone_to}:00")
                 )
 
-            df_with_sample_column = self.cast_and_mutate_row(
+            if column == ColNames.cell_id and col_dtype == StringType():
+                random_string = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6)) + "_"
+                to_value =  F.concat(F.lit(random_string), (F.rand() * 100).cast("int"))
+
+            df_with_sample_column = self.mutate_row(
                 df_with_sample_column,
                 column, 
-                to_type,
                 to_value
             )
         
