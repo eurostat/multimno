@@ -14,7 +14,7 @@ CONSTRUCTORS = {
 if __name__ == "__main__":
     # component_id = sys.argv[1]
     general_config_path = "/opt/dev/pipe_configs/configurations/synthetic_events/synth_config.ini" #sys.argv[1] # 
-    component_config_path =  "/opt/dev/pipe_configs/configurations/synthetic_events/synth_config.ini"  "/opt/dev/src/tests/test_resources/general_config.ini" #sys.argv[2]
+    component_config_path =  "/opt/dev/pipe_configs/configurations/synthetic_events/synth_config.ini"  # #sys.argv[2]
 
     for component_id in CONSTRUCTORS.keys():
         component = CONSTRUCTORS[component_id](general_config_path, component_config_path)

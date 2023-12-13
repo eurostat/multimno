@@ -37,14 +37,14 @@ class SyntheticErrors(Component):
         self.out_of_bounds_prob =  self.config.getfloat(self.COMPONENT_ID, 
                                                            "out_of_bounds_probability")  
         
-        self.optional_columns = ["loc_error"] #static definition at the moment  #self.config.get(self.COMPONENT_ID, "optional_columns")
+        self.optional_columns = [ColNames.loc_error] 
 
         bronze_columns = [i.name for i in BronzeEventDataObject.SCHEMA]
 
         for optional_column in self.optional_columns:
             bronze_columns.remove(optional_column)
         
-        self.unsupported_columns = ["longitude", "latitude"]
+        self.unsupported_columns = [Colnames.longitude, ColNames.latitude]
 
         for unsupported_column in self.unsupported_columns: 
             # TODO integrate with ColNames
@@ -137,7 +137,6 @@ class SyntheticErrors(Component):
     
     def write(self):
         super().write()
-        # write results
 
       
     def generate_nulls_in_mandatory_fields(self, df: pyspark.sql.DataFrame) -> pyspark.sql.DataFrame:
@@ -257,8 +256,7 @@ class SyntheticErrors(Component):
                                            F.when(F.col("out_of_bounds"), 
                                                   F.add_months(F.col("timestamp"), F.col("months_to_add"))
                                            ).otherwise(F.col("timestamp"))
-        ).drop(F.col("months_to_add"))#\
-            #.drop(F.col("out_of_bounds"))
+        ).drop(F.col("months_to_add"))
 
         columns_to_error_generation = ["out_of_bounds"]
 
@@ -363,10 +361,6 @@ class SyntheticErrors(Component):
             # col_dtype = [dtype for name, dtype in df_with_sample_column.dtypes if name == column][0]
             
             if col_dtype in [BinaryType()]:
-                # same logic of when and cast + mutate doesn't work
-                # continue
-                # TODO 
-
                 to_type = "string"
                 random_string = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6)) + "_"
                 to_value =  F.concat(F.lit(random_string), (F.rand() * 100).cast("int"))
