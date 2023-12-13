@@ -19,7 +19,7 @@ class BronzeEventDataObject(PathDataObject):
 
     def __init__(self, spark: SparkSession, default_path: str, partition_columns: list[str] = None) -> None:
         super().__init__(spark, default_path)
-        self.interface: ParquetInterface = ParquetInterface()
+        self.interface = ParquetInterface()
         self.partition_columns = partition_columns 
 
     def write(self, path: str = None, partition_columns: list[str] = None):
