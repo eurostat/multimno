@@ -28,8 +28,6 @@ class SyntheticErrors(Component):
     def __init__(self, general_config_path: str, component_config_path: str):
         super().__init__(general_config_path=general_config_path, component_config_path=component_config_path)
         self.timestamp_format = self.config.get(self.COMPONENT_ID, "timestamp_format")
-        self.error_prob = self.config.getfloat(self.COMPONENT_ID, 
-                                                           "data_type_error_probability") 
         self.max_ratio_of_mandatory_columns = self.config.getfloat(self.COMPONENT_ID, 
                                                            "max_ratio_of_mandatory_columns_to_generate_as_null") 
         
@@ -68,9 +66,12 @@ class SyntheticErrors(Component):
         self.error_generator_output_path = self.config.get(self.COMPONENT_ID, "error_generator_output_path")
         self.error_generator_input_path = self.config.get(self.COMPONENT_ID, "error_generator_input_path")
 
+        self.error_prob = self.config.getfloat(self.COMPONENT_ID, 
+                                                           "data_type_error_probability") 
+        
         self.output_file_format = self.config.get(self.COMPONENT_ID, "output_file_format")
         
-        if self.output_file_format == "parquet" and self.data_type_error_probability != 0:
+        if self.output_file_format == "parquet" and self.error_prob != 0:
             raise ValueError("Cannot generate erronous (data mismatch) values for parquet format.")
 
         if self.output_file_format == "csv":
@@ -259,11 +260,16 @@ class SyntheticErrors(Component):
         ).drop(F.col("months_to_add"))#\
             #.drop(F.col("out_of_bounds"))
 
+        columns_to_error_generation = ["out_of_bounds"]
+
+        if self.error_prob == 0:
+            columns_to_error_generation = []
+            
         result_df = df\
             .where(F.col("timestamp").isNull())\
             .withColumn("out_of_bounds", F.lit(None))\
-                [df.columns + ["out_of_bounds"]]\
-        .unionAll(df_with_sample_column[df.columns + ["out_of_bounds"]])
+                [df.columns + columns_to_error_generation]\
+        .unionAll(df_with_sample_column[df.columns + columns_to_error_generation])
 
         return result_df
 
@@ -388,7 +394,7 @@ class SyntheticErrors(Component):
             )
         
         # TODO check a more optional join
-        result_df = df.join(df_with_sample_column, on = [ColNames.user_id, ColNames.event_id], how = "leftanti")\
+        result_df = df.join(df_with_sample_column, on = ["user_id_copy", ColNames.event_id], how = "leftanti")\
             [df.columns]\
             .unionAll(df_with_sample_column[df.columns])
         
