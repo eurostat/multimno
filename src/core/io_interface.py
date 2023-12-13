@@ -93,7 +93,7 @@ class CsvInterface(PathInterface):
                                    header=header,
                                    sep=sep)
     
-    def write_from_interface(self, df: DataFrame, path: str, schema: StructType, header: bool, sep: str = ','):
+    def write_from_interface(self, df: DataFrame, path: str, schema: any = None, header: bool = True, sep: str = ',', partition_columns = []):
         df.write.option("header", header).option("sep", sep).mode("overwrite").format("csv").save(path)
         # TODO schema usage?        
 

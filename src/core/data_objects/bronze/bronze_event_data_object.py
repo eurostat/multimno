@@ -3,18 +3,18 @@ from pyspark.sql.types import StructType, StructField, StringType, IntegerType, 
 
 from core.data_objects.data_object import PathDataObject
 from core.io_interface import PathInterface
-# from core.io_interface import ParquetInterface
+from common.constants.columns import ColNames
 
 class BronzeEventDataObject(PathDataObject):
     ID = "BronzeEventDO"
     SCHEMA = StructType([
-        StructField("user_id", BinaryType(), nullable=False),
-        StructField("timestamp", StringType(), nullable=False),
-        StructField("mcc", IntegerType(), nullable=False),
-        StructField("cell_id", StringType(), nullable=False),
-        StructField("latitude", FloatType(), nullable=True),
-        StructField("longitude", FloatType(), nullable=True),
-        StructField("loc_error", FloatType(), nullable=True)
+        StructField(ColNames.user_id, BinaryType(), nullable=False),
+        StructField(ColNames.timestamp, StringType(), nullable=False),
+        StructField(ColNames.mcc, IntegerType(), nullable=False),
+        StructField(ColNames.cell_id, StringType(), nullable=False),
+        StructField(ColNames.latitude, FloatType(), nullable=True),
+        StructField(ColNames.longitude, FloatType(), nullable=True),
+        StructField(ColNames.loc_error, FloatType(), nullable=True)
     ])
 
     def __init__(self, spark: SparkSession, default_path: str, interface: PathInterface) -> None:
@@ -23,9 +23,3 @@ class BronzeEventDataObject(PathDataObject):
 
 
 
-print(BronzeEventDataObject.SCHEMA)
-
-# for i in BronzeEventDataObject.SCHEMA:
-    # print(i.simpleString)
-    # print(i.name)
-    #print()

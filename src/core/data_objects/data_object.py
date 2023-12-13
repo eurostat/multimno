@@ -37,5 +37,5 @@ class PathDataObject(DataObject, metaclass=ABCMeta):
     def write(self, path: str = None, partition_columns: list[str] = None):
         if path is None:
             path = self.default_path
-        
-        self.interface.write_from_interface(df = current_df, path = path, partition_columns = partition_columns)
+
+        self.interface.write_from_interface(df = self.df, path = path, partition_columns = partition_columns)

@@ -1,8 +1,9 @@
 from core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObject
-from pyspark.sql import SparkSession, Row
-from pyspark.sql.functions import udf, explode
-from pyspark.sql.types import IntegerType, TimestampType, ArrayType, StructType, StructField
-from core.io_interface import ParquetInterface, CsvInterface
+from pyspark.sql import Row, DataFrame
+from pyspark.sql.functions import udf, explode, conv, substring, sha2, shiftRightUnsigned, col
+from pyspark.sql.types import IntegerType, TimestampType, ArrayType, StructType, StructField, BinaryType
+from core.io_interface import ParquetInterface
+
 
 import random
 import datetime
@@ -108,8 +109,7 @@ class SyntheticEvents(Component):
         output_records_path = self.config.get(self.COMPONENT_ID, "output_records_path")
 
         # TODO csv interface support needed ?
-        bronze_event = BronzeEventDataObject(self.spark, output_records_path, ParquetInterface())
-        # def __init__(self, spark: SparkSession, default_path: str, interface: PathInterface)
+        bronze_event = BronzeEventDataObject(self.spark, output_records_path, ParquetInterface()) # ParquetInterface()
 
         self.output_data_objects = {
             "SyntheticEvents": bronze_event
@@ -126,7 +126,12 @@ class SyntheticEvents(Component):
         # Generate events for each agent. Since the UDF generates a list, it has to be exploded to separate the rows.
         records_df = agents_df.withColumn("record_tuple", explode(generate_agent_records("n_events", "starting_event_id", "timestamp_generator_params", "cell_id_generator_params")))\
             .select(["*", "record_tuple.*"])
-        
+        records_df = self.calc_hashed_user_id(records_df)
+
+        records_df = records_df.withColumn(ColNames.timestamp, col(ColNames.timestamp).cast("string"))
+        records_df = records_df.withColumn(ColNames.cell_id, col(ColNames.cell_id).cast("string"))
+        records_df = records_df.withColumn(ColNames.mcc, col(ColNames.mcc).cast(IntegerType()))
+
         #TODO use DataObject schema for selecting the columns?
         bronze_columns = [i.name for i in BronzeEventDataObject.SCHEMA]
         for unsupported_column in ["longitude", "latitude", "loc_error"]: # TODO integrate with ColNames
@@ -134,14 +139,6 @@ class SyntheticEvents(Component):
 
         records_df = records_df.select(
             bronze_columns
-            # ColNames.user_id,
-            # ColNames.partition_id,
-            # ColNames.timestamp,
-            # ColNames.mcc,
-            # ColNames.cell_id#,
-            #ColNames.latitude,
-            #ColNames.longitude,
-            #ColNames.loc_error
         )
 
         # Assign output data object dataframe
@@ -183,6 +180,21 @@ class SyntheticEvents(Component):
             starting_event_id += self.n_events_per_agent
         return agents
     
+
+    def calc_hashed_user_id(self, df) -> DataFrame:
+        """
+        Calculates SHA2 hash of user id, takes the first 31 bits and converts them to a non-negative 32-bit integer.
+        """
+        df = df.withColumn("ms_id_binary", col(ColNames.user_id).cast(BinaryType()))
+        
+        df = df.withColumn(ColNames.user_id,
+                          sha2(col("ms_id_binary"), numBits=256))
+
+        df = df.drop("ms_id_binary")
+
+        return df
+
+
 
 if __name__ == "__main__":
     #TODO Remove code execution from here. Implement in notebook and/or test.

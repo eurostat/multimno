@@ -9,14 +9,13 @@ import pyspark
 import pyspark.sql.functions as F
 from pyspark.sql.window import Window
 
-from pyspark.sql import SparkSession
-
 import datetime
 import pandas as pd
 from core.component import Component
 from common.constants.columns import ColNames
 from core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObject
 from core.io_interface import ParquetInterface, CsvInterface
+from pyspark.sql.types import StringType, IntegerType, FloatType, BinaryType
 
     
 class SyntheticErrors(Component):
@@ -46,8 +45,10 @@ class SyntheticErrors(Component):
 
         for optional_column in self.optional_columns:
             bronze_columns.remove(optional_column)
+        
+        self.unsupported_columns = ["longitude", "latitude"]
 
-        for unsupported_column in ["longitude", "latitude"]: 
+        for unsupported_column in self.unsupported_columns: 
             # TODO integrate with ColNames
             # TODO support for lon, lat
             bronze_columns.remove(unsupported_column)
@@ -60,38 +61,7 @@ class SyntheticErrors(Component):
             datetime.datetime.strptime(self.config.get(self.COMPONENT_ID, "ending_timestamp"), self.timestamp_format).date()
         ]
         self.sort_output = self.config.getboolean(self.COMPONENT_ID, "sort_output")
-
-        # Timezones to use for random generation of erronous values
-        self.timezones = [
-            'Europe/Helsinki',
-            'America/New_York',
-            'Europe/Berlin',
-            'Asia/Tokyo',
-            'Australia/Sydney',
-            'America/Los_Angeles',
-            'Africa/Cairo'
-        ]
         
-        # General config
-        seed = 42
-        n_agents = 2
-        n_events = 3
-        optional_prob = 0.7
-
-        # Error probs per field
-        user_id_prob = 0.05
-        timestamp_prob = 0.7
-        mcc_prob = 0.6
-        cell_id_prob = 0.05
-        lat_prob = 0.05
-        lon_prob = 0.05
-        loc_error_prob = 0.05
-
-        # Error types (Must sum 1)
-        null_error_prob = 0.5
-        cast_error_prob = 0.2
-        wrong_format_error_prob = 0.3
-    
 
     def initalize_data_objects(self):
 
@@ -111,7 +81,7 @@ class SyntheticErrors(Component):
             raise ValueError("Invalid output format for synthetic errors.")
         
         #init output object: bronze synthetic events
-        input_bronze_event = BronzeEventDataObject(self.spark, self.error_generator_output_path, interface = ParquetInterface())
+        input_bronze_event = BronzeEventDataObject(self.spark, self.error_generator_input_path, interface = ParquetInterface())
 
         self.input_data_objects = {
             "SyntheticEvents": input_bronze_event
@@ -131,6 +101,8 @@ class SyntheticErrors(Component):
         
         # Read in clean records and proceed with transformations
         synth_df = self.input_data_objects["SyntheticEvents"].df
+        synth_df = synth_df[[self.mandatory_columns]] # TODO optional column support
+
 
         # Create a copy of original MSID column for final sorting
         synth_df = synth_df.withColumn("user_id_copy", F.col(ColNames.user_id))
@@ -152,27 +124,20 @@ class SyntheticErrors(Component):
             .drop(F.col("user_id_copy"))\
             .drop(F.col(ColNames.event_id))
         
+        for col in self.unsupported_columns:
+            error_df = error_df.withColumn(col, F.lit(None).cast(StringType()))
+
+        for col in self.optional_columns:
+            error_df = error_df.withColumn(col, F.lit(None).cast(StringType()))
+
         # assign output data object        
-        synth_df = self.input_data_objects["SyntheticErrors"].df = error_df
+        self.output_data_objects["SyntheticErrors"].df = error_df
 
     
     def write(self):
         super().write()
         # write results
 
-    # def read_synthetic_events(self, spark: SparkSession) -> pyspark.sql.DataFrame:
-    #     """
-    #     Reads synthetically generated events.
-
-    #     Returns:
-    #         pyspark.sql.DataFrame: clean synthetic events
-    #     """
-    #     self.config.get(self.COMPONENT_ID, "synthetic_events_folder_path")
-    #     if self.config["synthetic_events_format"] == "parquet":
-    #         df = spark.read.parquet(self.config["synthetic_events_folder_path"])
-    #     if self.config["synthetic_events_format"] == "csv":
-    #         df = spark.read.option("delimiter", ";").option("header", True).option("inferSchema", True).csv(self.config["synthetic_events_folder_path"])
-    #     return df
       
     def generate_nulls_in_mandatory_fields(self, df: pyspark.sql.DataFrame) -> pyspark.sql.DataFrame:
         """
@@ -300,10 +265,6 @@ class SyntheticErrors(Component):
                 [df.columns + ["out_of_bounds"]]\
         .unionAll(df_with_sample_column[df.columns + ["out_of_bounds"]])
 
-        # TODO
-        # optional sorting here, in case of visual overview based on original ordering? 
-        # .orderBy([F.col("user_id_copy"), F.col(ColNames.event_id)])
-
         return result_df
 
     def cast_and_mutate_row(self, df: pyspark.sql.DataFrame, column_name: str, to_type: str, to_value: F) -> pyspark.sql.DataFrame:
@@ -366,7 +327,16 @@ class SyntheticErrors(Component):
         if "out_of_bounds" not in df.columns:
             df = df.withColumn("out_of_bounds", F.lit(False))
 
+        # Recast binary column
+        # Cast BinaryType column to StringType with error handling
+
+        df = df.withColumn(
+            ColNames.user_id,
+            F.base64(F.col(ColNames.user_id)).cast(StringType())
+        ) # recasting here to enable union later
+
         df_not_null = df.dropna().filter(F.col("out_of_bounds") == F.lit(False))
+
         df = df.drop(F.col("out_of_bounds"))
 
         df_with_sample_column = df_not_null.join(
@@ -379,19 +349,29 @@ class SyntheticErrors(Component):
         # First cast sampled rows, then fill with values
         # TODO refactor more compactly
 
-        for column in self.mandatory_columns:
-            col_dtype = [dtype for name, dtype in df_with_sample_column.dtypes if name == column][0]
+        for struct_schema in BronzeEventDataObject.SCHEMA:
+            if struct_schema.name not in self.mandatory_columns:
+                continue
+            column = struct_schema.name
+            col_dtype = struct_schema.dataType
+            # col_dtype = [dtype for name, dtype in df_with_sample_column.dtypes if name == column][0]
             
-            if col_dtype in ["string", "str"]:
-                to_type = "float",
-                to_value = F.rand(self.seed)
-            
-            if col_dtype in ["int", "float"]:
+            if col_dtype in [BinaryType()]:
+                # same logic of when and cast + mutate doesn't work
+                # continue
+                # TODO 
+
+                to_type = "string"
+                random_string = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6)) + "_"
+                to_value =  F.concat(F.lit(random_string), (F.rand() * 100).cast("int"))
+
+
+            if col_dtype in [FloatType(), IntegerType()]:
                 to_type = "string"
                 random_string = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6)) + "_"
                 to_value =  F.concat(F.lit(random_string), (F.rand() * 100).cast("int"))
             
-            if col_dtype in ["date", "timestamp"]:
+            if column == ColNames.timestamp:
                 to_type = "string"
                 timezone_to = random.randint(0, 12) # statically one timezone difference
                 to_value = F.concat(
@@ -424,90 +404,16 @@ class SyntheticErrors(Component):
 
         Returns:
             pyspark.sql.DataFrame: dataframe with optional column.
-        """
-
-        optional_col_probability = self.config["optional_col_probability"]
-        use_fixed_seed = self.config["use_fixed_seed"]
-        optional_columns = self.config["optional_columns"]    
+        """ 
 
         pass
 
-
-    def write_erroneous_records(self, df: pyspark.sql.DataFrame) -> None:
-        """
-        Writes records with errors to desired format
-
-        Args:
-            df (pyspark.sql.DataFrame): dataframe, that has been processed by all (selected) error generating functions
-        """
-
-        output_dir = self.config["synthetic_erroneous_records_path"]
-        partition_columns = self.config["partition_columns"]
-        synthetic_events_format = self.config["synthetic_events_format"]
-
-        if synthetic_events_format == "parquet":
-            df.write.mode("overwrite").partitionBy(partition_columns).parquet(output_dir)
-        if synthetic_events_format == "csv":
-            df.write.option("header", "true").mode("overwrite").format("csv").save(output_dir)
-
-    # def run(self) -> None:
-    #     """
-    #     Starts spark session and runs the error generation process.
-    #     """
-
-    #     spark_session = create_spark_session(self.config["spark"], "Synthetic Error Generator")  
-    #     synth_df = self.read_synthetic_events(spark_session)
-
-    #     # Create a copy of original MSID column for final sorting
-    #     synth_df = synth_df.withColumn("user_id_copy", F.col(ColNames.user_id))
-
-    #     synth_df_w_nulls = self.generate_nulls_in_mandatory_fields(synth_df)
-    #     synth_df_w_out_of_bounds_and_nulls = self.generate_out_of_bounds_dates(synth_df_w_nulls) 
-    #     synth_df_w_out_of_bounds_nulls_errors = self.generate_erroneous_type_values(synth_df_w_out_of_bounds_and_nulls) 
-        
-    #     # Sort
-    #     if self.config["sort_output"]:
-    #         synth_df_w_out_of_bounds_nulls_errors = synth_df_w_out_of_bounds_nulls_errors.orderBy(["user_id_copy", ColNames.event_id])
-        
-    #     synth_df_w_out_of_bounds_nulls_errors = synth_df_w_out_of_bounds_nulls_errors\
-    #         .drop(F.col("user_id_copy"))\
-    #         .drop(F.col(ColNames.event_id))
-        
-    #     # write results
-        
-    #     test_generator.write_erroneous_records(synth_df_w_out_of_bounds_nulls_errors)
         
 
 if __name__ == "__main__":
-
-    # Error types:
-    #   user_id is null
-    #   user_id is not parsable
-    #   cell_id is null
-    #   cell_id is not parsable
-    #   timestamp is null
-    #   timestamp is not parsable
-    #   timestamp is not within acceptable bounds
-    #   timestamp has/lacks timezone 
-
-          
-    generator_config = {"null_row_probability":0, 
-            "data_type_error_probability": 0.5,
-            "out_of_bounds_prob": 0,
-              "max_ratio_of_mandatory_columns_to_generate_as_null": 0.5,
-              "use_fixed_seed": True,
-              "synthetic_events_folder_path": "/opt/dev/sample_data/synth_modified_small", # "synthetic_events_folder_path": "/opt/dev/sample_data/synth_modified",
-              "synthetic_erroneous_records_path":"/opt/dev/sample_data/synth_errors",
-              "mandatory_columns": [ColNames.user_id, ColNames.timestamp, ColNames.cell_id],
-              "partition_columns": [ColNames.user_id],
-                         "synthetic_events_format": "csv" ,
-                         "date_bounds": ["2021-01-01", "2021-05-01"],
-                         "sort_output": True,
-              "spark": {"spark.driver.host": "localhost",
-                        "spark.driver.memory": "8g",
-                        "spark.driver.cores": "4",
-                        "spark.executor.memory": "8g",
-                        "spark.eventLog.enabled": "true",
-                        "spark.eventLog.dir": "/opt/spark/spark-events",
-                        "spark.history.fs.logDirectory": "/opt/spark/spark-events",
-                        }}
+    # Example run
+    root_path = "opt/dev"
+    general_config = f"{root_path}/pipe_configs/configurations/general_config.ini"
+    component_config = f"{root_path}/pipe_configs/configurations/synthetic_events/synthetic_events_and_errors.ini"
+    test_generator = SyntheticErrors(general_config, component_config)
+    test_generator.execute()
