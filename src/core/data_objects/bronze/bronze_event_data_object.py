@@ -30,5 +30,3 @@ class BronzeEventDataObject(PathDataObject):
 
         self.interface.write_from_interface(self.df, path, partition_columns)
 
-
-
