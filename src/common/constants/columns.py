@@ -10,3 +10,7 @@ class ColNames:
     longitude = "longitude"
     loc_error = "loc_error"
     event_id = "event_id"
+
+    year = "year"
+    month = "month"
+    day = "day"

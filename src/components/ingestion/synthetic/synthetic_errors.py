@@ -69,7 +69,7 @@ class SyntheticErrors(Component):
         self.error_prob = self.config.getfloat(self.COMPONENT_ID, 
                                                            "data_type_error_probability") 
         
-        self.output_file_format = self.config.get(self.COMPONENT_ID, "output_file_format")
+        # self.output_file_format = self.config.get(self.COMPONENT_ID, "output_file_format")
         # if self.output_file_format == "csv":
         #     self.output_interface = CsvInterface()
         # elif self.output_file_format == "parquet":
