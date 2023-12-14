@@ -8,10 +8,10 @@ from common.constants.columns import ColNames
 class BronzeEventDataObject(PathDataObject):
     ID = "BronzeEventDO"
     SCHEMA = StructType([
-        StructField(ColNames.user_id, BinaryType(), nullable=False),
-        StructField(ColNames.timestamp, StringType(), nullable=False),
-        StructField(ColNames.mcc, IntegerType(), nullable=False),
-        StructField(ColNames.cell_id, StringType(), nullable=False),
+        StructField(ColNames.user_id, BinaryType(), nullable=True),
+        StructField(ColNames.timestamp, StringType(), nullable=True),
+        StructField(ColNames.mcc, IntegerType(), nullable=True),
+        StructField(ColNames.cell_id, StringType(), nullable=True),
         StructField(ColNames.latitude, FloatType(), nullable=True),
         StructField(ColNames.longitude, FloatType(), nullable=True),
         StructField(ColNames.loc_error, FloatType(), nullable=True)

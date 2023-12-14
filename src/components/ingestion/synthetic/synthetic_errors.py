@@ -18,7 +18,7 @@ from pyspark.sql.types import StringType, IntegerType, FloatType, BinaryType
 
     
 class SyntheticErrors(Component):
-    COMPONENT_ID = "SyntheticErrorsGenerator"
+    COMPONENT_ID = "SyntheticErrors"
     
     """
     Class for synthetic error generation based on synthetic data.

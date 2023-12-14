@@ -10,10 +10,10 @@ class DataObject(metaclass=ABCMeta):
     ID: str = None
     SCHEMA: StructType = None
 
-    def __init__(self, spark: SparkSession, interface: IOInterface = None) -> None:
+    def __init__(self, spark: SparkSession) -> None:
         self.df: DataFrame = None
         self.spark: SparkSession = spark
-        self.interface = interface #= IoI
+        self.interface: IOInterface = None
 
     def read(self, *args, **kwargs):
         self.df = self.interface.read_from_interface(*args, **kwargs)
@@ -23,9 +23,9 @@ class DataObject(metaclass=ABCMeta):
 
 
 class PathDataObject(DataObject, metaclass=ABCMeta):
-    def __init__(self, spark: SparkSession, default_path: str, interface: PathInterface = None) -> None:
+    def __init__(self, spark: SparkSession, default_path: str) -> None:
         super().__init__(spark)
-        self.interface = interface # PathInterface = None
+        self.interface: PathInterface = None
         self.default_path: str = default_path
 
     def read(self, path: str = None):
@@ -37,5 +37,5 @@ class PathDataObject(DataObject, metaclass=ABCMeta):
     def write(self, path: str = None, partition_columns: list[str] = None):
         if path is None:
             path = self.default_path
-
-        self.interface.write_from_interface(df = self.df, path = path, partition_columns = partition_columns)
+            
+        self.interface.write_from_interface(self.df, path, partition_columns)

@@ -75,7 +75,7 @@ def generate_agent_records(n_events, starting_event_id, timestamp_generator_para
     return events
 
 class SyntheticEvents(Component):
-    COMPONENT_ID = "SyntheticEventsGenerator"
+    COMPONENT_ID = "SyntheticEvents"
 
     supported_timestamp_generator_types = ["equal_gaps"]
     supported_location_generator_types = ["random_cell_id"]

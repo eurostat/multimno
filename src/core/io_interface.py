@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.types import StructType
-# from sedona.spark import ShapefileReader, Adapter
+from sedona.spark import ShapefileReader, Adapter
 
 
 class IOInterface(metaclass=ABCMeta):
@@ -36,11 +36,7 @@ class IOInterface(metaclass=ABCMeta):
 
 
 class PathInterface(IOInterface, metaclass=ABCMeta):
-    # FILE_FORMAT = ''
-
-    def __init__(self, FILE_FORMAT: str) -> None:
-        super().__init__()
-        self.FILE_FORMAT = FILE_FORMAT
+    FILE_FORMAT = ''
 
     def read_from_interface(self, spark: SparkSession, path: str, schema: StructType = None):
         return spark.read.schema(
@@ -52,7 +48,6 @@ class PathInterface(IOInterface, metaclass=ABCMeta):
         )
 
     def write_from_interface(self, df: DataFrame, path: str, partition_columns: list[str] = None):
-        
         # Args check
         if partition_columns is None:
             partition_columns = []
@@ -65,8 +60,7 @@ class PathInterface(IOInterface, metaclass=ABCMeta):
 
 
 class ParquetInterface(PathInterface):
-   def __init__(self) -> None:
-       super().__init__(FILE_FORMAT = 'parquet')
+    FILE_FORMAT = 'parquet'
 
 
 class JsonInterface(PathInterface):
@@ -74,9 +68,9 @@ class JsonInterface(PathInterface):
 
 
 class ShapefileInterface(PathInterface):
-    """ def read_from_interface(self, spark: SparkSession, path: str, schema: StructType = None):
+    def read_from_interface(self, spark: SparkSession, path: str, schema: StructType = None):
         df = ShapefileReader.readToGeometryRDD(spark.sparkContext, path)
-        return Adapter.toDf(df, spark) """
+        return Adapter.toDf(df, spark)
 
     def write_from_interface(self, df: DataFrame, path: str, partition_columns: list = None):
         raise NotImplementedError(
@@ -84,18 +78,19 @@ class ShapefileInterface(PathInterface):
 
 
 class CsvInterface(PathInterface):
-    def __init__(self) -> None:
-       super().__init__(FILE_FORMAT = 'csv')
+    FILE_FORMAT = 'csv'
 
     def read_from_interface(self, path: str, schema: StructType, header: bool, sep: str = ','):
         return self.spark.read.csv(path,
                                    schema=schema,
                                    header=header,
                                    sep=sep)
-    
+
     def write_from_interface(self, df: DataFrame, path: str, schema: any = None, header: bool = True, sep: str = ',', partition_columns = []):
         df.write.option("header", header).option("sep", sep).mode("overwrite").format("csv").save(path)
         # TODO schema usage?        
+
+
 
 class GeoParquetInterface(PathInterface):
     FILE_FORMAT = 'geoparquet'
