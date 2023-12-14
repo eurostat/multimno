@@ -149,11 +149,6 @@ class SyntheticEvents(Component):
         # Assign output data object dataframe
         self.output_data_objects["SyntheticEvents"].df = records_df
 
-    def write(self):
-        super().write()
-
-        # self.output_data_objects["SyntheticEvents"].write(partition_columns="partition_id")
-
     def execute(self):
         # super().execute()
         self.logger.info(f"Starting {self.COMPONENT_ID}...")

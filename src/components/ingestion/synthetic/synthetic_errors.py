@@ -91,10 +91,6 @@ class SyntheticErrors(Component):
         self.output_data_objects = {
             "SyntheticErrors": output_bronze_event
         }
-        
-
-    def read(self):
-        return super().read()
 
     def transform(self):
         # spark = self.spark
@@ -141,10 +137,8 @@ class SyntheticErrors(Component):
         # assign output data object        
         self.output_data_objects["SyntheticErrors"].df = error_df
 
-    
     def write(self):
-        super().write()
-        # write results
+
 
       
     def generate_nulls_in_mandatory_fields(self, df: pyspark.sql.DataFrame) -> pyspark.sql.DataFrame:
