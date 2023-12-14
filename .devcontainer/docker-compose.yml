@@ -23,6 +23,7 @@ services:
     ports:
       - "${JL_PORT}:8888"
       - "4040:4040"
+      - "18080:18080"
     deploy:
       resources:
         limits:

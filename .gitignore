@@ -163,6 +163,6 @@ cython_debug/
 .DS_Store
 
 # PROJECT IGNORE
-sample_data/output
-sample_data/logs
-!.devcontainer/.env
+sample_data/
+!sample_data/input/
+
