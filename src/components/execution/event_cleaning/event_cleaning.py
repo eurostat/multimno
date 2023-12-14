@@ -59,6 +59,7 @@ class EventCleaning(Component):
         for date in self.to_process_dates:
             path = f"{self.bronze_event_path}/{date}"
             # TODO: think of more elegant solution to check if path exists
+            # The current solution only works in local machines
             if os.path.exists(path):
                 self.input_event_data_objects.append(BronzeEventDataObject(
                     self.spark, path))

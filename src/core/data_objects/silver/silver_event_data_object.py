@@ -35,10 +35,13 @@ class SilverEventDataObject(PathDataObject):
         if path is None:
             path = self.default_path
 
+        # TODO: Think of another way of doing this. Probably by changing
+        # the writing mode of the interface
         mode = "append"
         if self.first_write:
             mode = "overwrite"
             self.first_write = False    
+            
         self.df.write.format(
             self.interface.FILE_FORMAT,  # File format
         ).partitionBy(
