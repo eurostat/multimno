@@ -13,13 +13,40 @@
             "justMyCode": true
         },
         {
-            "name": "Launch Component",
+            "name": "C: EventCleaning",
             "type": "python",
             "request": "launch",
             "program": "src/main.py",
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": ["EventCleaning", "pipe_configs/configurations/general_config.ini", "pipe_configs/configurations/event/event_cleaning.ini"]
+        },
+        {
+            "name": "C: SyntheticEvents",
+            "type": "python",
+            "request": "launch",
+            "program": "src/main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["SyntheticEvents", "pipe_configs/configurations/general_config.ini", "pipe_configs/configurations/synthetic_events/synth_config.ini"]
+        },
+        {
+            "name": "C: SyntheticEventsError",
+            "type": "python",
+            "request": "launch",
+            "program": "src/main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["SyntheticErrors", "pipe_configs/configurations/general_config.ini", "pipe_configs/configurations/synthetic_events/synth_config.ini"]
+        },
+        {
+            "name": "P: SyntheticEvents",
+            "type": "python",
+            "request": "launch",
+            "program": "src/orchestrator.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["/opt/dev/pipe_configs/pipelines/test_synthetic_event_pipeline.json"]
         }
     ]
 }
