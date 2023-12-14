@@ -23,7 +23,13 @@ def parse_configuration(general_config_path: str, component_config_path: str = "
             f"General Config file Not found: {general_config_path}")
 
     config_paths = [general_config_path, component_config_path]
-    parser: ConfigParser = ConfigParser(interpolation=ExtendedInterpolation())
+
+    converters = {
+        "list": lambda val: [i.strip() for i in val.strip().split("\n")],
+        "eval": eval,
+    }
+
+    parser: ConfigParser = ConfigParser(converters=converters, interpolation=ExtendedInterpolation(), inline_comment_prefixes="#")
     parser.read(config_paths)
 
     return parser
