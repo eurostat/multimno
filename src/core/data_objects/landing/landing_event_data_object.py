@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType
- 
+
 from core.data_objects.data_object import PathDataObject
 from core.io_interface import ParquetInterface
 

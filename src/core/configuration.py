@@ -29,7 +29,8 @@ def parse_configuration(general_config_path: str, component_config_path: str = "
         "eval": eval,
     }
 
-    parser: ConfigParser = ConfigParser(converters=converters, interpolation=ExtendedInterpolation(), inline_comment_prefixes="#")
+    parser: ConfigParser = ConfigParser(
+        converters=converters, interpolation=ExtendedInterpolation(), inline_comment_prefixes="#")
     parser.read(config_paths)
 
     return parser

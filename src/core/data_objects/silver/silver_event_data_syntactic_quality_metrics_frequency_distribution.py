@@ -11,7 +11,7 @@ class SilverEventDataSyntacticQualityMetricsFrequencyDistribution(PathDataObject
         StructField("cell_id", StringType(), nullable=True),
         StructField("user_id", BinaryType(), nullable=True),
         StructField("initial_frequency", IntegerType(), nullable=False),
-        StructField("final_frequency", IntegerType(), nullable=False), 
+        StructField("final_frequency", IntegerType(), nullable=False),
         StructField("date", DateType(), nullable=False)
     ])
 

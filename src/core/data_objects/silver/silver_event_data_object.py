@@ -14,7 +14,7 @@ class SilverEventDataObject(PathDataObject):
         StructField("cell_id", StringType(), nullable=True),
         StructField("latitude", FloatType(), nullable=True),
         StructField("longitude", FloatType(), nullable=True),
-        StructField("loc_error", FloatType(), nullable=True), 
+        StructField("loc_error", FloatType(), nullable=True),
         StructField("year", ShortType(), nullable=False),
         StructField("month", ByteType(), nullable=False),
         StructField("day", ByteType(), nullable=False),
@@ -24,7 +24,7 @@ class SilverEventDataObject(PathDataObject):
         super().__init__(spark, default_path)
         self.interface: ParquetInterface = ParquetInterface()
         self.partition_columns = ["year", "month", "day"]
-        
+
         # Clear path
         self.first_write = True
 
@@ -40,8 +40,8 @@ class SilverEventDataObject(PathDataObject):
         mode = "append"
         if self.first_write:
             mode = "overwrite"
-            self.first_write = False    
-            
+            self.first_write = False
+
         self.df.write.format(
             self.interface.FILE_FORMAT,  # File format
         ).partitionBy(

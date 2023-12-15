@@ -123,7 +123,7 @@ class EventCleaning(Component):
         # TODO: Note: Added mcc to null filtering as it is a mandatory field
         df_events = self.filter_nulls_and_update_qa(
             df_events, [ColNames.user_id, ColNames.timestamp, ColNames.mcc], self.output_qa_by_column.error_and_transformation_counts)
-        
+
         # TODO: Pending mcc correct format verification: 3 digit value
 
         # already cached in previous function

@@ -29,7 +29,7 @@ class SilverEventDataSyntacticQualityMetricsByColumn(PathDataObject):
         self.error_and_transformation_counts = defaultdict(int)
 
     def write(self, path: str = None, partition_columns: list[str] = None):
-        
+
         if path is None:
             path = self.default_path
         if partition_columns is None:
