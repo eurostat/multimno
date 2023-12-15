@@ -1,6 +1,6 @@
 from core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObject
 from pyspark.sql import Row, DataFrame
-from pyspark.sql.functions import udf, explode, sha2, col
+from pyspark.sql.functions import udf, explode, sha2, col, date_format, to_timestamp
 from pyspark.sql.types import IntegerType, TimestampType, ArrayType, StructType, StructField, BinaryType
 
 import random
@@ -141,6 +141,11 @@ class SyntheticEvents(Component):
         records_df = records_df.select(
             bronze_columns
         )
+
+        # Transform timestamp to expected format
+
+        records_df = records_df.withColumn('timestamp', date_format(to_timestamp(col('timestamp')), format="yyyy-MM-dd'T'HH:mm:ss"))
+
 
         #records_df = records_df.withColumn(ColNames.year, year(col(ColNames.timestamp)))
         #records_df = records_df.withColumn(ColNames.month, month(col(ColNames.timestamp)))

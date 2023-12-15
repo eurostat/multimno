@@ -128,11 +128,15 @@ class SyntheticErrors(Component):
             .drop(F.col("user_id_copy"))\
             .drop(F.col(ColNames.event_id))
         
-        for col in self.unsupported_columns:
-            error_df = error_df.withColumn(col, F.lit(None).cast(StringType()))
+        # TODO: Check null column creation
+        # Using this method makes parquet unable to cast using the schema
+        # Error:  Column: [latitude], Expected: float, Found: BINARY.
 
-        for col in self.optional_columns:
-            error_df = error_df.withColumn(col, F.lit(None).cast(StringType()))
+        # for col in self.unsupported_columns:
+        #     error_df = error_df.withColumn(col, F.lit(None).cast(FloatType()))
+
+        # for col in self.optional_columns:
+        #     error_df = error_df.withColumn(col, F.lit(None).cast(FloatType()))
 
         # assign output data object        
         self.output_data_objects["SyntheticErrors"].df = error_df
@@ -323,7 +327,9 @@ class SyntheticErrors(Component):
                 to_value = F.concat(
                     F.substring(F.col(column), 1, 10), 
                     F.lit("T"), F.substring(F.col(column), 12, 9), 
-                    F.lit(f"+0{timezone_to}:00")
+                    # TODO: Temporary remove of timezone addition as cleaning 
+                    # module does not support it
+                    # F.lit(f"+0{timezone_to}:00")
                 )
 
             if column == ColNames.cell_id and col_dtype == StringType():

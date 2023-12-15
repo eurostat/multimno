@@ -120,8 +120,11 @@ class EventCleaning(Component):
         self.quality_metrics_distribution_before = df_events.groupBy(ColNames.cell_id, ColNames.user_id)\
             .agg(psf.count("*").alias(ColNames.initial_frequency))
 
+        # TODO: Note: Added mcc to null filtering as it is a mandatory field
         df_events = self.filter_nulls_and_update_qa(
-            df_events, [ColNames.user_id, ColNames.timestamp], self.output_qa_by_column.error_and_transformation_counts)
+            df_events, [ColNames.user_id, ColNames.timestamp, ColNames.mcc], self.output_qa_by_column.error_and_transformation_counts)
+        
+        # TODO: Pending mcc correct format verification: 3 digit value
 
         # already cached in previous function
         df_events = self.filter_null_locations_and_update_qa(
@@ -307,6 +310,10 @@ class EventCleaning(Component):
             pyspark.sql.dataframe.DataFrame: _description_
         """
 
+        # TODO: Check timestamp validation
+        # Validating timestamp of format '2023-01-03T03:12:00+00:00' raises Exception
+        # Error: Fail to parse '2023-01-03T03:12:00+00:00' in the new parser
+        # Can we use a conditional(psf.when) to check if column can be casted?
         filtered_df = df.withColumn(ColNames.timestamp,
                                     psf.to_utc_timestamp(psf.to_timestamp(ColNames.timestamp, timestampt_format), input_timezone))\
             .filter(psf.col(ColNames.timestamp).isNotNull())

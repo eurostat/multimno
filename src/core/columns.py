@@ -1,6 +1,7 @@
 class ColNames:
     user_id = 'user_id'
     timestamp = 'timestamp'
+    mcc = "mcc"
     cell_id = 'cell_id'
     longitude = 'longitude'
     latitude = 'latitude'
