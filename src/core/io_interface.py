@@ -78,11 +78,18 @@ class ShapefileInterface(PathInterface):
 
 
 class CsvInterface(PathInterface):
+    FILE_FORMAT = 'csv'
+
     def read_from_interface(self, path: str, schema: StructType, header: bool, sep: str = ','):
         return self.spark.read.csv(path,
                                    schema=schema,
                                    header=header,
                                    sep=sep)
+
+    def write_from_interface(self, df: DataFrame, path: str, schema: any = None, header: bool = True, sep: str = ',', partition_columns = []):
+        df.write.option("header", header).option("sep", sep).mode("overwrite").format("csv").save(path)
+        # TODO schema usage?        
+
 
 
 class GeoParquetInterface(PathInterface):
