@@ -47,6 +47,15 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": ["/opt/dev/pipe_configs/pipelines/test_synthetic_event_pipeline.json"]
+        },
+        {
+            "name": "P: Full Pipeline",
+            "type": "python",
+            "request": "launch",
+            "program": "src/orchestrator.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["/opt/dev/pipe_configs/pipelines/pipeline.json"]
         }
     ]
 }
