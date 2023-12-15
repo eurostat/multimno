@@ -136,10 +136,6 @@ class SyntheticErrors(Component):
 
         # assign output data object        
         self.output_data_objects["SyntheticErrors"].df = error_df
-
-    def write(self):
-
-
       
     def generate_nulls_in_mandatory_fields(self, df: pyspark.sql.DataFrame) -> pyspark.sql.DataFrame:
         """
