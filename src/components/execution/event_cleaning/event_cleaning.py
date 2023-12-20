@@ -119,17 +119,25 @@ class EventCleaning(Component):
         self.quality_metrics_distribution_before = df_events.groupBy(ColNames.cell_id, ColNames.user_id)\
             .agg(psf.count("*").alias(ColNames.initial_frequency))
 
-        # TODO: Note: Added mcc to null filtering as it is a mandatory field
         df_events = self.filter_nulls_and_update_qa(
             df_events, [ColNames.user_id, ColNames.timestamp, ColNames.mcc], self.output_qa_by_column.error_and_transformation_counts)
 
-        # TODO: Pending mcc correct format verification: 3 digit value
+        # MCC correct format verification: 3 digit value
+        df_events = self.filter_invalid_mcc_and_update_qa(
+            df_events, self.output_qa_by_column.error_and_transformation_counts)
 
         # already cached in previous function
         df_events = self.filter_null_locations_and_update_qa(
             df_events, self.output_qa_by_column.error_and_transformation_counts)
 
         df_events = df_events.cache()
+
+        # Remove rows with invalid cell_ids
+        df_events = self.filter_invalid_cell_id_and_update_qa(
+            df_events, self.output_qa_by_column.error_and_transformation_counts)
+
+        df_events = df_events.cache()
+
         df_events = self.convert_time_column_to_timestamp_and_update_qa(
             df_events, self.timestamp_format, self.input_timezone, self.output_qa_by_column.error_and_transformation_counts)
 
@@ -256,11 +264,67 @@ class EventCleaning(Component):
             error_and_transformation_counts[(
                 filter_column, ErrorTypes.missing_value, None)] += df.count() - filtered_df.count()
             # because timestamp column is then also used in another filters, and no error count should be done in the last filter
-            if filter_column != ColNames.timestamp:
+            if filter_column not in [ColNames.timestamp, ColNames.mcc]:
                 error_and_transformation_counts[(
                     filter_column, ErrorTypes.no_error, None)] += filtered_df.count()
 
             df = filtered_df.cache()
+
+        return df
+
+    def filter_invalid_mcc_and_update_qa(self,
+                                         df: pyspark.sql.dataframe.DataFrame,
+                                         error_and_transformation_counts: dict[tuple:int]
+                                         ) -> pyspark.sql.dataframe.DataFrame:
+        """
+        Remove any rows where the value for mcc is not a 3 digit number (between 100 and 999)
+
+        Args:
+            df (pyspark.sql.dataframe.DataFrame): dataframe of events
+            error_and_transformation_counts (dict[tuple:int]): dictionary to track qa
+
+        Returns:
+            pyspark.sql.dataframe.DataFrame: Dataframe with erroneous values of mcc filtered out
+        """
+
+        filtered_df = df.filter(psf.col(ColNames.mcc).between(
+            100, 999))
+        error_and_transformation_counts[(
+            ColNames.mcc, ErrorTypes.out_of_admissible_values, None)] += df.count() - filtered_df.count()
+        # because timestamp column is then also used in another filters, and no error count should be done in the last filter
+        error_and_transformation_counts[(
+            ColNames.mcc, ErrorTypes.no_error, None)] += filtered_df.count()
+
+        df = filtered_df.cache()
+
+        return df
+
+    def filter_invalid_cell_id_and_update_qa(self,
+                                             df: pyspark.sql.dataframe.DataFrame,
+                                             error_and_transformation_counts: dict[tuple:int]
+                                             ) -> pyspark.sql.dataframe.DataFrame:
+        """
+        Remove any rows where the value for cell_id is not a 15 digit number
+
+        Args:
+            df (pyspark.sql.dataframe.DataFrame): dataframe of events
+            error_and_transformation_counts (dict[tuple:int]): dictionary to track qa
+
+        Returns:
+            pyspark.sql.dataframe.DataFrame: Dataframe with erroneous values of cell_id filtered out
+        """
+
+        filtered_df = df.filter(
+            ((psf.length(psf.col(ColNames.cell_id)) == 15) & (psf.col(ColNames.cell_id).cast("long").isNotNull())
+            | psf.col("cell_id").isNull())
+        )
+        error_and_transformation_counts[(
+            ColNames.cell_id, ErrorTypes.out_of_admissible_values, None)] += df.count() - filtered_df.count()
+        # because timestamp column is then also used in another filters, and no error count should be done in the last filter
+        error_and_transformation_counts[(
+            ColNames.cell_id, ErrorTypes.no_error, None)] += filtered_df.count()
+
+        df = filtered_df.cache()
 
         return df
 
