@@ -1,7 +1,8 @@
+from enum import Enum
 from core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObject
 from pyspark.sql import Row, DataFrame
-from pyspark.sql.functions import udf, explode, sha2, col, date_format, to_timestamp
-from pyspark.sql.types import IntegerType, TimestampType, ArrayType, StructType, StructField, BinaryType
+from pyspark.sql.functions import udf, explode, sha2, col, date_format, to_timestamp, lit
+from pyspark.sql.types import IntegerType, TimestampType, ArrayType, StructType, StructField, BinaryType, DoubleType
 
 import random
 import datetime
@@ -33,30 +34,41 @@ Functionalities:
     Generation of Optional fields
 """
 
-return_type = ArrayType(StructType([StructField(name="event_id", dataType=IntegerType(), nullable=False),
+# Return type for the agent records generation UDF.
+agent_records_return_type = ArrayType(StructType([StructField(name=ColNames.event_id, dataType=IntegerType(), nullable=False),
                                    StructField(
-                                       name="timestamp", dataType=TimestampType(), nullable=False),
-                                   StructField(name="cell_id", dataType=IntegerType(), nullable=False)]))
+                                       name=ColNames.timestamp, dataType=TimestampType(), nullable=False),
+                                   StructField(name=ColNames.cell_id, dataType=IntegerType(), nullable=True),
+                                   StructField(name=ColNames.latitude, dataType=DoubleType(), nullable=True),
+                                   StructField(name=ColNames.longitude, dataType=DoubleType(), nullable=True),
+                                   ]))
 
 
-@udf(returnType=return_type)
-def generate_agent_records(n_events, starting_event_id, timestamp_generator_params, cell_id_generator_params):
+@udf(returnType=agent_records_return_type)
+def generate_agent_records(user_id, n_events, starting_event_id, random_seed, timestamp_generator_params, location_generator_params):
     """
     UDF to generate records from agent parameters.
     Generates an array of (event_id, timestamp, cell_id) tuples.
 
     Args:
+        user_id (_type_): _description_
         n_events (_type_): _description_
         starting_event_id (_type_): _description_
+        random_seed (_type_): _description_
         timestamp_generator_params (_type_): _description_
-        cell_id_generator_params (_type_): _description_
+        location_generator_params (_type_): _description_
 
     Returns:
         _type_: _description_
     """
+    # Generate event id values.
+    event_ids = [i for i in range(
+        starting_event_id, starting_event_id + n_events)]
+
+    # Generate timestamp values.
     # TODO timestamp generator types
     timestamp_generator_type = timestamp_generator_params[0]
-    if (timestamp_generator_type == "equal_gaps"):
+    if (timestamp_generator_type == TimestampGeneratorType.EQUAL_GAPS.value):
         starting_timestamp = timestamp_generator_params[1]
         ending_timestamp = timestamp_generator_params[2]
         gap_length_s = (ending_timestamp - starting_timestamp) / n_events
@@ -65,27 +77,42 @@ def generate_agent_records(n_events, starting_event_id, timestamp_generator_para
         for i in range(n_events):
             timestamps.append(current_timestamp)
             current_timestamp += gap_length_s
-    # TODO cell generator types
-    cell_id_generator_type = cell_id_generator_params[0]
-    if (cell_id_generator_type == "random_cell_id"):
-        cell_id_min = cell_id_generator_params[1]
-        cell_id_max = cell_id_generator_params[2]
-        # TODO might want to add user_id to random seed, otherwise the cell ids are identical for all users
-        # Is this independent enough from the other parallel randoms to ensure the same results each run?
-        random.seed(cell_id_generator_params[3])
+
+    # Generate location values.
+    # Location is identified either by cell id or by latitude and longitude.
+    location_generator_type = location_generator_params[0]
+    random.seed(random_seed + user_id)
+    if (location_generator_type == LocationGeneratorType.RANDOM_CELL_ID.value):
+        cell_id_min = location_generator_params[1]
+        cell_id_max = location_generator_params[2]
         cell_ids = [random.randint(cell_id_min, cell_id_max)
                     for i in range(n_events)]
-    event_ids = [i for i in range(
-        starting_event_id, starting_event_id + n_events)]
-    events = zip(event_ids, timestamps, cell_ids)
+        lats = [None for i in range(n_events)]
+        lons = [None for i in range(n_events)]
+    elif (location_generator_type == LocationGeneratorType.RANDOM_LAT_LON.value):
+        lat_min = location_generator_params[1]
+        lat_max = location_generator_params[2]
+        lon_min = location_generator_params[3]
+        lon_max = location_generator_params[4]
+        cell_ids = [None for i in range(n_events)]
+        lats = [random.random() * (lat_max - lat_min) + lat_min for i in range(n_events)]
+        lons = [random.random() * (lon_max - lon_min) + lon_min for i in range(n_events)]
+
+    events = zip(event_ids, timestamps, cell_ids, lats, lons)
     return events
 
 
+# Enum of location generators supported by the synthetic events generator.
+class LocationGeneratorType(Enum):
+    RANDOM_CELL_ID = "random_cell_id"
+    RANDOM_LAT_LON = "random_lat_lon"
+
+# Enum of timestamp generators supported by the synthetic events generator.
+class TimestampGeneratorType(Enum):
+    EQUAL_GAPS = "equal_gaps"
+
 class SyntheticEvents(Component):
     COMPONENT_ID = "SyntheticEvents"
-
-    supported_timestamp_generator_types = ["equal_gaps"]
-    supported_location_generator_types = ["random_cell_id"]
 
     def __init__(self, general_config_path: str, component_config_path: str):
         super().__init__(general_config_path=general_config_path,
@@ -97,28 +124,49 @@ class SyntheticEvents(Component):
         self.n_partitions = self.config.getint(
             self.COMPONENT_ID, "n_partitions")
 
+        # Handle timestamp generation parameters.
         # TODO support for other timestamp generation methods
-        self.timestamp_generator_type = self.config.get(
+        timestamp_generator_type_str = self.config.get(
             self.COMPONENT_ID, "timestamp_generator_type")
-        if self.timestamp_generator_type not in self.supported_timestamp_generator_types:
+        try:
+            timestamp_generator_type = TimestampGeneratorType(timestamp_generator_type_str)
+        except:
             raise ValueError(
-                f"Unsupported timestamp_generator_type: {self.timestamp_generator_type}. Supported types are: {self.supported_timestamp_generator_types}")
-        timestamp_format = self.config.get(
-            self.COMPONENT_ID, "timestamp_format")
-        self.starting_timestamp = datetime.datetime.strptime(
-            self.config.get(self.COMPONENT_ID, "starting_timestamp"), timestamp_format)
-        self.ending_timestamp = datetime.datetime.strptime(
-            self.config.get(self.COMPONENT_ID, "ending_timestamp"), timestamp_format)
+                f"Unsupported timestamp_generator_type: {timestamp_generator_type}. Supported types are: {[e.value for e in TimestampGeneratorType]}")
+        if timestamp_generator_type == TimestampGeneratorType.EQUAL_GAPS:
+            timestamp_format = self.config.get(
+                self.COMPONENT_ID, "timestamp_format")
+            starting_timestamp = datetime.datetime.strptime(
+                self.config.get(self.COMPONENT_ID, "starting_timestamp"), timestamp_format)
+            ending_timestamp = datetime.datetime.strptime(
+                self.config.get(self.COMPONENT_ID, "ending_timestamp"), timestamp_format)
+            self.timestamp_generator_params = (timestamp_generator_type.value, starting_timestamp, ending_timestamp)
 
-        # TODO support for "lat_lon" generator, other cell_id based generator
-        self.location_generator_type = self.config.get(
+        # Handle location generation parameters.
+        location_generator_type_str = self.config.get(
             self.COMPONENT_ID, "location_generator_type")
-        if self.location_generator_type not in self.supported_location_generator_types:
+        try:
+            locationGenerator = LocationGeneratorType(location_generator_type_str)
+        except:
             raise ValueError(
-                f"Unsupported location_generator_type: {self.location_generator_type}. Supported types are: {self.supported_location_generator_types}")
-        self.cell_id_min = self.config.getint(self.COMPONENT_ID, "cell_id_min")
-        self.cell_id_max = self.config.getint(self.COMPONENT_ID, "cell_id_max")
-
+                f"Unsupported location_generator_type: {location_generator_type_str}. Supported types are: {[e.value for e in LocationGeneratorType]}")
+        if locationGenerator == LocationGeneratorType.RANDOM_CELL_ID:
+            cell_id_min = self.config.getint(self.COMPONENT_ID, "cell_id_min")
+            cell_id_max = self.config.getint(self.COMPONENT_ID, "cell_id_max")
+            self.location_generator_params = (locationGenerator.value, 
+                                            cell_id_min, 
+                                            cell_id_max)
+        elif locationGenerator == LocationGeneratorType.RANDOM_LAT_LON:
+            latitude_min = float(self.config.get(self.COMPONENT_ID, "latitude_min"))
+            latitude_max = float(self.config.get(self.COMPONENT_ID, "latitude_max"))
+            longitude_min = float(self.config.get(self.COMPONENT_ID, "longitude_min"))
+            longitude_max = float(self.config.get(self.COMPONENT_ID, "longitude_max"))
+            self.location_generator_params = (locationGenerator.value, 
+                                            latitude_min, 
+                                            latitude_max, 
+                                            longitude_min, 
+                                            longitude_max)
+            
         # Will we need better mcc generation later?
         self.mcc = self.config.getint(self.COMPONENT_ID, "mcc")
 
@@ -146,10 +194,13 @@ class SyntheticEvents(Component):
         agents = self.generate_agents()
         agents_df = spark.createDataFrame(agents)
         # Generate events for each agent. Since the UDF generates a list, it has to be exploded to separate the rows.
-        records_df = agents_df.withColumn("record_tuple", explode(generate_agent_records("n_events", "starting_event_id", "timestamp_generator_params", "cell_id_generator_params")))\
+        records_df = agents_df.withColumn("record_tuple", explode(generate_agent_records("user_id", "n_events",  "starting_event_id", "random_seed", "timestamp_generator_params", "location_generator_params")))\
             .select(["*", "record_tuple.*"])
-        records_df = self.calc_hashed_user_id(records_df)
 
+        #TODO add loc_error non-null value generation.
+        records_df = records_df.withColumn(ColNames.loc_error, lit(None).cast(DoubleType()))
+         
+        records_df = self.calc_hashed_user_id(records_df)
         records_df = records_df.withColumn(
             ColNames.timestamp, col(ColNames.timestamp).cast("string"))
         records_df = records_df.withColumn(
@@ -159,9 +210,10 @@ class SyntheticEvents(Component):
 
         # TODO use DataObject schema for selecting the columns?
         bronze_columns = [i.name for i in BronzeEventDataObject.SCHEMA]
-        # TODO integrate with ColNames
-        for unsupported_column in ["longitude", "latitude", "loc_error"]:
-            bronze_columns.remove(unsupported_column)
+        
+        # TODO Should certain location columns (depending on generator params) not be created? 
+        # for unsupported_column in ["longitude", "latitude", "loc_error"]:
+        #     bronze_columns.remove(unsupported_column)
 
         records_df = records_df.select(
             bronze_columns
@@ -171,7 +223,6 @@ class SyntheticEvents(Component):
 
         records_df = records_df.withColumn('timestamp', date_format(
             to_timestamp(col('timestamp')), format="yyyy-MM-dd'T'HH:mm:ss"))
-
         # records_df = records_df.withColumn(ColNames.year, year(col(ColNames.timestamp)))
         # records_df = records_df.withColumn(ColNames.month, month(col(ColNames.timestamp)))
         # records_df = records_df.withColumn(ColNames.day, dayofmonth(col(ColNames.timestamp)))
@@ -204,10 +255,9 @@ class SyntheticEvents(Component):
                     starting_event_id=starting_event_id,
                     mcc=self.mcc,
                     n_events=self.n_events_per_agent,
-                    timestamp_generator_params=(
-                        self.timestamp_generator_type, self.starting_timestamp, self.ending_timestamp),
-                    cell_id_generator_params=(
-                        self.location_generator_type, self.cell_id_min, self.cell_id_max, self.seed)
+                    random_seed=self.seed,
+                    timestamp_generator_params=self.timestamp_generator_params,
+                    location_generator_params=self.location_generator_params
                 )
             )
             starting_event_id += self.n_events_per_agent
@@ -233,7 +283,7 @@ if __name__ == "__main__":
     # test start
     root_path = "/opt/dev"
     general_config = f"{root_path}/pipe_configs/configurations/general_config.ini"
-    component_config = f"{root_path}/pipe_configs/configurations/synthetic_events/synthetic_events.ini"
+    component_config = f"{root_path}/pipe_configs/configurations/synthetic_events/synth_config.ini"
     test_generator = SyntheticEvents(general_config, component_config)
 
     test_generator.execute()
