@@ -1,12 +1,10 @@
 import sys
 
 from components.execution.event_cleaning.event_cleaning import EventCleaning
-from components.ingestion.synthetic.synthetic_errors import SyntheticErrors
 from components.ingestion.synthetic.synthetic_events import SyntheticEvents
 
 CONSTRUCTORS = {
     SyntheticEvents.COMPONENT_ID: SyntheticEvents,
-    SyntheticErrors.COMPONENT_ID: SyntheticErrors,
     EventCleaning.COMPONENT_ID: EventCleaning,
 }
 
