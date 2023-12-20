@@ -9,6 +9,7 @@ from core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObj
 from core.data_objects.silver.silver_event_data_object import SilverEventDataObject
 from core.data_objects.silver.silver_event_data_syntactic_quality_metrics_by_column import SilverEventDataSyntacticQualityMetricsByColumn
 from core.data_objects.silver.silver_event_data_syntactic_quality_metrics_frequency_distribution import SilverEventDataSyntacticQualityMetricsFrequencyDistribution
+from core.spark_session import check_if_data_path_exists
 from core.settings import CONFIG_BRONZE_PATHS_KEY, CONFIG_SILVER_PATHS_KEY
 from core.columns import ColNames
 from core.error_types import ErrorTypes
@@ -58,9 +59,7 @@ class EventCleaning(Component):
         self.input_event_data_objects = []
         for date in self.to_process_dates:
             path = f"{self.bronze_event_path}/{date}"
-            # TODO: think of more elegant solution to check if path exists
-            # The current solution only works in local machines
-            if os.path.exists(path):
+            if check_if_data_path_exists(path):
                 self.input_event_data_objects.append(BronzeEventDataObject(
                     self.spark, path))
             else:
