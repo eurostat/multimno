@@ -9,7 +9,7 @@ from core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObj
 from core.data_objects.silver.silver_event_data_object import SilverEventDataObject
 from core.data_objects.silver.silver_event_data_syntactic_quality_metrics_by_column import SilverEventDataSyntacticQualityMetricsByColumn
 from core.data_objects.silver.silver_event_data_syntactic_quality_metrics_frequency_distribution import SilverEventDataSyntacticQualityMetricsFrequencyDistribution
-from core.spark_session import check_if_data_path_exists
+from core.spark_session import check_if_data_path_exists, delete_file_or_folder
 from core.settings import CONFIG_BRONZE_PATHS_KEY, CONFIG_SILVER_PATHS_KEY
 from core.columns import ColNames
 from core.error_types import ErrorTypes
@@ -34,6 +34,9 @@ class EventCleaning(Component):
 
         self.spark_data_folder_date_format = self.config.get(
             EventCleaning.COMPONENT_ID, 'spark_data_folder_date_format')
+
+        self.clear_destination_directory = self.config.get(
+            EventCleaning.COMPONENT_ID, "clear_destination_directory")
 
     def initalize_data_objects(self):
         # Input
@@ -72,12 +75,16 @@ class EventCleaning(Component):
             CONFIG_SILVER_PATHS_KEY, "event_data_silver")
         silver_event_do = SilverEventDataObject(self.spark, silver_event_path)
         self.output_data_objects[SilverEventDataObject.ID] = silver_event_do
+        if self.clear_destination_directory:
+            delete_file_or_folder(silver_event_do.default_path)
 
         event_syntactic_quality_metrics_by_column_path = self.config.get(
             CONFIG_SILVER_PATHS_KEY, "event_syntactic_quality_metrics_by_column")
         event_syntactic_quality_metrics_by_column = SilverEventDataSyntacticQualityMetricsByColumn(
             self.spark, event_syntactic_quality_metrics_by_column_path)
         self.output_data_objects[SilverEventDataSyntacticQualityMetricsByColumn.ID] = event_syntactic_quality_metrics_by_column
+        if self.clear_destination_directory:
+            delete_file_or_folder(event_syntactic_quality_metrics_by_column.default_path)
 
         self.output_qa_by_column = event_syntactic_quality_metrics_by_column
 
@@ -85,6 +92,9 @@ class EventCleaning(Component):
             CONFIG_SILVER_PATHS_KEY, "event_syntactic_quality_metrics_frequency_distribution")
         event_syntactic_quality_metrics_frequency_distribution = SilverEventDataSyntacticQualityMetricsFrequencyDistribution(
             self.spark, event_syntactic_quality_metrics_frequency_distribution_path)
+        if self.clear_destination_directory:
+            delete_file_or_folder(event_syntactic_quality_metrics_frequency_distribution.default_path)
+            
         self.output_data_objects[SilverEventDataSyntacticQualityMetricsFrequencyDistribution.ID] = event_syntactic_quality_metrics_frequency_distribution
         # this instance of SilverEventDataSyntacticQualityMetricsFrequencyDistribution class
         # will be used to write frequency distrobution of each preprocessing date (chunk)
@@ -316,7 +326,7 @@ class EventCleaning(Component):
 
         filtered_df = df.filter(
             ((psf.length(psf.col(ColNames.cell_id)) == 15) & (psf.col(ColNames.cell_id).cast("long").isNotNull())
-            | psf.col("cell_id").isNull())
+             | psf.col("cell_id").isNull())
         )
         error_and_transformation_counts[(
             ColNames.cell_id, ErrorTypes.out_of_admissible_values, None)] += df.count() - filtered_df.count()
