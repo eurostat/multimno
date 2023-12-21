@@ -56,13 +56,15 @@ class EventCleaning(Component):
         sdate = pd.to_datetime(self.data_period_start)
         edate = pd.to_datetime(self.data_period_end)
         self.to_process_dates = list(pd.date_range(
-            sdate, edate, freq='d').strftime(self.data_folder_date_format))
+            sdate, edate, freq='d'))
 
         # Create all input data objects
         self.input_event_data_objects = []
+        self.dates_to_process = []
         for date in self.to_process_dates:
-            path = f"{self.bronze_event_path}/{date}"
-            if check_if_data_path_exists(path):
+            path = f"{self.bronze_event_path}/year={date.year}/month={date.month}/day={date.day}"
+            if check_if_data_path_exists(self.spark, path):
+                self.dates_to_process.append(date)
                 self.input_event_data_objects.append(BronzeEventDataObject(
                     self.spark, path))
             else:
@@ -94,7 +96,7 @@ class EventCleaning(Component):
             self.spark, event_syntactic_quality_metrics_frequency_distribution_path)
         if self.clear_destination_directory:
             delete_file_or_folder(event_syntactic_quality_metrics_frequency_distribution.default_path)
-            
+
         self.output_data_objects[SilverEventDataSyntacticQualityMetricsFrequencyDistribution.ID] = event_syntactic_quality_metrics_frequency_distribution
         # this instance of SilverEventDataSyntacticQualityMetricsFrequencyDistribution class
         # will be used to write frequency distrobution of each preprocessing date (chunk)
@@ -110,7 +112,8 @@ class EventCleaning(Component):
 
     def execute(self):
         self.logger.info(f"Starting {self.COMPONENT_ID}...")
-        for input_do in self.input_event_data_objects:
+        for input_do, current_date in zip(self.input_event_data_objects, self.dates_to_process):
+            self.current_date = current_date
             self.logger.info(f"Reading from path {input_do.default_path}")
             self.current_input_do = input_do
             self.read()
@@ -182,10 +185,10 @@ class EventCleaning(Component):
         self.spark.catalog.clearCache()
 
     def save_syntactic_quality_metrics_frequency_distribution(self):
-        """Join frequence distribution tables before and after,
+        """Join frequency distribution tables before and after,
         from after table take only final_frequency and replace nulls with 0.
         Create additional column date in DateType(), 
-        match the scchema of SilverEventDataSyntacticQualityMetricsByColumn class
+        match the schema of SilverEventDataSyntacticQualityMetricsByColumn class
         Write chunk results in separate folders named by processing date
         """
 
@@ -200,18 +203,16 @@ class EventCleaning(Component):
         self.output_qa_freq_distribution.df = self.output_qa_freq_distribution.df.fillna(
             0, ColNames.final_frequency)
 
-        curr_data = self.current_input_do.default_path.split("/")[-1]
 
         self.output_qa_freq_distribution.df = self.output_qa_freq_distribution.df.withColumn(
             ColNames.date, psf.to_date(
-                psf.lit(curr_data), self.spark_data_folder_date_format)
+                psf.lit(self.current_date), self.spark_data_folder_date_format)
         )
 
         self.output_qa_freq_distribution.df = self.spark.createDataFrame(self.output_qa_freq_distribution.df.rdd,
                                                                          self.output_qa_freq_distribution.SCHEMA)
 
-        self.output_qa_freq_distribution.write(
-            f"{self.output_qa_freq_distribution.default_path}/{curr_data}")
+        self.output_qa_freq_distribution.write()
 
     def save_syntactic_quality_metrics_by_column(self):
         """Convert output_qa_by_column.error_and_transformation_counts dictionary into spark df.
