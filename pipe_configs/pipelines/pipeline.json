@@ -6,10 +6,6 @@
             "component_config_path": "/opt/dev/pipe_configs/configurations/synthetic_events/synth_config.ini"
         },
         {
-            "component_id": "SyntheticErrors",
-            "component_config_path": "/opt/dev/pipe_configs/configurations/synthetic_events/synth_config.ini"
-        },
-        {
             "component_id": "EventCleaning",
             "component_config_path": "/opt/dev/pipe_configs/configurations/event/event_cleaning.ini"
         }
