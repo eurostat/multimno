@@ -35,8 +35,7 @@ class EventCleaning(Component):
         self.spark_data_folder_date_format = self.config.get(
             EventCleaning.COMPONENT_ID, 'spark_data_folder_date_format')
 
-        self.clear_destination_directory = self.config.get(
-            EventCleaning.COMPONENT_ID, "clear_destination_directory")
+        
 
     def initalize_data_objects(self):
         # Input
@@ -49,6 +48,8 @@ class EventCleaning(Component):
             EventCleaning.COMPONENT_ID, 'data_period_end')
         self.data_folder_date_format = self.config.get(
             EventCleaning.COMPONENT_ID, 'data_folder_date_format')
+        self.clear_destination_directory = self.config.get(
+            EventCleaning.COMPONENT_ID, "clear_destination_directory")
 
         # Create all possible dates between start and end
         # It is suggested that data is already separated in date folders
@@ -78,7 +79,7 @@ class EventCleaning(Component):
         silver_event_do = SilverEventDataObject(self.spark, silver_event_path)
         self.output_data_objects[SilverEventDataObject.ID] = silver_event_do
         if self.clear_destination_directory:
-            delete_file_or_folder(silver_event_do.default_path)
+            delete_file_or_folder(self.spark, silver_event_do.default_path)
 
         event_syntactic_quality_metrics_by_column_path = self.config.get(
             CONFIG_SILVER_PATHS_KEY, "event_syntactic_quality_metrics_by_column")
@@ -86,7 +87,7 @@ class EventCleaning(Component):
             self.spark, event_syntactic_quality_metrics_by_column_path)
         self.output_data_objects[SilverEventDataSyntacticQualityMetricsByColumn.ID] = event_syntactic_quality_metrics_by_column
         if self.clear_destination_directory:
-            delete_file_or_folder(event_syntactic_quality_metrics_by_column.default_path)
+            delete_file_or_folder(self.spark, event_syntactic_quality_metrics_by_column.default_path)
 
         self.output_qa_by_column = event_syntactic_quality_metrics_by_column
 
@@ -95,7 +96,7 @@ class EventCleaning(Component):
         event_syntactic_quality_metrics_frequency_distribution = SilverEventDataSyntacticQualityMetricsFrequencyDistribution(
             self.spark, event_syntactic_quality_metrics_frequency_distribution_path)
         if self.clear_destination_directory:
-            delete_file_or_folder(event_syntactic_quality_metrics_frequency_distribution.default_path)
+            delete_file_or_folder(self.spark, event_syntactic_quality_metrics_frequency_distribution.default_path)
 
         self.output_data_objects[SilverEventDataSyntacticQualityMetricsFrequencyDistribution.ID] = event_syntactic_quality_metrics_frequency_distribution
         # this instance of SilverEventDataSyntacticQualityMetricsFrequencyDistribution class
@@ -177,7 +178,6 @@ class EventCleaning(Component):
         })
 
         df_events = df_events.sort([ColNames.user_id, ColNames.timestamp])
-
         self.output_data_objects[SilverEventDataObject.ID].df = self.spark.createDataFrame(df_events.rdd,
                                                                                            SilverEventDataObject.SCHEMA
                                                                                            )
@@ -424,7 +424,7 @@ class EventCleaning(Component):
             data_period_start, data_period_end))
 
         error_and_transformation_counts[(
-            ColNames.timestamp, ErrorTypes.out_of_admissable_values, None)] += df.count() - filtered_df.count()
+            ColNames.timestamp, ErrorTypes.out_of_admissible_values, None)] += df.count() - filtered_df.count()
         # TODO: if we decide not to use data_period_filtering don't forget to put this in convert_time_column_to_timestamp
         error_and_transformation_counts[(
             ColNames.timestamp, ErrorTypes.no_error, None)] += filtered_df.count()
