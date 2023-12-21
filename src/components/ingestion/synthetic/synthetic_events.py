@@ -6,7 +6,7 @@ from pyspark.sql import Row, DataFrame
 from pyspark.sql.window import Window
 import pyspark.sql.functions as F
 from pyspark.sql.functions import udf, explode, sha2, col, date_format, to_timestamp, lit
-from pyspark.sql.types import IntegerType, TimestampType, ArrayType, StructType, StructField, BinaryType, DoubleType, StringType, FloatType
+from pyspark.sql.types import IntegerType, TimestampType, ArrayType, StructType, StructField, BinaryType, DoubleType, StringType, FloatType, LongType
 import random
 import datetime
 from core.component import Component
@@ -17,7 +17,7 @@ from common.constants.columns import ColNames
 agent_records_return_type = ArrayType(StructType([StructField(name=ColNames.event_id, dataType=IntegerType(), nullable=False),
                                    StructField(
                                        name=ColNames.timestamp, dataType=TimestampType(), nullable=False),
-                                   StructField(name=ColNames.cell_id, dataType=IntegerType(), nullable=True),
+                                   StructField(name=ColNames.cell_id, dataType=LongType(), nullable=True),
                                    StructField(name=ColNames.latitude, dataType=FloatType(), nullable=True),
                                    StructField(name=ColNames.longitude, dataType=FloatType(), nullable=True),
                                    ]))
