@@ -37,6 +37,4 @@ class SilverEventDataSyntacticQualityMetricsByColumn(PathDataObject):
 
         self.df.write.format(
             self.interface.FILE_FORMAT,  # File format
-        ).partitionBy(
-            partition_columns
         ).mode("append").save(path)
