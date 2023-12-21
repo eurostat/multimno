@@ -35,4 +35,8 @@ class SilverEventDataSyntacticQualityMetricsByColumn(PathDataObject):
         if partition_columns is None:
             partition_columns = self.partition_columns
 
-        self.interface.write_from_interface(self.df, path, partition_columns)
+        self.df.write.format(
+            self.interface.FILE_FORMAT,  # File format
+        ).partitionBy(
+            partition_columns
+        ).mode("append").save(path)
