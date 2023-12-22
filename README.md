@@ -22,6 +22,7 @@ This repository contains code that processes MNO Data to generate population and
     - [Launching a single component](#launching-a-single-component)
     - [Launching a pipeline](#launching-a-pipeline)
     - [Launching a spark history server](#launching-a-spark-history-server)
+    - [Code Linting](#code-linting)
 
 ## Setup
 The code stored in this repository is aimed to be executed in a PySpark compatible cluster. For an easy deployment in local environments, configuration for creating a docker container with all necessary dependencies is included in the `.devcontainer` folder. This allows users to execute the code
@@ -158,5 +159,13 @@ start-history-server.sh
 Accesing the history server
 * Go to the address http://localhost:18080
 
+### Code Linting
+
+The python code generated shall be formatted with autopep8. For formatting all source code execute the
+following command:
+
+```bash
+black -l 120 src
+```
 
 
