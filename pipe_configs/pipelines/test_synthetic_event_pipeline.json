@@ -4,10 +4,6 @@
         {
             "component_id": "SyntheticEvents",
             "component_config_path": "/opt/dev/pipe_configs/configurations/synthetic_events/synth_config.ini"
-        },
-        {
-            "component_id": "SyntheticErrors",
-            "component_config_path": "/opt/dev/pipe_configs/configurations/synthetic_events/synth_config.ini"
         }
     ]
 }

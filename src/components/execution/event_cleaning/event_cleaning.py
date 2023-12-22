@@ -9,6 +9,7 @@ from core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObj
 from core.data_objects.silver.silver_event_data_object import SilverEventDataObject
 from core.data_objects.silver.silver_event_data_syntactic_quality_metrics_by_column import SilverEventDataSyntacticQualityMetricsByColumn
 from core.data_objects.silver.silver_event_data_syntactic_quality_metrics_frequency_distribution import SilverEventDataSyntacticQualityMetricsFrequencyDistribution
+from core.spark_session import check_if_data_path_exists, delete_file_or_folder
 from core.settings import CONFIG_BRONZE_PATHS_KEY, CONFIG_SILVER_PATHS_KEY
 from core.columns import ColNames
 from core.error_types import ErrorTypes
@@ -34,6 +35,8 @@ class EventCleaning(Component):
         self.spark_data_folder_date_format = self.config.get(
             EventCleaning.COMPONENT_ID, 'spark_data_folder_date_format')
 
+        
+
     def initalize_data_objects(self):
         # Input
         self.bronze_event_path = self.config.get(
@@ -45,6 +48,8 @@ class EventCleaning(Component):
             EventCleaning.COMPONENT_ID, 'data_period_end')
         self.data_folder_date_format = self.config.get(
             EventCleaning.COMPONENT_ID, 'data_folder_date_format')
+        self.clear_destination_directory = self.config.get(
+            EventCleaning.COMPONENT_ID, "clear_destination_directory")
 
         # Create all possible dates between start and end
         # It is suggested that data is already separated in date folders
@@ -52,15 +57,15 @@ class EventCleaning(Component):
         sdate = pd.to_datetime(self.data_period_start)
         edate = pd.to_datetime(self.data_period_end)
         self.to_process_dates = list(pd.date_range(
-            sdate, edate, freq='d').strftime(self.data_folder_date_format))
+            sdate, edate, freq='d'))
 
         # Create all input data objects
         self.input_event_data_objects = []
+        self.dates_to_process = []
         for date in self.to_process_dates:
-            path = f"{self.bronze_event_path}/{date}"
-            # TODO: think of more elegant solution to check if path exists
-            # The current solution only works in local machines
-            if os.path.exists(path):
+            path = f"{self.bronze_event_path}/year={date.year}/month={date.month}/day={date.day}"
+            if check_if_data_path_exists(self.spark, path):
+                self.dates_to_process.append(date)
                 self.input_event_data_objects.append(BronzeEventDataObject(
                     self.spark, path))
             else:
@@ -73,12 +78,16 @@ class EventCleaning(Component):
             CONFIG_SILVER_PATHS_KEY, "event_data_silver")
         silver_event_do = SilverEventDataObject(self.spark, silver_event_path)
         self.output_data_objects[SilverEventDataObject.ID] = silver_event_do
+        if self.clear_destination_directory:
+            delete_file_or_folder(self.spark, silver_event_do.default_path)
 
         event_syntactic_quality_metrics_by_column_path = self.config.get(
             CONFIG_SILVER_PATHS_KEY, "event_syntactic_quality_metrics_by_column")
         event_syntactic_quality_metrics_by_column = SilverEventDataSyntacticQualityMetricsByColumn(
             self.spark, event_syntactic_quality_metrics_by_column_path)
         self.output_data_objects[SilverEventDataSyntacticQualityMetricsByColumn.ID] = event_syntactic_quality_metrics_by_column
+        if self.clear_destination_directory:
+            delete_file_or_folder(self.spark, event_syntactic_quality_metrics_by_column.default_path)
 
         self.output_qa_by_column = event_syntactic_quality_metrics_by_column
 
@@ -86,6 +95,9 @@ class EventCleaning(Component):
             CONFIG_SILVER_PATHS_KEY, "event_syntactic_quality_metrics_frequency_distribution")
         event_syntactic_quality_metrics_frequency_distribution = SilverEventDataSyntacticQualityMetricsFrequencyDistribution(
             self.spark, event_syntactic_quality_metrics_frequency_distribution_path)
+        if self.clear_destination_directory:
+            delete_file_or_folder(self.spark, event_syntactic_quality_metrics_frequency_distribution.default_path)
+
         self.output_data_objects[SilverEventDataSyntacticQualityMetricsFrequencyDistribution.ID] = event_syntactic_quality_metrics_frequency_distribution
         # this instance of SilverEventDataSyntacticQualityMetricsFrequencyDistribution class
         # will be used to write frequency distrobution of each preprocessing date (chunk)
@@ -101,7 +113,8 @@ class EventCleaning(Component):
 
     def execute(self):
         self.logger.info(f"Starting {self.COMPONENT_ID}...")
-        for input_do in self.input_event_data_objects:
+        for input_do, current_date in zip(self.input_event_data_objects, self.dates_to_process):
+            self.current_date = current_date
             self.logger.info(f"Reading from path {input_do.default_path}")
             self.current_input_do = input_do
             self.read()
@@ -120,17 +133,25 @@ class EventCleaning(Component):
         self.quality_metrics_distribution_before = df_events.groupBy(ColNames.cell_id, ColNames.user_id)\
             .agg(psf.count("*").alias(ColNames.initial_frequency))
 
-        # TODO: Note: Added mcc to null filtering as it is a mandatory field
         df_events = self.filter_nulls_and_update_qa(
             df_events, [ColNames.user_id, ColNames.timestamp, ColNames.mcc], self.output_qa_by_column.error_and_transformation_counts)
 
-        # TODO: Pending mcc correct format verification: 3 digit value
+        # MCC correct format verification: 3 digit value
+        df_events = self.filter_invalid_mcc_and_update_qa(
+            df_events, self.output_qa_by_column.error_and_transformation_counts)
 
         # already cached in previous function
         df_events = self.filter_null_locations_and_update_qa(
             df_events, self.output_qa_by_column.error_and_transformation_counts)
 
         df_events = df_events.cache()
+
+        # Remove rows with invalid cell_ids
+        df_events = self.filter_invalid_cell_id_and_update_qa(
+            df_events, self.output_qa_by_column.error_and_transformation_counts)
+
+        df_events = df_events.cache()
+
         df_events = self.convert_time_column_to_timestamp_and_update_qa(
             df_events, self.timestamp_format, self.input_timezone, self.output_qa_by_column.error_and_transformation_counts)
 
@@ -157,7 +178,6 @@ class EventCleaning(Component):
         })
 
         df_events = df_events.sort([ColNames.user_id, ColNames.timestamp])
-
         self.output_data_objects[SilverEventDataObject.ID].df = self.spark.createDataFrame(df_events.rdd,
                                                                                            SilverEventDataObject.SCHEMA
                                                                                            )
@@ -165,10 +185,10 @@ class EventCleaning(Component):
         self.spark.catalog.clearCache()
 
     def save_syntactic_quality_metrics_frequency_distribution(self):
-        """Join frequence distribution tables before and after,
+        """Join frequency distribution tables before and after,
         from after table take only final_frequency and replace nulls with 0.
         Create additional column date in DateType(), 
-        match the scchema of SilverEventDataSyntacticQualityMetricsByColumn class
+        match the schema of SilverEventDataSyntacticQualityMetricsByColumn class
         Write chunk results in separate folders named by processing date
         """
 
@@ -183,18 +203,16 @@ class EventCleaning(Component):
         self.output_qa_freq_distribution.df = self.output_qa_freq_distribution.df.fillna(
             0, ColNames.final_frequency)
 
-        curr_data = self.current_input_do.default_path.split("/")[-1]
 
         self.output_qa_freq_distribution.df = self.output_qa_freq_distribution.df.withColumn(
             ColNames.date, psf.to_date(
-                psf.lit(curr_data), self.spark_data_folder_date_format)
+                psf.lit(self.current_date), self.spark_data_folder_date_format)
         )
 
         self.output_qa_freq_distribution.df = self.spark.createDataFrame(self.output_qa_freq_distribution.df.rdd,
                                                                          self.output_qa_freq_distribution.SCHEMA)
 
-        self.output_qa_freq_distribution.write(
-            f"{self.output_qa_freq_distribution.default_path}/{curr_data}")
+        self.output_qa_freq_distribution.write()
 
     def save_syntactic_quality_metrics_by_column(self):
         """Convert output_qa_by_column.error_and_transformation_counts dictionary into spark df.
@@ -257,11 +275,67 @@ class EventCleaning(Component):
             error_and_transformation_counts[(
                 filter_column, ErrorTypes.missing_value, None)] += df.count() - filtered_df.count()
             # because timestamp column is then also used in another filters, and no error count should be done in the last filter
-            if filter_column != ColNames.timestamp:
+            if filter_column not in [ColNames.timestamp, ColNames.mcc]:
                 error_and_transformation_counts[(
                     filter_column, ErrorTypes.no_error, None)] += filtered_df.count()
 
             df = filtered_df.cache()
+
+        return df
+
+    def filter_invalid_mcc_and_update_qa(self,
+                                         df: pyspark.sql.dataframe.DataFrame,
+                                         error_and_transformation_counts: dict[tuple:int]
+                                         ) -> pyspark.sql.dataframe.DataFrame:
+        """
+        Remove any rows where the value for mcc is not a 3 digit number (between 100 and 999)
+
+        Args:
+            df (pyspark.sql.dataframe.DataFrame): dataframe of events
+            error_and_transformation_counts (dict[tuple:int]): dictionary to track qa
+
+        Returns:
+            pyspark.sql.dataframe.DataFrame: Dataframe with erroneous values of mcc filtered out
+        """
+
+        filtered_df = df.filter(psf.col(ColNames.mcc).between(
+            100, 999))
+        error_and_transformation_counts[(
+            ColNames.mcc, ErrorTypes.out_of_admissible_values, None)] += df.count() - filtered_df.count()
+        # because timestamp column is then also used in another filters, and no error count should be done in the last filter
+        error_and_transformation_counts[(
+            ColNames.mcc, ErrorTypes.no_error, None)] += filtered_df.count()
+
+        df = filtered_df.cache()
+
+        return df
+
+    def filter_invalid_cell_id_and_update_qa(self,
+                                             df: pyspark.sql.dataframe.DataFrame,
+                                             error_and_transformation_counts: dict[tuple:int]
+                                             ) -> pyspark.sql.dataframe.DataFrame:
+        """
+        Remove any rows where the value for cell_id is not a 15 digit number
+
+        Args:
+            df (pyspark.sql.dataframe.DataFrame): dataframe of events
+            error_and_transformation_counts (dict[tuple:int]): dictionary to track qa
+
+        Returns:
+            pyspark.sql.dataframe.DataFrame: Dataframe with erroneous values of cell_id filtered out
+        """
+
+        filtered_df = df.filter(
+            ((psf.length(psf.col(ColNames.cell_id)) == 15) & (psf.col(ColNames.cell_id).cast("long").isNotNull())
+             | psf.col("cell_id").isNull())
+        )
+        error_and_transformation_counts[(
+            ColNames.cell_id, ErrorTypes.out_of_admissible_values, None)] += df.count() - filtered_df.count()
+        # because timestamp column is then also used in another filters, and no error count should be done in the last filter
+        error_and_transformation_counts[(
+            ColNames.cell_id, ErrorTypes.no_error, None)] += filtered_df.count()
+
+        df = filtered_df.cache()
 
         return df
 
@@ -350,7 +424,7 @@ class EventCleaning(Component):
             data_period_start, data_period_end))
 
         error_and_transformation_counts[(
-            ColNames.timestamp, ErrorTypes.out_of_admissable_values, None)] += df.count() - filtered_df.count()
+            ColNames.timestamp, ErrorTypes.out_of_admissible_values, None)] += df.count() - filtered_df.count()
         # TODO: if we decide not to use data_period_filtering don't forget to put this in convert_time_column_to_timestamp
         error_and_transformation_counts[(
             ColNames.timestamp, ErrorTypes.no_error, None)] += filtered_df.count()

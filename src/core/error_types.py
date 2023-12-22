@@ -1,7 +1,7 @@
 class ErrorTypes:
     missing_value = 1
     not_right_syntactic_format = 2
-    out_of_admissable_values = 3
+    out_of_admissible_values = 3
     inconsistency_between_variables = 4
     no_location = 5
     out_of_bounding_box = 6
