@@ -2,3 +2,5 @@ pytest
 pytest-cov
 jupyterlab
 black
+pylint
+pylint-json2html
