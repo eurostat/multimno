@@ -31,6 +31,7 @@ def parse_configuration(general_config_path: str, component_config_path: str = "
     parser: ConfigParser = ConfigParser(
         converters=converters, interpolation=ExtendedInterpolation(), inline_comment_prefixes="#"
     )
+    parser.optionxform = str
     parser.read(config_paths)
 
     return parser
