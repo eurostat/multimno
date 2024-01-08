@@ -165,5 +165,5 @@ cython_debug/
 # PROJECT IGNORE
 sample_data/
 !sample_data/input/
-docs/
+docs/*.html
 
