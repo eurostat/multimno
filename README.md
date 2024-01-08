@@ -140,13 +140,25 @@ Open the hello world jupyter notebook stored in *[notebooks/hello_world.ipynb](n
 *The Jupyter extension is installed automatically in the devcontainer.*
 
 ### Launching a single component
+In a terminal execute the command:
 ```bash
 spark-submit src/main.py <component_id> <path_to_general_config> <path_to_component_config>
 ```
 
+Example:
+ ```bash
+spark-submit src/main.py SyntheticEvents pipe_configs/configurations/general_config.ini pipe_configs/configurations/synthetic_events/synth_config.ini 
+```
+
 ### Launching a pipeline
+In a terminal execute the command:
 ```bash
 python src/orchestrator.py <pipeline_json_path>
+```
+
+Example
+```
+python src/orchestrator.py pipe_configs/pipelines/pipeline.json 
 ```
 
 ### Launching a spark history server
