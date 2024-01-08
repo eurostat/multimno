@@ -45,7 +45,9 @@
 				"bierner.markdown-mermaid",
 				"eamodio.gitlens",
 				"tamasfe.even-better-toml",
-				"ms-toolsai.jupyter"
+				"ms-toolsai.jupyter",
+				"ms-python.pylint",
+				"redhat.vscode-yaml"
 			]
 		}
 	}

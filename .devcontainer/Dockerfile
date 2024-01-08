@@ -50,6 +50,9 @@ RUN pip3 install poetry pip-tools
 # Install requirements
 ARG install_dir=/tmp/install
 
+# Upgrade pip to latest version
+RUN pip install --upgrade pip
+
 # Standard requirements
 COPY requirements/requirements.in ${install_dir}/requirements/requirements.in
 RUN pip-compile ${install_dir}/requirements/requirements.in 

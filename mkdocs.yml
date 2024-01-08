@@ -1,0 +1,10 @@
+site_name: MultiMNO
+
+theme:
+  name: "material"
+
+plugins:
+  - mkdocstrings
+
+nav:
+  - Code quality: 'code_quality_report.html'

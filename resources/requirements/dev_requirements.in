@@ -1,6 +1,12 @@
+# Test
 pytest
 pytest-cov
 jupyterlab
+
+# Docs
 black
 pylint
 pylint-json2html
+mkdocs
+mkdocs-material
+mkdocstrings-python
