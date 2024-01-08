@@ -31,8 +31,7 @@ class PathDataObject(DataObject, metaclass=ABCMeta):
     def read(self, path: str = None):
         if path is None:
             path = self.default_path
-        self.df = self.interface.read_from_interface(
-            self.spark, path, self.SCHEMA)
+        self.df = self.interface.read_from_interface(self.spark, path, self.SCHEMA)
 
     def write(self, path: str = None, partition_columns: list[str] = None):
         if path is None:

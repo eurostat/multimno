@@ -1,4 +1,3 @@
-
 from configparser import ConfigParser
 from sedona.spark import SedonaContext
 from pyspark.sql import SparkSession
@@ -17,14 +16,10 @@ def generate_spark_session(config: ConfigParser):
         SparkSession: Session of spark.
     """
     conf_dict = dict(config[SPARK_CONFIG_KEY])
-    master = conf_dict.pop('spark.master')
-    session_name = conf_dict.pop('session_name')
+    master = conf_dict.pop("spark.master")
+    session_name = conf_dict.pop("session_name")
 
-    builder = SedonaContext.builder().appName(
-        f'{session_name}'
-    ).master(
-        master
-    )
+    builder = SedonaContext.builder().appName(f"{session_name}").master(master)
 
     # Configuration file spark configs
     for k, v in conf_dict.items():
@@ -36,7 +31,7 @@ def generate_spark_session(config: ConfigParser):
     sc.setSystemProperty("sedona.global.charset", "utf8")
 
     # Set log
-    sc.setLogLevel('ERROR')
+    sc.setLogLevel("ERROR")
     log4j = sc._jvm.org.apache.log4j
     log4j.LogManager.getRootLogger().setLevel(log4j.Level.ERROR)
 
@@ -110,8 +105,9 @@ def list_all_files_recursively(spark: SparkSession, data_path: str) -> list[str]
     return list_all_files_helper(path, fs, conf)
 
 
-def list_all_files_helper(path: py4j.java_gateway.JavaObject,
-                          fs: py4j.java_gateway.JavaClass, conf: py4j.java_gateway.JavaObject) -> list[str]:
+def list_all_files_helper(
+    path: py4j.java_gateway.JavaObject, fs: py4j.java_gateway.JavaClass, conf: py4j.java_gateway.JavaObject
+) -> list[str]:
     """
     This function is used by list_all_files_recursively. This should not be called elsewhere
     Recursively traverses the file tree from given spot saving all files to a list and returns it.
@@ -161,7 +157,7 @@ def list_parquet_partition_col_values(spark: SparkSession, data_path: str) -> li
     if len(partitions) == 0:
         return None, None
 
-    partition_col = partitions[0].split('=')[0]
+    partition_col = partitions[0].split("=")[0]
 
-    partitions = [p.split('=')[1] for p in partitions]
+    partitions = [p.split("=")[1] for p in partitions]
     return partition_col, sorted(partitions)

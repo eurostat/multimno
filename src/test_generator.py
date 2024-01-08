@@ -1,4 +1,3 @@
-
 # TODO add separate config file for synth gen
 config = {}
 

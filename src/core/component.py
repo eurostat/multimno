@@ -1,4 +1,3 @@
-
 from typing import Dict
 from abc import ABCMeta, abstractmethod
 from configparser import ConfigParser
@@ -17,8 +16,7 @@ class Component(metaclass=ABCMeta):
     def __init__(self, general_config_path: str, component_config_path: str) -> None:
         self.input_data_objects: Dict[str, DataObject] = None
         self.output_data_objects: Dict[str, DataObject] = None
-        self.config: ConfigParser = parse_configuration(
-            general_config_path, component_config_path)
+        self.config: ConfigParser = parse_configuration(general_config_path, component_config_path)
         self.logger: Logger = generate_logger(self.config)
         self.spark: SparkSession = generate_spark_session(self.config)
         self.initalize_data_objects()

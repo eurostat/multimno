@@ -14,6 +14,5 @@ if __name__ == "__main__":
     general_config_path = sys.argv[2]
     component_config_path = sys.argv[3]
 
-    component = CONSTRUCTORS[component_id](
-        general_config_path, component_config_path)
+    component = CONSTRUCTORS[component_id](general_config_path, component_config_path)
     component.execute()
