@@ -9,4 +9,7 @@ pylint
 pylint-json2html
 mkdocs
 mkdocs-material
+mkdocs-gen-files
+mkdocs-literate-nav
+mkdocs-section-index
 mkdocstrings-python

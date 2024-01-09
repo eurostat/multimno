@@ -4,7 +4,18 @@ theme:
   name: "material"
 
 plugins:
-  - mkdocstrings
+  - search
+  - gen-files:
+      scripts:
+        - scripts/gen_ref_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - section-index
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
 
 nav:
   - Code quality: 'code_quality_report.html'
+  - Reference: reference/

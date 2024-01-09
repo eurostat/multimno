@@ -24,6 +24,7 @@ This repository contains code that processes MNO Data to generate population and
     - [Launching a spark history server](#launching-a-spark-history-server)
     - [Code Linting](#code-linting)
     - [Code style quality](#code-style-quality)
+    - [Code Documentation](#code-documentation)
 
 ## Setup
 The code stored in this repository is aimed to be executed in a PySpark compatible cluster. For an easy deployment in local environments, configuration for creating a docker container with all necessary dependencies is included in the `.devcontainer` folder. This allows users to execute the code
@@ -189,3 +190,11 @@ A python code quality report can be generated using the pylint library with the 
 pylint src | pylint-json2html -f jsonextended -o docs/code_quality_report.html
 ```
 
+### Code Documentation
+
+A code documentation can be deployed using mkdocs backend. For this purpose execute:
+
+```bash
+mkdocs serve
+```
+and navigate to the address: http://127.0.0.1:8000

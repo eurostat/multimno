@@ -166,4 +166,5 @@ cython_debug/
 sample_data/
 !sample_data/input/
 docs/*.html
+docs/reference
 
