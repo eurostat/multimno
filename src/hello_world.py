@@ -1,21 +1,34 @@
+"""
+This module serves as an example of a hello world application for system testing purposes.
+"""
+import sys
 import pyspark.sql.functions as psf
+from pyspark.sql.types import StructType, StructField, StringType
 from sedona.spark import SedonaContext
 from sedona.spark import SedonaPyDeck
-from pyspark.sql.types import StructType, StructField, StringType
 from sedona.sql.types import GeometryType
-import sys
+
 
 # Functions
+def export_map(df, output_path: str):
+    """Function that exports a Sedona GeoDataframe to html.
 
-
-def export_map(df, output_path):
-    # PyDeck
+    Args:
+        df (DataFrame): dataframe
+        output_path (str): path where the html map will be saved.
+    """
     fill_color = [255, 12, 250]
     census_map = SedonaPyDeck.create_choropleth_map(df=df, fill_color=fill_color)
     census_map.to_html(output_path)
 
 
 def build_local_session():
+    """Function that creates a Spark local session.
+
+    Returns:
+        SparkSession: spark session
+        SparkContext: spark context
+    """
     builder = SedonaContext.builder().appName("Sedona Session")
     # Set sedona session
     spark = SedonaContext.create(builder.getOrCreate())
@@ -45,7 +58,7 @@ if __name__ == "__main__":
     df.withColumn("NPRO", psf.trim("NPRO")).withColumn("NCA", psf.lit("Euskadi")).createOrReplaceTempView("census")
 
     dissolved_census = spark.sql(
-        f"""
+        """
         SELECT NCA, ST_Union_Aggr(geometry) AS geometry 
         FROM census
         GROUP BY NCA
