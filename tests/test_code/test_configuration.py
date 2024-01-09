@@ -3,7 +3,7 @@ from core.spark_session import SPARK_CONFIG_KEY
 
 
 def test_parse_configuration():
-    path = "/opt/dev/src/tests/test_resources/general_config.ini"
+    path = "/opt/dev/tests/test_resources/general_config.ini"
     config = parse_configuration(path)
 
     value = config.get("Paths", "landing_dir")
