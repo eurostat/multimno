@@ -42,9 +42,9 @@ if __name__ == "__main__":
 
     spark, sc = build_local_session()
 
-    census_input_path = "/opt/data/input/euskadi.parquet"
-    census_output_path = "/opt/data/output/census/"
-    census_vis_path = "/opt/data/output/census.html"
+    census_input_path = "/opt/data/hello_world/input/euskadi.parquet"
+    census_output_path = "/opt/data/hello_world/output/census/"
+    census_vis_path = "/opt/data/hello_world/output/census.html"
 
     schema = StructType(
         [
