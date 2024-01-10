@@ -23,7 +23,6 @@ This repository contains code that processes MNO Data to generate population and
     - [Launching a pipeline](#launching-a-pipeline)
     - [Launching a spark history server](#launching-a-spark-history-server)
     - [Testing](#testing)
-      - [Generate coverage](#generate-coverage)
       - [Generate coverage + test-documentation (HTML)](#generate-coverage--test-documentation-html)
       - [See coverage in IDE (VsCode extension)](#see-coverage-in-ide-vscode-extension)
     - [Code Linting](#code-linting)
@@ -179,20 +178,19 @@ Accesing the history server
 
 ### Testing
 
-#### Generate coverage
-Execute the command:
-
-```bash
-pytest --cov-report="xml" --cov=src tests/test_code/
-```
 
 #### Generate coverage + test-documentation (HTML)
 ```bash
-pytest --cov-report="html:docs/tests/coverage" --cov=src --html=docs/tests/test_report.html --self-contained-html tests/test_code
+pytest --cov-report="html:docs/autodoc/coverage" \
+    --cov=src --html=docs/autodoc/test_report.md \
+    --self-contained-html tests/test_code > /dev/null
 ```
 
 #### See coverage in IDE (VsCode extension)
 1) Generate the coverage report (xml|lcov)
+```bash
+pytest --cov-report="xml" --cov=src tests/test_code/
+```
 2) Install the extension: Coverage Gutters
 3) Right click and select Coverage Gutters: Watch
 
@@ -212,7 +210,7 @@ black -l 120 src tests/test_code/
 A python code quality report can be generated using the pylint library with the following command:
 
 ```bash
-pylint src | pylint-json2html -f jsonextended -o docs/code_quality_report.html
+pylint src | pylint-json2html -f jsonextended -o docs/code_quality_report.md
 ```
 
 ### Code Documentation

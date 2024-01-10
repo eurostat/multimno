@@ -18,6 +18,6 @@ plugins:
 
 nav:
   - Reference: reference/
-  - Code quality: 'code_quality_report.html'
-  - Test Report: tests/test_report.html
-  - Coverage: tests/coverage/index.html
+  - Code quality: autodoc/code_quality_report.md
+  - Test Report: autodoc/test_report.md
+  - Coverage: autodoc/coverage

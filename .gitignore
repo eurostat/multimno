@@ -167,4 +167,4 @@ sample_data/
 !sample_data/hello_world/input
 docs/*.html
 docs/reference
-docs/tests
+docs/autodoc
