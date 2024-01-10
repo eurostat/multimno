@@ -1,6 +1,7 @@
 # Test
 pytest
 pytest-cov
+pytest-html
 jupyterlab
 
 # Docs

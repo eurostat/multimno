@@ -17,5 +17,7 @@ plugins:
           paths: [src]
 
 nav:
-  - Code quality: 'code_quality_report.html'
   - Reference: reference/
+  - Code quality: 'code_quality_report.html'
+  - Test Report: tests/test_report.html
+  - Coverage: tests/coverage/index.html

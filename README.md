@@ -22,6 +22,10 @@ This repository contains code that processes MNO Data to generate population and
     - [Launching a single component](#launching-a-single-component)
     - [Launching a pipeline](#launching-a-pipeline)
     - [Launching a spark history server](#launching-a-spark-history-server)
+    - [Testing](#testing)
+      - [Generate coverage](#generate-coverage)
+      - [Generate coverage + test-documentation (HTML)](#generate-coverage--test-documentation-html)
+      - [See coverage in IDE (VsCode extension)](#see-coverage-in-ide-vscode-extension)
     - [Code Linting](#code-linting)
     - [Code style quality](#code-style-quality)
     - [Code Documentation](#code-documentation)
@@ -173,6 +177,27 @@ start-history-server.sh
 Accesing the history server
 * Go to the address http://localhost:18080
 
+### Testing
+
+#### Generate coverage
+Execute the command:
+
+```bash
+pytest --cov-report="xml" --cov=src tests/test_code/
+```
+
+#### Generate coverage + test-documentation (HTML)
+```bash
+pytest --cov-report="html:docs/tests/coverage" --cov=src --html=docs/tests/test_report.html --self-contained-html tests/test_code
+```
+
+#### See coverage in IDE (VsCode extension)
+1) Generate the coverage report (xml|lcov)
+2) Install the extension: Coverage Gutters
+3) Right click and select Coverage Gutters: Watch
+
+*Note: You can see the coverage percentage at the bottom bar*
+
 ### Code Linting
 
 The python code generated shall be formatted with autopep8. For formatting all source code execute the
@@ -192,7 +217,13 @@ pylint src | pylint-json2html -f jsonextended -o docs/code_quality_report.html
 
 ### Code Documentation
 
-A code documentation can be deployed using mkdocs backend. For this purpose execute:
+A code documentation can be deployed using mkdocs backend. 
+
+1) Create documentation
+```bash
+./scripts/generate_docs.sh
+```
+2) Launch doc server
 
 ```bash
 mkdocs serve

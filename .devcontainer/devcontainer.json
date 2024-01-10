@@ -47,7 +47,8 @@
 				"tamasfe.even-better-toml",
 				"ms-toolsai.jupyter",
 				"ms-python.pylint",
-				"redhat.vscode-yaml"
+				"redhat.vscode-yaml",
+				"ryanluker.vscode-coverage-gutters"
 			]
 		}
 	}
