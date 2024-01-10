@@ -204,7 +204,7 @@ The python code generated shall be formatted with autopep8. For formatting all s
 following command:
 
 ```bash
-black -l 120 src
+black -l 120 src tests/test_code/
 ```
 
 ### Code style quality
