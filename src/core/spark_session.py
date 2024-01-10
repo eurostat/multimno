@@ -1,3 +1,7 @@
+"""
+Module that manages the spark session.
+"""
+
 from configparser import ConfigParser
 from sedona.spark import SedonaContext
 from pyspark.sql import SparkSession

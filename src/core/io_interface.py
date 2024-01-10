@@ -1,4 +1,5 @@
-"""Module that implements classes for reading data from different data sources into a Spark DataFrames.
+"""
+Module that implements classes for reading data from different data sources into a Spark DataFrames.
 """
 from abc import ABCMeta, abstractmethod
 from pyspark.sql import DataFrame, SparkSession

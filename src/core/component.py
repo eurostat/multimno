@@ -1,3 +1,6 @@
+"""
+Module that defines the abstract pipeline component class
+"""
 from typing import Dict
 from abc import ABCMeta, abstractmethod
 from configparser import ConfigParser
@@ -11,6 +14,9 @@ from core.spark_session import generate_spark_session
 
 
 class Component(metaclass=ABCMeta):
+    """
+    Class that models a pipeline component.
+    """
     COMPONENT_ID: str = None
 
     def __init__(self, general_config_path: str, component_config_path: str) -> None:
@@ -23,21 +29,34 @@ class Component(metaclass=ABCMeta):
 
     @abstractmethod
     def initalize_data_objects(self):
-        pass
+        """
+        Method that initializes the data objects associated with the component.
+        """
 
     def read(self):
+        """
+        Method that performs the read operation of the input data objects of the component.
+        """
         for data_object in self.input_data_objects.values():
             data_object.read()
 
     @abstractmethod
     def transform(self):
-        pass
+        """
+        Method that performs the data transformations needed to set the dataframes of the output
+         data objects from the input data objects.
+        """
 
     def write(self):
+        """
+        Method that performs the write operation of the output data objects.
+        """
         for data_object in self.output_data_objects.values():
             data_object.write()
 
     def execute(self):
+        """_summary_
+        """
         self.logger.info(f"Starting {self.COMPONENT_ID}...")
         self.read()
         self.transform()

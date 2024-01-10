@@ -1,3 +1,7 @@
+"""
+Application entrypoint for launching a single component.
+"""
+
 import sys
 
 from components.execution.event_cleaning.event_cleaning import EventCleaning

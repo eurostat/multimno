@@ -1,3 +1,6 @@
+"""
+Settings module
+"""
 APP_NAME = "MultiMNO"
 
 # GENERAL CONFIG KEYS

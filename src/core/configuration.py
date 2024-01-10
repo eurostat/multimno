@@ -1,3 +1,6 @@
+"""
+Module that manages the application configuration.
+"""
 import os
 from configparser import ConfigParser, ExtendedInterpolation
 
