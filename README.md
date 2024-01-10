@@ -23,11 +23,10 @@ This repository contains code that processes MNO Data to generate population and
     - [Launching a pipeline](#launching-a-pipeline)
     - [Launching a spark history server](#launching-a-spark-history-server)
     - [Testing](#testing)
-      - [Generate coverage + test-documentation (HTML)](#generate-coverage--test-documentation-html)
       - [See coverage in IDE (VsCode extension)](#see-coverage-in-ide-vscode-extension)
     - [Code Linting](#code-linting)
-    - [Code style quality](#code-style-quality)
     - [Code Documentation](#code-documentation)
+      - [Generate documentation manually](#generate-documentation-manually)
 
 ## Setup
 The code stored in this repository is aimed to be executed in a PySpark compatible cluster. For an easy deployment in local environments, configuration for creating a docker container with all necessary dependencies is included in the `.devcontainer` folder. This allows users to execute the code
@@ -178,14 +177,6 @@ Accesing the history server
 
 ### Testing
 
-
-#### Generate coverage + test-documentation (HTML)
-```bash
-pytest --cov-report="html:docs/autodoc/coverage" \
-    --cov=src --html=docs/autodoc/test_report.md \
-    --self-contained-html tests/test_code > /dev/null
-```
-
 #### See coverage in IDE (VsCode extension)
 1) Generate the coverage report (xml|lcov)
 ```bash
@@ -205,14 +196,6 @@ following command:
 black -l 120 src tests/test_code/
 ```
 
-### Code style quality
-
-A python code quality report can be generated using the pylint library with the following command:
-
-```bash
-pylint src | pylint-json2html -f jsonextended -o docs/code_quality_report.md
-```
-
 ### Code Documentation
 
 A code documentation can be deployed using mkdocs backend. 
@@ -227,3 +210,21 @@ A code documentation can be deployed using mkdocs backend.
 mkdocs serve
 ```
 and navigate to the address: http://127.0.0.1:8000
+
+#### Generate documentation manually
+
+To generate coverage and the test report manually execute:
+
+```bash
+pytest --cov-report="html:docs/autodoc/coverage" \
+    --cov=src --html=docs/autodoc/test_report.md \
+    --self-contained-html tests/test_code > /dev/null
+```
+
+A python code quality report can be generated using the pylint library with the following command:
+
+```bash
+pylint src | pylint-json2html -f jsonextended -o docs/code_quality_report.md
+```
+
+

@@ -12,6 +12,7 @@ class DataObject(metaclass=ABCMeta):
     """
     Abstract class that models a DataObject. It defines its data schema including the attributes that compose it.
     """
+
     ID: str = None
     SCHEMA: StructType = None
 
@@ -35,8 +36,9 @@ class DataObject(metaclass=ABCMeta):
 
 class PathDataObject(DataObject, metaclass=ABCMeta):
     """Abstract Class that models DataObjects that will use a PathInterface for IO operations.
-     It inherits the DataObject abstract class. 
+    It inherits the DataObject abstract class.
     """
+
     def __init__(self, spark: SparkSession, default_path: str) -> None:
         super().__init__(spark)
         self.interface: PathInterface = None

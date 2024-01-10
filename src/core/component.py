@@ -17,6 +17,7 @@ class Component(metaclass=ABCMeta):
     """
     Class that models a pipeline component.
     """
+
     COMPONENT_ID: str = None
 
     def __init__(self, general_config_path: str, component_config_path: str) -> None:
@@ -55,8 +56,7 @@ class Component(metaclass=ABCMeta):
             data_object.write()
 
     def execute(self):
-        """_summary_
-        """
+        """_summary_"""
         self.logger.info(f"Starting {self.COMPONENT_ID}...")
         self.read()
         self.transform()
