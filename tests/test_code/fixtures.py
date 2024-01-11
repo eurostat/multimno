@@ -6,7 +6,7 @@ from pyspark.sql import SparkSession
 
 @pytest.fixture
 def spark_fixture():
-    config_path = "/opt/dev/src/tests/test_resources/testing_spark.ini"
+    config_path = "/opt/dev/tests/test_resources/testing_spark.ini"
     config = parse_configuration(config_path)
     spark = generate_spark_session(config)
     yield spark

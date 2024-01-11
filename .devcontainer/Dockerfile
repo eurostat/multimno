@@ -50,6 +50,9 @@ RUN pip3 install poetry pip-tools
 # Install requirements
 ARG install_dir=/tmp/install
 
+# Upgrade pip to latest version
+RUN pip install --upgrade pip
+
 # Standard requirements
 COPY requirements/requirements.in ${install_dir}/requirements/requirements.in
 RUN pip-compile ${install_dir}/requirements/requirements.in 
@@ -79,6 +82,7 @@ FROM multimno-base as multimno-dev
 # ----------- RUNTIME -----------
 # Copy the default configurations into $SPARK_HOME/conf
 COPY conf/spark-defaults.conf "$SPARK_HOME/conf/spark-defaults.conf"
+COPY conf/log4j2.properties "$SPARK_HOME/conf/log4j2.properties"
 
 ENV PYTHONPATH=${SPARK_HOME}/python:/opt/dev/src
 

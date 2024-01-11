@@ -38,18 +38,22 @@
 			"extensions": [
 				"ms-python.python",
 				"njpwerner.autodocstring",
-				"ms-python.autopep8",
+				"ms-python.black-formatter",
 				"vivaxy.vscode-conventional-commits",
 				"mhutchie.git-graph",
 				"yzhang.markdown-all-in-one",
 				"bierner.markdown-mermaid",
 				"eamodio.gitlens",
 				"tamasfe.even-better-toml",
-				"ms-toolsai.jupyter"
+				"ms-toolsai.jupyter",
+				"ms-python.pylint",
+				"redhat.vscode-yaml",
+				"ryanluker.vscode-coverage-gutters"
 			]
 		}
 	}
 
-	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
+	// Uncomment to connect as an existing user other than the container default. 
+	// More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "devcontainer"
 }

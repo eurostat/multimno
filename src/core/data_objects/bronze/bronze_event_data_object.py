@@ -8,15 +8,17 @@ from common.constants.columns import ColNames
 
 class BronzeEventDataObject(PathDataObject):
     ID = "BronzeEventDO"
-    SCHEMA = StructType([
-        StructField(ColNames.user_id, BinaryType(), nullable=True),
-        StructField(ColNames.timestamp, StringType(), nullable=True),
-        StructField(ColNames.mcc, IntegerType(), nullable=True),
-        StructField(ColNames.cell_id, StringType(), nullable=True),
-        StructField(ColNames.latitude, FloatType(), nullable=True),
-        StructField(ColNames.longitude, FloatType(), nullable=True),
-        StructField(ColNames.loc_error, FloatType(), nullable=True)
-    ])
+    SCHEMA = StructType(
+        [
+            StructField(ColNames.user_id, BinaryType(), nullable=True),
+            StructField(ColNames.timestamp, StringType(), nullable=True),
+            StructField(ColNames.mcc, IntegerType(), nullable=True),
+            StructField(ColNames.cell_id, StringType(), nullable=True),
+            StructField(ColNames.latitude, FloatType(), nullable=True),
+            StructField(ColNames.longitude, FloatType(), nullable=True),
+            StructField(ColNames.loc_error, FloatType(), nullable=True),
+        ]
+    )
 
     def __init__(self, spark: SparkSession, default_path: str, partition_columns: list[str] = None) -> None:
         super().__init__(spark, default_path)

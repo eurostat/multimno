@@ -1,0 +1,23 @@
+site_name: MultiMNO
+
+theme:
+  name: "material"
+
+plugins:
+  - search
+  - gen-files:
+      scripts:
+        - scripts/gen_ref_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - section-index
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+
+nav:
+  - Reference: reference/
+  - Code quality: autodoc/code_quality_report.md
+  - Test Report: autodoc/test_report.md
+  - Coverage: autodoc/coverage

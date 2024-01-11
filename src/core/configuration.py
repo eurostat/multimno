@@ -1,10 +1,13 @@
+"""
+Module that manages the application configuration.
+"""
 import os
 from configparser import ConfigParser, ExtendedInterpolation
 
 
 def parse_configuration(general_config_path: str, component_config_path: str = ""):
-    """Function that parses a list of configurations in a single ConfigParser object. It expects 
-    the first element of the list to be the path to general configuration path. It will override 
+    """Function that parses a list of configurations in a single ConfigParser object. It expects
+    the first element of the list to be the path to general configuration path. It will override
     values of the general configuration file with component configuration data.
 
     Args:
@@ -14,13 +17,12 @@ def parse_configuration(general_config_path: str, component_config_path: str = "
         FileNotFoundError: If the general configuration path is doesn't exist
 
     Returns:
-        ConfigParser: ConfigParser object with some general configuration values overriden by 
+        ConfigParser: ConfigParser object with some general configuration values overriden by
     """
 
     # Check general configuration file
     if not os.path.exists(general_config_path):
-        raise FileNotFoundError(
-            f"General Config file Not found: {general_config_path}")
+        raise FileNotFoundError(f"General Config file Not found: {general_config_path}")
 
     config_paths = [general_config_path, component_config_path]
 
@@ -30,7 +32,9 @@ def parse_configuration(general_config_path: str, component_config_path: str = "
     }
 
     parser: ConfigParser = ConfigParser(
-        converters=converters, interpolation=ExtendedInterpolation(), inline_comment_prefixes="#")
+        converters=converters, interpolation=ExtendedInterpolation(), inline_comment_prefixes="#"
+    )
+    parser.optionxform = str
     parser.read(config_paths)
 
     return parser

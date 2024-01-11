@@ -1,13 +1,13 @@
 class ColNames:
-    user_id = 'user_id'
-    timestamp = 'timestamp'
+    user_id = "user_id"
+    timestamp = "timestamp"
     mcc = "mcc"
-    cell_id = 'cell_id'
-    longitude = 'longitude'
-    latitude = 'latitude'
-    year = 'year'
-    month = 'month'
-    day = 'day'
+    cell_id = "cell_id"
+    longitude = "longitude"
+    latitude = "latitude"
+    year = "year"
+    month = "month"
+    day = "day"
 
     # for QA by column
     variable = "variable"
