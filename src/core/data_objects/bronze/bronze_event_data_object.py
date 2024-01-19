@@ -3,7 +3,7 @@ from pyspark.sql.types import StructType, StructField, StringType, IntegerType, 
 
 from core.data_objects.data_object import PathDataObject
 from core.io_interface import ParquetInterface
-from common.constants.columns import ColNames
+from multimno_internal.src.core.constants.columns import ColNames
 
 
 class BronzeEventDataObject(PathDataObject):

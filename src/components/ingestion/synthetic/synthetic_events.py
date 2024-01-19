@@ -13,7 +13,6 @@ from pyspark.sql.types import (
     StructType,
     StructField,
     BinaryType,
-    DoubleType,
     StringType,
     FloatType,
     LongType,
@@ -21,7 +20,7 @@ from pyspark.sql.types import (
 import random
 import datetime
 from core.component import Component
-from common.constants.columns import ColNames
+from multimno_internal.src.core.constants.columns import ColNames
 
 
 # Return type for the agent records generation UDF.
@@ -47,15 +46,15 @@ def generate_agent_records(
     Generates an array of (event_id, timestamp, cell_id) tuples.
 
     Args:
-        user_id (_type_): _description_
-        n_events (_type_): _description_
-        starting_event_id (_type_): _description_
-        random_seed (_type_): _description_
-        timestamp_generator_params (_type_): _description_
-        location_generator_params (_type_): _description_
+        user_id (str): _description_
+        n_events (int): number of events to generate.
+        starting_event_id (int): starting value for event_id column (used only internally, and not stored).
+        random_seed (int): random seed that is the same for all processes throughout the module.
+        timestamp_generator_params (list): list of parameters for timestamp generation, specified in config.
+        location_generator_params (list): list of parameters for loaction generation, specifiec in config.
 
     Returns:
-        _type_: _description_
+        zip: list of tuples with all event id-s, timestamps, cell_ids, latitude and longitude values
     """
     # Generate event id values.
     event_ids = [i for i in range(starting_event_id, starting_event_id + n_events)]
@@ -285,6 +284,13 @@ class SyntheticEvents(Component):
     def calc_hashed_user_id(self, df) -> DataFrame:
         """
         Calculates SHA2 hash of user id, takes the first 31 bits and converts them to a non-negative 32-bit integer.
+
+        Args:
+            df (pyspark.sql.DataFrame): Data of clean synthetic events with a user id column.
+
+        Returns:
+            pyspark.sql.DataFrame: Dataframe, where user_id column is transformered to a hashed value.
+
         """
         df = df.withColumn("ms_id_binary", col(ColNames.user_id).cast(BinaryType()))
 
@@ -295,6 +301,17 @@ class SyntheticEvents(Component):
         return df
 
     def generate_errors(self, synth_df_raw: DataFrame) -> DataFrame:
+        """
+        Transforms a dataframe with clean synthetic records, by calculating year, month and day columns,
+        creating an event_id column, and generating all types of erronous records.
+        Calls all error generation functions.
+
+        Args:
+            df (pyspark.sql.DataFrame): Data of raw and clean synthetic events.
+
+        Returns:
+            pyspark.sql.DataFrame: Dataframe, with erroneous records, according to probabilities defined in the configuration.
+        """
         # Create a copy of original MSID column for final sorting and joining
         synth_df_raw = synth_df_raw.withColumn("user_id_copy", F.col(ColNames.user_id))
 
@@ -328,16 +345,6 @@ class SyntheticEvents(Component):
             )
 
         error_df = synth_df_w_out_of_bounds_nulls_errors.drop(F.col("user_id_copy")).drop(F.col(ColNames.event_id))
-
-        # TODO: Check null column creation
-        # Using this method makes parquet unable to cast using the schema
-        # Error:  Column: [latitude], Expected: float, Found: BINARY.
-
-        # for col in self.unsupported_columns:
-        #     error_df = error_df.withColumn(col, F.lit(None).cast(FloatType()))
-
-        # for col in self.optional_columns:
-        #     error_df = error_df.withColumn(col, F.lit(None).cast(FloatType()))
 
         return error_df
 
@@ -381,9 +388,11 @@ class SyntheticEvents(Component):
 
     def generate_out_of_bounds_dates(self, df: DataFrame) -> DataFrame:
         """
+        Transformers the timestamp column values to be out of bound of the selected period,
+        based on probabilities from configuration.
 
         Args:
-            df (pyspark.sql.DataFrame): Data of clean synthetic events.
+            df (pyspark.sql.DataFrame): Dataframe of clean synthetic events.
 
         Returns:
             pyspark.sql.DataFrame: Data where some timestamp column values are out of bounds as per config.
@@ -393,14 +402,13 @@ class SyntheticEvents(Component):
             # TODO logging
             return df
 
-        # seed_param = 999 if self.config["use_fixed_seed"] else None
-        # TODO month is 1-12, so events_span_in_months can be negative if crossing year boundary
-        events_span_in_months = pd.Timestamp(self.ending_timestamp).month - pd.Timestamp(self.starting_timestamp).month
+        # approximate span in months is enough for error generation
+        events_span_in_months = (pd.Timestamp(self.ending_timestamp) - pd.Timestamp(self.starting_timestamp)).days / 30
 
         # Current idea is to 1) sample rows 2) sample columns 3) do a final join/union 4) sort
         df = df.cache()
         df_not_null_dates = df.where(F.col("timestamp").isNotNull())
-        # TODO this should account for wrong type as well
+
         # Current approach means that this should be run after nulls, but before wrong type generation
 
         df_not_null_dates = df_not_null_dates.cache()
@@ -425,8 +433,7 @@ class SyntheticEvents(Component):
             ),
         ).drop(
             F.col("months_to_add")
-        )  # \
-        # .drop(F.col("out_of_bounds"))
+        )  
 
         columns_to_error_generation = ["out_of_bounds"]
 
@@ -443,14 +450,14 @@ class SyntheticEvents(Component):
 
     def generate_erroneous_type_values(self, df: DataFrame) -> DataFrame:
         """
-        Casts certain rows to different type and generates values for them.
-        Does nothing when output format is parquet.
+        Generates errors for sampled rows. Errors are custom defined, for instance a random string, or corrupt timestamp.
+        Does not cast the columns to a different type.
 
         Args:
             df (pyspark.sql.DataFrame): dataframe that may have out of bound and null records.
 
         Returns:
-            pyspark.sql.DataFrame: dataframe with type errors.
+            pyspark.sql.DataFrame: dataframe with erroneous rows, and possibly, with nulls and out of bound records.
         """
 
         if self.error_prob == 0:
@@ -507,13 +514,12 @@ class SyntheticEvents(Component):
 
             if col_dtype in [FloatType(), IntegerType()]:
                 # changes mcc, lat, lon
-                # F.concat(F.lit(random_string), (F.rand() * 100).cast("int"))
-                to_value = F.col(column) + (F.rand() * 10000).cast("int")
+                to_value = F.col(column) + ((F.rand() + F.lit(180)) * 10000).cast("int")
 
             if column == ColNames.timestamp and col_dtype == StringType():
-                # to_type = "string"
+                # Timezone difference manipulation may be performed here, if cleaning module were to support it.
                 # statically one timezone difference
-                timezone_to = random.randint(0, 12)
+                # timezone_to = random.randint(0, 12)
                 to_value = F.concat(
                     F.substring(F.col(column), 1, 10),
                     F.lit("T"),
@@ -529,7 +535,7 @@ class SyntheticEvents(Component):
 
             df_with_sample_column = self.mutate_row(df_with_sample_column, column, to_value)
 
-        # TODO check a more optional join
+        # TODO check for a more optimal join
         result_df = df.join(df_with_sample_column, on=["user_id_copy", ColNames.event_id], how="leftanti")[
             df.columns
         ].unionAll(df_with_sample_column[df.columns])
@@ -543,10 +549,10 @@ class SyntheticEvents(Component):
         Args:
             df (pyspark.sql.DataFrame): dataframe, the rows of which to make erronous
             column_name (str): column to change
-            to_value (any): pyspark sql function statement
+            to_value (any): pyspark sql function statement, for instance F.col(), or F.lit()
 
         Returns:
-            pyspark.sql.DataFrame: dataframe with casted and changed rows
+            pyspark.sql.DataFrame: dataframe with erronoeous rows
         """
 
         df = df.withColumn(column_name, F.when(F.col("mutate_to_error"), to_value).otherwise(F.col(column_name)))
