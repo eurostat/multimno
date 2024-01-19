@@ -15,9 +15,9 @@ from core.data_objects.silver.silver_event_data_syntactic_quality_metrics_freque
 )
 from core.spark_session import check_if_data_path_exists, delete_file_or_folder
 from core.settings import CONFIG_BRONZE_PATHS_KEY, CONFIG_SILVER_PATHS_KEY
-from core.columns import ColNames
-from core.error_types import ErrorTypes
-from core.transformations import Transformations
+from multimno_internal.src.core.constants.columns import ColNames
+from multimno_internal.src.core.constants.error_types import ErrorTypes
+from multimno_internal.src.core.constants.transformations import Transformations
 
 
 class EventCleaning(Component):
