@@ -1,5 +1,11 @@
 """
 This module serves as an example of a hello world application for system testing purposes.
+
+Usage:
+
+```
+python multimno/hello_world.py
+```
 """
 import sys
 import pyspark.sql.functions as psf

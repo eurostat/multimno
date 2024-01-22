@@ -1,4 +1,13 @@
+"""
+Transformations Error types module.
+"""
+
+
 class ErrorTypes:
+    """
+    Class that enumerates the multiple error types of data transformations.
+    """
+
     missing_value = 1
     not_right_syntactic_format = 2
     out_of_admissible_values = 3

@@ -84,7 +84,7 @@ FROM multimno-base as multimno-dev
 COPY conf/spark-defaults.conf "$SPARK_HOME/conf/spark-defaults.conf"
 COPY conf/log4j2.properties "$SPARK_HOME/conf/log4j2.properties"
 
-ENV PYTHONPATH=${SPARK_HOME}/python:/opt/dev/src
+ENV PYTHONPATH=${SPARK_HOME}/python:/opt/dev
 
 WORKDIR /opt/dev
 

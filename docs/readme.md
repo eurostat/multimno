@@ -6,7 +6,6 @@ This repository contains code that processes MNO Data to generate population and
 - [MultiMNO](#multimno)
   - [Setup](#setup)
     - [Docker installation](#docker-installation)
-  - [Components](#components)
   - [Local Execution](#local-execution)
     - [Docker image creation](#docker-image-creation)
     - [Docker container creation](#docker-container-creation)
@@ -22,11 +21,6 @@ in an isolated environment with all requirements and dependencies installed.
 ### Docker installation
 Official guide: [Click here](https://docs.docker.com/engine/install/)
 
-## Components
-
-The components that are currently implemented are:
-* SyntheticEvents: Component that generates MNO Event synthetic data.
-* EventCleaning: Component that cleans MNO Event data.
 
 ## Local Execution
 

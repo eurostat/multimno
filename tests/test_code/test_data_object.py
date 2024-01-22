@@ -1,5 +1,5 @@
-from core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObject
-from core.io_interface import ParquetInterface
+from multimno.core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObject
+from multimno.core.io_interface import ParquetInterface
 from tests.test_code.fixtures import spark_fixture
 
 

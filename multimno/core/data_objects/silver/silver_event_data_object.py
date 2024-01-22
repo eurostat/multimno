@@ -1,3 +1,7 @@
+"""
+Silver MNO Event data module
+"""
+
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
     StructType,
@@ -11,11 +15,15 @@ from pyspark.sql.types import (
     ByteType,
 )
 
-from core.data_objects.data_object import PathDataObject
-from core.io_interface import ParquetInterface
+from multimno.core.data_objects.data_object import PathDataObject
+from multimno.core.io_interface import ParquetInterface
 
 
 class SilverEventDataObject(PathDataObject):
+    """
+    Class that models the cleaned MNO Event data.
+    """
+
     ID = "SilverEventDO"
     SCHEMA = StructType(
         [

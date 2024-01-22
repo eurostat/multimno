@@ -1,6 +1,13 @@
-# Reusable internal column names. Useful for referring to the the same column across multiple components.
+"""
+Reusable internal column names. Useful for referring to the the same column across multiple components.
+"""
+
 
 class ColNames:
+    """
+    Class that enumerates all the column names.
+    """
+
     user_id = "user_id"
     partition_id = "partition_id"
     timestamp = "timestamp"
@@ -27,4 +34,3 @@ class ColNames:
     initial_frequency = "initial_frequency"
     final_frequency = "final_frequency"
     date = "date"
-

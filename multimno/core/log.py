@@ -7,7 +7,7 @@ import logging.config
 from configparser import ConfigParser
 from sys import stdout
 
-from core.settings import APP_NAME
+from multimno.core.settings import APP_NAME
 
 LOG_CONFIG_KEY = "Logging"
 

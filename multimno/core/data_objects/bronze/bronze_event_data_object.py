@@ -1,12 +1,19 @@
+"""
+Bronze MNO Event data module
+"""
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType, BinaryType
 
-from core.data_objects.data_object import PathDataObject
-from core.io_interface import ParquetInterface
-from multimno_internal.src.core.constants.columns import ColNames
+from multimno.core.data_objects.data_object import PathDataObject
+from multimno.core.io_interface import ParquetInterface
+from multimno.core.constants.columns import ColNames
 
 
 class BronzeEventDataObject(PathDataObject):
+    """
+    Class that models the RAW MNO Event data.
+    """
+
     ID = "BronzeEventDO"
     SCHEMA = StructType(
         [

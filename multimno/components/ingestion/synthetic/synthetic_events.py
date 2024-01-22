@@ -1,7 +1,8 @@
+import random
+import datetime
+import string
 from enum import Enum
 import pandas as pd
-import string
-from core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObject
 from pyspark.sql import Row, DataFrame
 from pyspark.sql.window import Window
 import pyspark.sql.functions as F
@@ -17,10 +18,10 @@ from pyspark.sql.types import (
     FloatType,
     LongType,
 )
-import random
-import datetime
-from core.component import Component
-from multimno_internal.src.core.constants.columns import ColNames
+
+from multimno.core.component import Component
+from multimno.core.constants.columns import ColNames
+from multimno.core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObject
 
 
 # Return type for the agent records generation UDF.
@@ -97,16 +98,28 @@ def generate_agent_records(
 
 # Enum of location generators supported by the synthetic events generator.
 class LocationGeneratorType(Enum):
+    """
+    Location Generator enumeration class.
+    """
+
     RANDOM_CELL_ID = "random_cell_id"
     RANDOM_LAT_LON = "random_lat_lon"
 
 
 # Enum of timestamp generators supported by the synthetic events generator.
 class TimestampGeneratorType(Enum):
+    """
+    Timestamp Generator enumeration class.
+    """
+
     EQUAL_GAPS = "equal_gaps"
 
 
 class SyntheticEvents(Component):
+    """
+    Class that generates the event synthetic data. It inherits from the Component abstract class.
+    """
+
     COMPONENT_ID = "SyntheticEvents"
 
     def __init__(self, general_config_path: str, component_config_path: str):
@@ -431,9 +444,7 @@ class SyntheticEvents(Component):
             F.when(F.col("out_of_bounds"), F.add_months(F.col("timestamp"), F.col("months_to_add"))).otherwise(
                 F.col("timestamp")
             ),
-        ).drop(
-            F.col("months_to_add")
-        )  
+        ).drop(F.col("months_to_add"))
 
         columns_to_error_generation = ["out_of_bounds"]
 
@@ -558,14 +569,3 @@ class SyntheticEvents(Component):
         df = df.withColumn(column_name, F.when(F.col("mutate_to_error"), to_value).otherwise(F.col(column_name)))
 
         return df
-
-
-if __name__ == "__main__":
-    # TODO Remove code execution from here. Implement in notebook and/or test.
-    # test start
-    root_path = "/opt/dev"
-    general_config = f"{root_path}/pipe_configs/configurations/general_config.ini"
-    component_config = f"{root_path}/pipe_configs/configurations/synthetic_events/synth_config.ini"
-    test_generator = SyntheticEvents(general_config, component_config)
-
-    test_generator.execute()

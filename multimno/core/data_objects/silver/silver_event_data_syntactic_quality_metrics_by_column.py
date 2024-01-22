@@ -1,24 +1,27 @@
+"""
+Silver Event Data quality metrics.
+"""
+from collections import defaultdict
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
     StructType,
     StructField,
     StringType,
     TimestampType,
-    FloatType,
-    BinaryType,
     IntegerType,
     ShortType,
     DateType,
 )
 
-from collections import defaultdict
-
-from core.data_objects.data_object import PathDataObject
-from core.io_interface import ParquetInterface
-from collections import defaultdict
+from multimno.core.data_objects.data_object import PathDataObject
+from multimno.core.io_interface import ParquetInterface
 
 
 class SilverEventDataSyntacticQualityMetricsByColumn(PathDataObject):
+    """
+    Class that models the Silver Event Data quality metrics DataObject.
+    """
+
     ID = "SilverEventDataSyntacticQualityMetricsByColumn"
     SCHEMA = StructType(
         [

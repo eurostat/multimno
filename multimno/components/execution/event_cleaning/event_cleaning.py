@@ -1,26 +1,32 @@
+"""
+Module that cleans RAW MNO Event data.
+"""
 import pandas as pd
-import os
 import pyspark
 import pyspark.sql.functions as psf
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, ShortType
 
-from core.component import Component
-from core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObject
-from core.data_objects.silver.silver_event_data_object import SilverEventDataObject
-from core.data_objects.silver.silver_event_data_syntactic_quality_metrics_by_column import (
+from multimno.core.component import Component
+from multimno.core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObject
+from multimno.core.data_objects.silver.silver_event_data_object import SilverEventDataObject
+from multimno.core.data_objects.silver.silver_event_data_syntactic_quality_metrics_by_column import (
     SilverEventDataSyntacticQualityMetricsByColumn,
 )
-from core.data_objects.silver.silver_event_data_syntactic_quality_metrics_frequency_distribution import (
+from multimno.core.data_objects.silver.silver_event_data_syntactic_quality_metrics_frequency_distribution import (
     SilverEventDataSyntacticQualityMetricsFrequencyDistribution,
 )
-from core.spark_session import check_if_data_path_exists, delete_file_or_folder
-from core.settings import CONFIG_BRONZE_PATHS_KEY, CONFIG_SILVER_PATHS_KEY
-from multimno_internal.src.core.constants.columns import ColNames
-from multimno_internal.src.core.constants.error_types import ErrorTypes
-from multimno_internal.src.core.constants.transformations import Transformations
+from multimno.core.spark_session import check_if_data_path_exists, delete_file_or_folder
+from multimno.core.settings import CONFIG_BRONZE_PATHS_KEY, CONFIG_SILVER_PATHS_KEY
+from multimno.core.constants.columns import ColNames
+from multimno.core.constants.error_types import ErrorTypes
+from multimno.core.constants.transformations import Transformations
 
 
 class EventCleaning(Component):
+    """
+    Class that cleans MNO Event data
+    """
+
     COMPONENT_ID = "EventCleaning"
 
     def __init__(self, general_config_path: str, component_config_path: str) -> None:
@@ -320,7 +326,8 @@ class EventCleaning(Component):
         error_and_transformation_counts[(ColNames.mcc, ErrorTypes.out_of_admissible_values, None)] += (
             df.count() - filtered_df.count()
         )
-        # because timestamp column is then also used in another filters, and no error count should be done in the last filter
+        # because timestamp column is then also used in another filters,
+        # and no error count should be done in the last filter
         error_and_transformation_counts[(ColNames.mcc, ErrorTypes.no_error, None)] += filtered_df.count()
 
         df = filtered_df.cache()
@@ -350,7 +357,8 @@ class EventCleaning(Component):
         error_and_transformation_counts[(ColNames.cell_id, ErrorTypes.out_of_admissible_values, None)] += (
             df.count() - filtered_df.count()
         )
-        # because timestamp column is then also used in another filters, and no error count should be done in the last filter
+        # because timestamp column is then also used in another filters,
+        # and no error count should be done in the last filter
         error_and_transformation_counts[(ColNames.cell_id, ErrorTypes.no_error, None)] += filtered_df.count()
 
         df = filtered_df.cache()

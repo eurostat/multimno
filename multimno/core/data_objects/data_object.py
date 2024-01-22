@@ -5,7 +5,7 @@ from abc import ABCMeta
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.types import StructType
 
-from core.io_interface import IOInterface, PathInterface
+from multimno.core.io_interface import IOInterface, PathInterface
 
 
 class DataObject(metaclass=ABCMeta):

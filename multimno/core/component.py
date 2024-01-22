@@ -7,10 +7,10 @@ from configparser import ConfigParser
 from logging import Logger
 from pyspark.sql import SparkSession
 
-from core.configuration import parse_configuration
-from core.data_objects.data_object import DataObject
-from core.log import generate_logger
-from core.spark_session import generate_spark_session
+from multimno.core.configuration import parse_configuration
+from multimno.core.data_objects.data_object import DataObject
+from multimno.core.log import generate_logger
+from multimno.core.spark_session import generate_spark_session
 
 
 class Component(metaclass=ABCMeta):

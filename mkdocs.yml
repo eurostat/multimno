@@ -14,10 +14,13 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: [src]
+          paths: [multimno]
 
 nav:
+  - Index: index.md
   - Reference: reference/
-  - Code quality: autodoc/code_quality_report.md
-  - Test Report: autodoc/test_report.md
-  - Coverage: autodoc/coverage
+  - Readme: readme.md
+  - Dev-Guide: dev_guide.md
+  # - Code quality: autodoc/code_quality_report.md
+  # - Test Report: autodoc/test_report.md
+  # - Coverage: autodoc/coverage
