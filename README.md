@@ -18,6 +18,10 @@ This repository contains code that processes MNO Data to generate population and
 
 ## Documentation
 
+**Code must be downloaded in order to open the static documentation.**
+
+Please perform a **git clone** command or download directly the code from GitHub as a zip file.
+
 Static documentation is generated in html format under the [site](./site) directory. To view the documentation please open [index.html](./site/index.html) with your favorite web browser. 
 
 ## Setup
