@@ -4,6 +4,7 @@ This repository contains code that processes MNO Data to generate population and
 
 
 - [MultiMNO](#multimno)
+  - [Documentation](#documentation)
   - [Setup](#setup)
     - [Docker installation](#docker-installation)
   - [Components](#components)
@@ -14,6 +15,10 @@ This repository contains code that processes MNO Data to generate population and
     - [Try out the code](#try-out-the-code)
     - [Clean up](#clean-up)
   - [Production Deployment](#production-deployment)
+
+## Documentation
+
+Static documentation is generated in html format under the [site](./site) directory. To view the documentation please open [index.html](./site/index.html) with your favorite web browser. 
 
 ## Setup
 The code stored in this repository is aimed to be executed in a PySpark compatible cluster. For an easy deployment in local environments, configuration for creating a docker container with all necessary dependencies is included in the `.devcontainer` folder. This allows users to execute the code
@@ -27,6 +32,8 @@ Official guide: [Click here](https://docs.docker.com/engine/install/)
 The components that are currently implemented are:
 * SyntheticEvents: Component that generates MNO Event synthetic data.
 * EventCleaning: Component that cleans MNO Event data.
+
+
 
 ## Local Execution
 
