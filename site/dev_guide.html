@@ -1,0 +1,1878 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="readme.html">
+      
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.3">
+    
+    
+      
+        <title>Dev-Guide - MultiMNO</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.50c56a3b.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#developer-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="index.html" title="MultiMNO" class="md-header__button md-logo" aria-label="MultiMNO" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MultiMNO
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Dev-Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="index.html" title="MultiMNO" class="md-nav__button md-logo" aria-label="MultiMNO" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    MultiMNO
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Index
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Reference
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="reference/components/index.html" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    components
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            components
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_1" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="reference/components/execution/index.html" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    execution
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_1_1" id="__nav_2_1_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            execution
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_1_1" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="reference/components/execution/event_cleaning/index.html" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    event_cleaning
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_1_1_1" id="__nav_2_1_1_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_2_1_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            event_cleaning
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/components/execution/event_cleaning/event_cleaning.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    event_cleaning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_1_2" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="reference/components/execution/template/index.html" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    template
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_1_1_2" id="__nav_2_1_1_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_2_1_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            template
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/components/execution/template/template_component.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    template_component
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_2" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="reference/components/ingestion/index.html" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    ingestion
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_1_2" id="__nav_2_1_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            ingestion
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_2_1" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="reference/components/ingestion/synthetic/index.html" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    synthetic
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_1_2_1" id="__nav_2_1_2_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_2_1_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            synthetic
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/components/ingestion/synthetic/synthetic_events.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    synthetic_events
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/components/quality/index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    quality
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="reference/core/index.html" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    core
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            core
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/core/component.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    component
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/core/configuration.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2_3" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="reference/core/constants/index.html" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    constants
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_2_3" id="__nav_2_2_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            constants
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/core/constants/columns.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    columns
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/core/constants/error_types.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    error_types
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/core/constants/transformations.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    transformations
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2_4" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="reference/core/data_objects/index.html" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    data_objects
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_2_4" id="__nav_2_2_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            data_objects
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2_4_1" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="reference/core/data_objects/bronze/index.html" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    bronze
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_2_4_1" id="__nav_2_2_4_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_2_2_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            bronze
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/core/data_objects/bronze/bronze_event_data_object.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    bronze_event_data_object
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/core/data_objects/data_object.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    data_object
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/core/data_objects/landing/index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    landing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2_4_4" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="reference/core/data_objects/silver/index.html" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    silver
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_2_4_4" id="__nav_2_2_4_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_2_2_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            silver
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/core/data_objects/silver/silver_event_data_object.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_event_data_object
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/core/data_objects/silver/silver_event_data_syntactic_quality_metrics_by_column.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_event_data_syntactic_quality_metrics_by_column
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/core/data_objects/silver/silver_event_data_syntactic_quality_metrics_frequency_distribution.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_event_data_syntactic_quality_metrics_frequency_distribution
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/core/io_interface.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    io_interface
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/core/log.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    log
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/core/settings.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    settings
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/core/spark_session.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    spark_session
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/hello_world.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    hello_world
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/main.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    main
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/orchestrator.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    orchestrator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="readme.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Readme
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Dev-Guide
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="dev_guide.html" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Dev-Guide
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#configurate-docker-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configurate docker container
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#start-dev-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Start dev environment
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hello-world" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hello world
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hello world">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python execution
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jupyter-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Jupyter execution
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#launching-a-single-component" class="md-nav__link">
+    <span class="md-ellipsis">
+      Launching a single component
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#launching-a-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      Launching a pipeline
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#launching-a-spark-history-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      Launching a spark history server
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#see-coverage-in-ide-vscode-extension" class="md-nav__link">
+    <span class="md-ellipsis">
+      See coverage in IDE (VsCode extension)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-linting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Linting
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Documentation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Code Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#update-mkdocs-index-with-readme" class="md-nav__link">
+    <span class="md-ellipsis">
+      Update mkdocs index with readme
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate-static-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Generate Static documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation-server-mkdocs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation server (Mkdocs)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#configurate-docker-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configurate docker container
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#start-dev-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Start dev environment
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hello-world" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hello world
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hello world">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python execution
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jupyter-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Jupyter execution
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#launching-a-single-component" class="md-nav__link">
+    <span class="md-ellipsis">
+      Launching a single component
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#launching-a-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      Launching a pipeline
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#launching-a-spark-history-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      Launching a spark history server
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#see-coverage-in-ide-vscode-extension" class="md-nav__link">
+    <span class="md-ellipsis">
+      See coverage in IDE (VsCode extension)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-linting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Linting
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Documentation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Code Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#update-mkdocs-index-with-readme" class="md-nav__link">
+    <span class="md-ellipsis">
+      Update mkdocs index with readme
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate-static-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Generate Static documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation-server-mkdocs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation server (Mkdocs)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="developer-guide">Developer Guide</h1>
+<p>The repository contains a devcontainer configuration compatible with VsCode. This configuration will create a docker container with all the necessary libraries and configurations to develop and execute the source code. </p>
+<ul>
+<li><a href="#developer-guide">Developer Guide</a></li>
+<li><a href="#configurate-docker-container">Configurate docker container</a></li>
+<li><a href="#start-dev-environment">Start dev environment</a></li>
+<li><a href="#hello-world">Hello world</a><ul>
+<li><a href="#python-execution">Python execution</a></li>
+<li><a href="#jupyter-execution">Jupyter execution</a></li>
+</ul>
+</li>
+<li><a href="#launching-a-single-component">Launching a single component</a></li>
+<li><a href="#launching-a-pipeline">Launching a pipeline</a></li>
+<li><a href="#launching-a-spark-history-server">Launching a spark history server</a></li>
+<li><a href="#testing">Testing</a><ul>
+<li><a href="#see-coverage-in-ide-vscode-extension">See coverage in IDE (VsCode extension)</a></li>
+</ul>
+</li>
+<li><a href="#code-linting">Code Linting</a></li>
+<li><a href="#code-documentation">Code Documentation</a><ul>
+<li><a href="#update-mkdocs-index-with-readme">Update mkdocs index with readme</a></li>
+<li><a href="#generate-static-documentation">Generate Static documentation</a></li>
+<li><a href="#documentation-server-mkdocs">Documentation server (Mkdocs)</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="configurate-docker-container">Configurate docker container</h2>
+<p>Edit the <em><a href=".devcontainer/.env">.devcontainer/.env</a></em> file:</p>
+<pre><code class="language-ini"># ------------------- Docker Build parameters -------------------
+PYTHON_VERSION=3.11 # Python version.
+JDK_VERSION=17 # Java version.
+SPARK_VERSION=3.4.1 # Spark/Pyspark version.
+SEDONA_VERSION=1.5.0 # Sedona
+GEOTOOLS_WRAPPER=28.2 # Sedona dependency
+
+# ------------------- Docker run parameters -------------------
+CONTAINER_NAME=multimno_dev_container # Container name.
+DATA_DIR=../sample_data # Path of the host machine to the data to be used within the container.
+SPARK_LOGS_DIR=../sample_data/logs # Path of the host machine to where the spark logs will be stored.
+JL_PORT=8888 # Port of the host machine to deploy a jupyterlab.
+JL_CPU=4 # CPU cores of the container.
+JL_MEM=16g # RAM of the container.
+</code></pre>
+<h2 id="start-dev-environment">Start dev environment</h2>
+<p>In VsCode: <strong>F1 -&gt; Dev Containers: Rebuild and Reopen in container</strong></p>
+<h2 id="hello-world">Hello world</h2>
+<h3 id="python-execution">Python execution</h3>
+<p>Try the hello world app of section: <a href="#hello-world">Hello world</a></p>
+<h3 id="jupyter-execution">Jupyter execution</h3>
+<p>Open the hello world jupyter notebook stored in <em><a href="notebooks/hello_world.ipynb">notebooks/hello_world.ipynb</a></em> with VsCode and execute all cells.<br />
+<em>The Jupyter extension is installed automatically in the devcontainer.</em></p>
+<h2 id="launching-a-single-component">Launching a single component</h2>
+<p>In a terminal execute the command:  </p>
+<pre><code class="language-bash">spark-submit multimno/main.py &lt;component_id&gt; &lt;path_to_general_config&gt; &lt;path_to_component_config&gt; 
+</code></pre>
+<p>Example:  </p>
+<pre><code class="language-bash">spark-submit multimno/main.py SyntheticEvents pipe_configs/configurations/general_config.ini pipe_configs/configurations/synthetic_events/synth_config.ini 
+</code></pre>
+<h2 id="launching-a-pipeline">Launching a pipeline</h2>
+<p>In a terminal execute the command:  </p>
+<pre><code class="language-bash">python multimno/orchestrator.py &lt;pipeline_json_path&gt;
+</code></pre>
+<p>Example:  </p>
+<pre><code>python multimno/orchestrator.py pipe_configs/pipelines/pipeline.json 
+</code></pre>
+<h2 id="launching-a-spark-history-server">Launching a spark history server</h2>
+<p>The history server will access SparkUI logs stored at the path ${SPARK_LOGS_DIR} defined in the <em><a href=".devcontainer/.env">.devcontainer/.env</a></em> file.</p>
+<p>Starting the history server</p>
+<pre><code class="language-bash">start-history-server.sh 
+</code></pre>
+<p>Accesing the history server
+* Go to the address http://localhost:18080</p>
+<h2 id="testing">Testing</h2>
+<h3 id="see-coverage-in-ide-vscode-extension">See coverage in IDE (VsCode extension)</h3>
+<p>1) Generate the coverage report (xml|lcov)</p>
+<pre><code class="language-bash">pytest --cov-report=&quot;xml&quot; --cov=multimno tests/test_code/
+</code></pre>
+<p>2) Install the extension: Coverage Gutters
+3) Right click and select Coverage Gutters: Watch</p>
+<p><em>Note: You can see the coverage percentage at the bottom bar</em></p>
+<h2 id="code-linting">Code Linting</h2>
+<p>The python code generated shall be formatted with autopep8. For formatting all source code execute the
+following command:</p>
+<pre><code class="language-bash">black -l 120 multimno tests/test_code/
+</code></pre>
+<h2 id="code-documentation">Code Documentation</h2>
+<h3 id="update-mkdocs-index-with-readme">Update mkdocs index with readme</h3>
+<pre><code class="language-bash">cp README.md docs/readme.md
+</code></pre>
+<h3 id="generate-static-documentation">Generate Static documentation</h3>
+<pre><code class="language-bash">mkdocs build --no-directory-urls
+</code></pre>
+<p>The documentation will be generated under the <strong>site</strong> directory.</p>
+<h3 id="documentation-server-mkdocs">Documentation server (Mkdocs)</h3>
+<p>A code documentation can be deployed using mkdocs backend. </p>
+<p>1) Create documentation</p>
+<pre><code class="language-bash">./scripts/generate_docs.sh
+</code></pre>
+<p>2) Launch doc server</p>
+<pre><code class="language-bash">mkdocs serve
+</code></pre>
+<p>and navigate to the address: http://127.0.0.1:8000</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": ".", "features": [], "search": "assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="assets/javascripts/bundle.d7c377c4.min.js"></script>
+      
+    
+  </body>
+</html>
