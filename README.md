@@ -4,8 +4,10 @@ This repository contains code that processes MNO Data to generate population and
 
 
 - [MultiMNO](#multimno)
+  - [Documentation](#documentation)
   - [Setup](#setup)
     - [Docker installation](#docker-installation)
+  - [Components](#components)
   - [Local Execution](#local-execution)
     - [Docker image creation](#docker-image-creation)
     - [Docker container creation](#docker-container-creation)
@@ -13,32 +15,31 @@ This repository contains code that processes MNO Data to generate population and
     - [Try out the code](#try-out-the-code)
     - [Clean up](#clean-up)
   - [Production Deployment](#production-deployment)
-  - [Developer Guide](#developer-guide)
-    - [Configurate docker container](#configurate-docker-container)
-    - [Start dev environment](#start-dev-environment)
-    - [Hello world](#hello-world-1)
-      - [Python execution](#python-execution)
-      - [Jupyter execution](#jupyter-execution)
-    - [Launching a single component](#launching-a-single-component)
-    - [Launching a pipeline](#launching-a-pipeline)
-    - [Launching a spark history server](#launching-a-spark-history-server)
-    - [Testing](#testing)
-      - [See coverage in IDE (VsCode extension)](#see-coverage-in-ide-vscode-extension)
-    - [Code Linting](#code-linting)
-    - [Code Documentation](#code-documentation)
-      - [Generate documentation manually](#generate-documentation-manually)
+
+## Documentation
+
+**Code must be downloaded in order to open the static documentation.**
+
+Please perform a **git clone** command or download directly the code from GitHub as a zip file.
+
+Static documentation is generated in html format under the [site](./site) directory. To view the documentation please open [index.html](./site/index.html) with your favorite web browser. 
 
 ## Setup
 The code stored in this repository is aimed to be executed in a PySpark compatible cluster. For an easy deployment in local environments, configuration for creating a docker container with all necessary dependencies is included in the `.devcontainer` folder. This allows users to execute the code
 in an isolated environment with all requirements and dependencies installed. 
 
 ### Docker installation
-Official guide: https://docs.docker.com/engine/install/
+Official guide: [Click here](https://docs.docker.com/engine/install/)
+
+## Components
+
+The components that are currently implemented are:
+* SyntheticEvents: Component that generates MNO Event synthetic data.
+* EventCleaning: Component that cleans MNO Event data.
 
 
 
 ## Local Execution
-
 
 
 ### Docker image creation
@@ -59,7 +60,7 @@ docker exec -it multimno_dev_container bash
 To test that the system has been correctly set try the hello world app with:
 
 ```bash
-spark-submit src/hello_world.py
+spark-submit multimno/hello_world.py
 ```
 
 The hello world application will read a geoparquet file containing three geometries and will union all of them into a single geometry. The output will be a HTML file: *[sample_data/output/census.html](sample_data/output/census.html)* where the single geometry (corresponding to the Basque Country) can be seen.
@@ -70,7 +71,7 @@ Configuration for executing a demo pipeline is given in the file: *[pipe_configs
 This file contains the order of the execution of the pipeline components and references to its configuration files.
 
 ```bash
-python src/orchestrator.py pipe_configs/pipelines/pipeline.json
+python multimno/orchestrator.py pipe_configs/pipelines/pipeline.json
 ```
 
 This demo will create synthetic Event data and clean it under the path *[sample_data/lakehouse](sample_data/lakehouse)*   
@@ -102,129 +103,3 @@ docker compose -f .devcontainer/docker-compose.yml --env-file=.devcontainer/.env
 
 ## Production Deployment
 TBD
-
-
-## Developer Guide
-
-The repository contains a devcontainer configuration compatible with VsCode. This configuration will create a docker container with all the necessary libraries and configurations to develop and execute the source code. 
-
-### Configurate docker container
-
-Edit the *[.devcontainer/.env](.devcontainer/.env)* file:
-
-```ini
-# ------------------- Docker Build parameters -------------------
-PYTHON_VERSION=3.11 # Python version.
-JDK_VERSION=17 # Java version.
-SPARK_VERSION=3.4.1 # Spark/Pyspark version.
-SEDONA_VERSION=1.5.0 # Sedona
-GEOTOOLS_WRAPPER=28.2 # Sedona dependency
-
-# ------------------- Docker run parameters -------------------
-CONTAINER_NAME=multimno_dev_container # Container name.
-DATA_DIR=../sample_data # Path of the host machine to the data to be used within the container.
-SPARK_LOGS_DIR=../sample_data/logs # Path of the host machine to where the spark logs will be stored.
-JL_PORT=8888 # Port of the host machine to deploy a jupyterlab.
-JL_CPU=4 # CPU cores of the container.
-JL_MEM=16g # RAM of the container.
-```
-
-
-### Start dev environment 
-
-In VsCode: **F1 -> Dev Containers: Rebuild and Reopen in container**
-
-### Hello world 
-
-#### Python execution
-Try the hello world app of section: [Hello world](#hello-world)
-
-#### Jupyter execution
-Open the hello world jupyter notebook stored in *[notebooks/hello_world.ipynb](notebooks/hello_world.ipynb)* with VsCode and execute all cells.  
-*The Jupyter extension is installed automatically in the devcontainer.*
-
-### Launching a single component
-In a terminal execute the command:
-```bash
-spark-submit src/main.py <component_id> <path_to_general_config> <path_to_component_config>
-```
-
-Example:
- ```bash
-spark-submit src/main.py SyntheticEvents pipe_configs/configurations/general_config.ini pipe_configs/configurations/synthetic_events/synth_config.ini 
-```
-
-### Launching a pipeline
-In a terminal execute the command:
-```bash
-python src/orchestrator.py <pipeline_json_path>
-```
-
-Example
-```
-python src/orchestrator.py pipe_configs/pipelines/pipeline.json 
-```
-
-### Launching a spark history server
-The history server will access SparkUI logs stored at the path ${SPARK_LOGS_DIR} defined in the *[.devcontainer/.env](.devcontainer/.env)* file.
-
-Starting the history server
-```bash
-start-history-server.sh 
-```
-Accesing the history server
-* Go to the address http://localhost:18080
-
-### Testing
-
-#### See coverage in IDE (VsCode extension)
-1) Generate the coverage report (xml|lcov)
-```bash
-pytest --cov-report="xml" --cov=src tests/test_code/
-```
-2) Install the extension: Coverage Gutters
-3) Right click and select Coverage Gutters: Watch
-
-*Note: You can see the coverage percentage at the bottom bar*
-
-### Code Linting
-
-The python code generated shall be formatted with autopep8. For formatting all source code execute the
-following command:
-
-```bash
-black -l 120 src tests/test_code/
-```
-
-### Code Documentation
-
-A code documentation can be deployed using mkdocs backend. 
-
-1) Create documentation
-```bash
-./scripts/generate_docs.sh
-```
-2) Launch doc server
-
-```bash
-mkdocs serve
-```
-and navigate to the address: http://127.0.0.1:8000
-
-#### Generate documentation manually
-
-To generate coverage and the test report manually execute:
-
-```bash
-pytest --cov-report="html:docs/autodoc/coverage" \
-    --cov=src --html=docs/autodoc/test_report.md \
-    --self-contained-html tests/test_code > /dev/null
-```
-
-A python code quality report can be generated using the pylint library with the following command:
-
-```bash
-pylint src | pylint-json2html -f jsonextended -o docs/code_quality_report.md
-```
-
-

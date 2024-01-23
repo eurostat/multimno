@@ -1,6 +1,6 @@
 import pytest
-from core.configuration import parse_configuration
-from core.spark_session import generate_spark_session
+from multimno.core.configuration import parse_configuration
+from multimno.core.spark_session import generate_spark_session
 from pyspark.sql import SparkSession
 
 

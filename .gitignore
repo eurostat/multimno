@@ -136,7 +136,7 @@ venv.bak/
 .ropeproject
 
 # mkdocs documentation
-/site
+# /site
 
 # mypy
 .mypy_cache/
@@ -165,6 +165,5 @@ cython_debug/
 # PROJECT IGNORE
 sample_data/
 !sample_data/hello_world/input
-docs/*.html
-docs/reference
 docs/autodoc
+docs/reference

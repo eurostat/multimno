@@ -14,10 +14,16 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: [src]
+          import:
+            - https://docs.python.org/3/objects.inv
+            - https://spark.apache.org/docs/latest/api/python/objects.inv
+          paths: [multimno]
 
 nav:
+  - Index: index.md
   - Reference: reference/
-  - Code quality: autodoc/code_quality_report.md
-  - Test Report: autodoc/test_report.md
-  - Coverage: autodoc/coverage
+  - Readme: readme.md
+  - Dev-Guide: dev_guide.md
+  # - Code quality: autodoc/code_quality_report.md
+  # - Test Report: autodoc/test_report.md
+  # - Coverage: autodoc/coverage

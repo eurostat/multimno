@@ -1,5 +1,5 @@
-from core.configuration import parse_configuration
-from core.spark_session import SPARK_CONFIG_KEY
+from multimno.core.configuration import parse_configuration
+from multimno.core.spark_session import SPARK_CONFIG_KEY
 
 
 def test_parse_configuration():
