@@ -56,7 +56,9 @@ class Component(metaclass=ABCMeta):
             data_object.write()
 
     def execute(self):
-        """_summary_"""
+        """
+        Method that performs the read, transform and write methods of the component.
+        """
         self.logger.info(f"Starting {self.COMPONENT_ID}...")
         self.read()
         self.transform()

@@ -211,7 +211,8 @@ class EventCleaning(Component):
         self.spark.catalog.clearCache()
 
     def save_syntactic_quality_metrics_frequency_distribution(self):
-        """Join frequency distribution tables before and after,
+        """
+        Join frequency distribution tables before and after,
         from after table take only final_frequency and replace nulls with 0.
         Create additional column date in DateType(),
         match the schema of SilverEventDataSyntacticQualityMetricsByColumn class
@@ -235,7 +236,8 @@ class EventCleaning(Component):
         self.output_qa_freq_distribution.write()
 
     def save_syntactic_quality_metrics_by_column(self):
-        """Convert output_qa_by_column.error_and_transformation_counts dictionary into spark df.
+        """
+        Convert output_qa_by_column.error_and_transformation_counts dictionary into spark df.
         Add additional columns, match schema of SilverEventDataSyntacticQualityMetricsByColumn class.
         Write results in default path of this class
         """
@@ -281,7 +283,8 @@ class EventCleaning(Component):
         filter_columns: list[str],
         error_and_transformation_counts: dict[tuple:int],
     ) -> pyspark.sql.dataframe.DataFrame:
-        """Loop throuh filter columns (user_id, timestamp)
+        """
+        Loop throuh filter columns (user_id, timestamp)
         delete rows that have null in the corresponfing column.
         Counts the number of filtered records for quality metrics,
         for user_id also calculates the overall correct values,
@@ -290,7 +293,7 @@ class EventCleaning(Component):
         Args:
             df (pyspark.sql.dataframe.DataFrame): df events with possible nulls values
             filter_columns (list[str], optional): columns to check for nulls
-            error_and_transformation_counts (dict[tuple:int]): dictionary to track qa
+            error_and_transformation_counts (dict[tuple, int]): dictionary to track qa
         Returns:
             pyspark.sql.dataframe.DataFrame: df without null values in specified columns
         """
@@ -316,7 +319,7 @@ class EventCleaning(Component):
 
         Args:
             df (pyspark.sql.dataframe.DataFrame): dataframe of events
-            error_and_transformation_counts (dict[tuple:int]): dictionary to track qa
+            error_and_transformation_counts (dict[tuple, int]): dictionary to track qa
 
         Returns:
             pyspark.sql.dataframe.DataFrame: Dataframe with erroneous values of mcc filtered out
@@ -342,7 +345,7 @@ class EventCleaning(Component):
 
         Args:
             df (pyspark.sql.dataframe.DataFrame): dataframe of events
-            error_and_transformation_counts (dict[tuple:int]): dictionary to track qa
+            error_and_transformation_counts (dict[tuple, int]): dictionary to track qa
 
         Returns:
             pyspark.sql.dataframe.DataFrame: Dataframe with erroneous values of cell_id filtered out
@@ -368,13 +371,14 @@ class EventCleaning(Component):
     def filter_null_locations_and_update_qa(
         self, df: pyspark.sql.dataframe.DataFrame, error_and_transformation_counts: dict[tuple:int]
     ) -> pyspark.sql.dataframe.DataFrame:
-        """Filter rows with inappropriate location: neither cell_id
+        """
+        Filter rows with inappropriate location: neither cell_id
         nor latitude&longitude are specified. Count the number of errors,
-        since this filter depends on several columns "variable" in quality metrics table will be None
+        since this filter depends on several columns "variable" in quality metrics table will be None.
 
         Args:
             df (pyspark.sql.dataframe.DataFrame): df with possible null location columns
-            error_and_transformation_counts (dict[tuple:int]): dictionary to track qa
+            error_and_transformation_counts (dict[tuple, int]): dictionary to track qa
 
         Returns:
             pyspark.sql.dataframe.DataFrame: filtered df with correctly specified location
@@ -396,19 +400,19 @@ class EventCleaning(Component):
         input_timezone: str,
         error_and_transformation_counts: dict[tuple:int],
     ) -> pyspark.sql.dataframe.DataFrame:
-        """Based on config params timestampt format and input timezone
-        convert timestampt column from string to timestampt type, if
-        filter rows with failed conversion.
-        Count number of succesful timestampt transformations and number of
-        errors
+        """
+        Based on config params timestampt format and input timezone
+        convert timestampt column from string to timestampt type, if filter rows with failed conversion.
+        Count number of succesful timestampt transformations and number of errors.
+
         Args:
             df (pyspark.sql.dataframe.DataFrame): df with timestampt column
             timestampt_format (str): expected string format to use in time conversion
-            input_timezone (str): _description_
-            error_and_transformation_counts (dict[tuple:int]): dictionary to track qa
+            input_timezone (str): timezone of the input data
+            error_and_transformation_counts (dict[tuple, int]): dictionary to track qa
 
         Returns:
-            pyspark.sql.dataframe.DataFrame: _description_
+            pyspark.sql.dataframe.DataFrame: df with time column parsed to timestamp
         """
 
         # TODO: Check timestamp validation
@@ -436,7 +440,8 @@ class EventCleaning(Component):
         data_period_end: str,
         error_and_transformation_counts: dict[tuple:int],
     ) -> pyspark.sql.dataframe.DataFrame:
-        """Filter rows which timestampt is not in specified date range.
+        """
+        Filter rows which timestampt is not in specified date range.
         Count the number of error rows for quality metrics,
         and the number of complitely correct timestampt (that pass all corresponding filters)
 
@@ -444,7 +449,7 @@ class EventCleaning(Component):
             df (pyspark.sql.dataframe.DataFrame): df with timestamp column
             data_period_start (str): start of date period
             data_period_end (str): end of date period
-            error_and_transformation_counts (dict[tuple:int]): dictionary to track qa
+            error_and_transformation_counts (dict[tuple, int]): dictionary to track qa
         Returns:
             pyspark.sql.dataframe.DataFrame: df with records in specified date period
         """
@@ -464,14 +469,15 @@ class EventCleaning(Component):
     def bounding_box_filtering_and_update_qa(
         self, df: pyspark.sql.dataframe.DataFrame, bounding_box: dict, error_and_transformation_counts: dict[tuple:int]
     ) -> pyspark.sql.dataframe.DataFrame:
-        """Filter rows which not null longitude & latitude values are
+        """
+        Filter rows which not null longitude & latitude values are
         within coordinates of bounding box. Count the number of errors,
         since this filter depends on several columns "variable" in quality metrics table will be None
 
         Args:
             df (pyspark.sql.dataframe.DataFrame): df with longitude & latitude columns
             bounding_box (dict): coordinates of bounding box in df_events crs
-            error_and_transformation_counts (dict[tuple:int]): dictionary to track qa
+            error_and_transformation_counts (dict[tuple, int]): dictionary to track qa
 
         Returns:
             pyspark.sql.dataframe.DataFrame: filtered df with records within bbox
