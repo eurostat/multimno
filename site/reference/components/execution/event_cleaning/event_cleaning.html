@@ -12,7 +12,7 @@
         <link rel="prev" href="index.html">
       
       
-        <link rel="next" href="../template/index.html">
+        <link rel="next" href="../../ingestion/index.html">
       
       
       <link rel="icon" href="../../../../assets/images/favicon.png">
@@ -543,80 +543,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    
-    
-    
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_1_2" >
-        
-          
-          
-          <div class="md-nav__link md-nav__container">
-            <a href="../template/index.html" class="md-nav__link ">
-              
-  
-  <span class="md-ellipsis">
-    template
-  </span>
-  
-
-            </a>
-            
-              
-              <label class="md-nav__link " for="__nav_2_1_1_2" id="__nav_2_1_1_2_label" tabindex="0">
-                <span class="md-nav__icon md-icon"></span>
-              </label>
-            
-          </div>
-        
-        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_2_1_1_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_1_1_2">
-            <span class="md-nav__icon md-icon"></span>
-            template
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../template/template_component.html" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    template_component
-  </span>
-  
-
-      </a>
     </li>
   
 
@@ -2139,7 +2065,13 @@
 <span class="normal">491</span>
 <span class="normal">492</span>
 <span class="normal">493</span>
-<span class="normal">494</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">EventCleaning</span><span class="p">(</span><span class="n">Component</span><span class="p">):</span>
+<span class="normal">494</span>
+<span class="normal">495</span>
+<span class="normal">496</span>
+<span class="normal">497</span>
+<span class="normal">498</span>
+<span class="normal">499</span>
+<span class="normal">500</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">EventCleaning</span><span class="p">(</span><span class="n">Component</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class that cleans MNO Event data</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -2328,7 +2260,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">spark</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">clearCache</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">save_syntactic_quality_metrics_frequency_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Join frequency distribution tables before and after,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Join frequency distribution tables before and after,</span>
 <span class="sd">        from after table take only final_frequency and replace nulls with 0.</span>
 <span class="sd">        Create additional column date in DateType(),</span>
 <span class="sd">        match the schema of SilverEventDataSyntacticQualityMetricsByColumn class</span>
@@ -2352,7 +2285,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">output_qa_freq_distribution</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">save_syntactic_quality_metrics_by_column</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert output_qa_by_column.error_and_transformation_counts dictionary into spark df.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert output_qa_by_column.error_and_transformation_counts dictionary into spark df.</span>
 <span class="sd">        Add additional columns, match schema of SilverEventDataSyntacticQualityMetricsByColumn class.</span>
 <span class="sd">        Write results in default path of this class</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2398,7 +2332,8 @@
         <span class="n">filter_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
         <span class="n">error_and_transformation_counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">:</span><span class="nb">int</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loop throuh filter columns (user_id, timestamp)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loop throuh filter columns (user_id, timestamp)</span>
 <span class="sd">        delete rows that have null in the corresponfing column.</span>
 <span class="sd">        Counts the number of filtered records for quality metrics,</span>
 <span class="sd">        for user_id also calculates the overall correct values,</span>
@@ -2407,7 +2342,7 @@
 <span class="sd">        Args:</span>
 <span class="sd">            df (pyspark.sql.dataframe.DataFrame): df events with possible nulls values</span>
 <span class="sd">            filter_columns (list[str], optional): columns to check for nulls</span>
-<span class="sd">            error_and_transformation_counts (dict[tuple:int]): dictionary to track qa</span>
+<span class="sd">            error_and_transformation_counts (dict[tuple, int]): dictionary to track qa</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            pyspark.sql.dataframe.DataFrame: df without null values in specified columns</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2433,7 +2368,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            df (pyspark.sql.dataframe.DataFrame): dataframe of events</span>
-<span class="sd">            error_and_transformation_counts (dict[tuple:int]): dictionary to track qa</span>
+<span class="sd">            error_and_transformation_counts (dict[tuple, int]): dictionary to track qa</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            pyspark.sql.dataframe.DataFrame: Dataframe with erroneous values of mcc filtered out</span>
@@ -2459,7 +2394,7 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            df (pyspark.sql.dataframe.DataFrame): dataframe of events</span>
-<span class="sd">            error_and_transformation_counts (dict[tuple:int]): dictionary to track qa</span>
+<span class="sd">            error_and_transformation_counts (dict[tuple, int]): dictionary to track qa</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            pyspark.sql.dataframe.DataFrame: Dataframe with erroneous values of cell_id filtered out</span>
@@ -2485,13 +2420,14 @@
     <span class="k">def</span> <span class="nf">filter_null_locations_and_update_qa</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">error_and_transformation_counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">:</span><span class="nb">int</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Filter rows with inappropriate location: neither cell_id</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Filter rows with inappropriate location: neither cell_id</span>
 <span class="sd">        nor latitude&amp;longitude are specified. Count the number of errors,</span>
-<span class="sd">        since this filter depends on several columns &quot;variable&quot; in quality metrics table will be None</span>
+<span class="sd">        since this filter depends on several columns &quot;variable&quot; in quality metrics table will be None.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            df (pyspark.sql.dataframe.DataFrame): df with possible null location columns</span>
-<span class="sd">            error_and_transformation_counts (dict[tuple:int]): dictionary to track qa</span>
+<span class="sd">            error_and_transformation_counts (dict[tuple, int]): dictionary to track qa</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            pyspark.sql.dataframe.DataFrame: filtered df with correctly specified location</span>
@@ -2513,19 +2449,19 @@
         <span class="n">input_timezone</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">error_and_transformation_counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">:</span><span class="nb">int</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Based on config params timestampt format and input timezone</span>
-<span class="sd">        convert timestampt column from string to timestampt type, if</span>
-<span class="sd">        filter rows with failed conversion.</span>
-<span class="sd">        Count number of succesful timestampt transformations and number of</span>
-<span class="sd">        errors</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Based on config params timestampt format and input timezone</span>
+<span class="sd">        convert timestampt column from string to timestampt type, if filter rows with failed conversion.</span>
+<span class="sd">        Count number of succesful timestampt transformations and number of errors.</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            df (pyspark.sql.dataframe.DataFrame): df with timestampt column</span>
 <span class="sd">            timestampt_format (str): expected string format to use in time conversion</span>
-<span class="sd">            input_timezone (str): _description_</span>
-<span class="sd">            error_and_transformation_counts (dict[tuple:int]): dictionary to track qa</span>
+<span class="sd">            input_timezone (str): timezone of the input data</span>
+<span class="sd">            error_and_transformation_counts (dict[tuple, int]): dictionary to track qa</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            pyspark.sql.dataframe.DataFrame: _description_</span>
+<span class="sd">            pyspark.sql.dataframe.DataFrame: df with time column parsed to timestamp</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># TODO: Check timestamp validation</span>
@@ -2553,7 +2489,8 @@
         <span class="n">data_period_end</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">error_and_transformation_counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">:</span><span class="nb">int</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Filter rows which timestampt is not in specified date range.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Filter rows which timestampt is not in specified date range.</span>
 <span class="sd">        Count the number of error rows for quality metrics,</span>
 <span class="sd">        and the number of complitely correct timestampt (that pass all corresponding filters)</span>
 
@@ -2561,7 +2498,7 @@
 <span class="sd">            df (pyspark.sql.dataframe.DataFrame): df with timestamp column</span>
 <span class="sd">            data_period_start (str): start of date period</span>
 <span class="sd">            data_period_end (str): end of date period</span>
-<span class="sd">            error_and_transformation_counts (dict[tuple:int]): dictionary to track qa</span>
+<span class="sd">            error_and_transformation_counts (dict[tuple, int]): dictionary to track qa</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            pyspark.sql.dataframe.DataFrame: df with records in specified date period</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2581,14 +2518,15 @@
     <span class="k">def</span> <span class="nf">bounding_box_filtering_and_update_qa</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">bounding_box</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">error_and_transformation_counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">:</span><span class="nb">int</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Filter rows which not null longitude &amp; latitude values are</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Filter rows which not null longitude &amp; latitude values are</span>
 <span class="sd">        within coordinates of bounding box. Count the number of errors,</span>
 <span class="sd">        since this filter depends on several columns &quot;variable&quot; in quality metrics table will be None</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            df (pyspark.sql.dataframe.DataFrame): df with longitude &amp; latitude columns</span>
 <span class="sd">            bounding_box (dict): coordinates of bounding box in df_events crs</span>
-<span class="sd">            error_and_transformation_counts (dict[tuple:int]): dictionary to track qa</span>
+<span class="sd">            error_and_transformation_counts (dict[tuple, int]): dictionary to track qa</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            pyspark.sql.dataframe.DataFrame: filtered df with records within bbox</span>
@@ -2671,7 +2609,7 @@ since this filter depends on several columns "variable" in quality metrics table
         <tr>
           <td><code>bounding_box</code></td>
           <td>
-                <code>dict</code>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2685,11 +2623,11 @@ since this filter depends on several columns "variable" in quality metrics table
         <tr>
           <td><code>error_and_transformation_counts</code></td>
           <td>
-                <code>dict[tuple</code>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a>]</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>int]): dictionary to track qa</p>
+              <p>dictionary to track qa</p>
             </div>
           </td>
           <td>
@@ -2725,12 +2663,7 @@ since this filter depends on several columns "variable" in quality metrics table
 
           <details class="quote">
             <summary>Source code in <code>multimno/components/execution/event_cleaning/event_cleaning.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">464</span>
-<span class="normal">465</span>
-<span class="normal">466</span>
-<span class="normal">467</span>
-<span class="normal">468</span>
-<span class="normal">469</span>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">469</span>
 <span class="normal">470</span>
 <span class="normal">471</span>
 <span class="normal">472</span>
@@ -2755,17 +2688,24 @@ since this filter depends on several columns "variable" in quality metrics table
 <span class="normal">491</span>
 <span class="normal">492</span>
 <span class="normal">493</span>
-<span class="normal">494</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">bounding_box_filtering_and_update_qa</span><span class="p">(</span>
+<span class="normal">494</span>
+<span class="normal">495</span>
+<span class="normal">496</span>
+<span class="normal">497</span>
+<span class="normal">498</span>
+<span class="normal">499</span>
+<span class="normal">500</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">bounding_box_filtering_and_update_qa</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">bounding_box</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">error_and_transformation_counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">:</span><span class="nb">int</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Filter rows which not null longitude &amp; latitude values are</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Filter rows which not null longitude &amp; latitude values are</span>
 <span class="sd">    within coordinates of bounding box. Count the number of errors,</span>
 <span class="sd">    since this filter depends on several columns &quot;variable&quot; in quality metrics table will be None</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        df (pyspark.sql.dataframe.DataFrame): df with longitude &amp; latitude columns</span>
 <span class="sd">        bounding_box (dict): coordinates of bounding box in df_events crs</span>
-<span class="sd">        error_and_transformation_counts (dict[tuple:int]): dictionary to track qa</span>
+<span class="sd">        error_and_transformation_counts (dict[tuple, int]): dictionary to track qa</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        pyspark.sql.dataframe.DataFrame: filtered df with records within bbox</span>
@@ -2806,15 +2746,80 @@ since this filter depends on several columns "variable" in quality metrics table
   <div class="doc doc-contents ">
   
       <p>Based on config params timestampt format and input timezone
-convert timestampt column from string to timestampt type, if
-filter rows with failed conversion.
-Count number of succesful timestampt transformations and number of
-errors
-Args:
-    df (pyspark.sql.dataframe.DataFrame): df with timestampt column
-    timestampt_format (str): expected string format to use in time conversion
-    input_timezone (str): <em>description</em>
-    error_and_transformation_counts (dict[tuple:int]): dictionary to track qa</p>
+convert timestampt column from string to timestampt type, if filter rows with failed conversion.
+Count number of succesful timestampt transformations and number of errors.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>df</code></td>
+          <td>
+                <code><span title="pyspark.sql.dataframe.DataFrame">DataFrame</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>df with timestampt column</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>timestampt_format</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>expected string format to use in time conversion</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>input_timezone</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>timezone of the input data</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>error_and_transformation_counts</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>dictionary to track qa</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
 
 
 
@@ -2833,7 +2838,7 @@ Args:
           </td>
           <td>
             <div class="doc-md-description">
-              <p>pyspark.sql.dataframe.DataFrame: <em>description</em></p>
+              <p>pyspark.sql.dataframe.DataFrame: df with time column parsed to timestamp</p>
             </div>
           </td>
         </tr>
@@ -2842,11 +2847,7 @@ Args:
 
           <details class="quote">
             <summary>Source code in <code>multimno/components/execution/event_cleaning/event_cleaning.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">392</span>
-<span class="normal">393</span>
-<span class="normal">394</span>
-<span class="normal">395</span>
-<span class="normal">396</span>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">396</span>
 <span class="normal">397</span>
 <span class="normal">398</span>
 <span class="normal">399</span>
@@ -2880,26 +2881,30 @@ Args:
 <span class="normal">427</span>
 <span class="normal">428</span>
 <span class="normal">429</span>
-<span class="normal">430</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">convert_time_column_to_timestamp_and_update_qa</span><span class="p">(</span>
+<span class="normal">430</span>
+<span class="normal">431</span>
+<span class="normal">432</span>
+<span class="normal">433</span>
+<span class="normal">434</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">convert_time_column_to_timestamp_and_update_qa</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">df</span><span class="p">:</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
     <span class="n">timestampt_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">input_timezone</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">error_and_transformation_counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">:</span><span class="nb">int</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Based on config params timestampt format and input timezone</span>
-<span class="sd">    convert timestampt column from string to timestampt type, if</span>
-<span class="sd">    filter rows with failed conversion.</span>
-<span class="sd">    Count number of succesful timestampt transformations and number of</span>
-<span class="sd">    errors</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Based on config params timestampt format and input timezone</span>
+<span class="sd">    convert timestampt column from string to timestampt type, if filter rows with failed conversion.</span>
+<span class="sd">    Count number of succesful timestampt transformations and number of errors.</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        df (pyspark.sql.dataframe.DataFrame): df with timestampt column</span>
 <span class="sd">        timestampt_format (str): expected string format to use in time conversion</span>
-<span class="sd">        input_timezone (str): _description_</span>
-<span class="sd">        error_and_transformation_counts (dict[tuple:int]): dictionary to track qa</span>
+<span class="sd">        input_timezone (str): timezone of the input data</span>
+<span class="sd">        error_and_transformation_counts (dict[tuple, int]): dictionary to track qa</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        pyspark.sql.dataframe.DataFrame: _description_</span>
+<span class="sd">        pyspark.sql.dataframe.DataFrame: df with time column parsed to timestamp</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># TODO: Check timestamp validation</span>
@@ -2972,7 +2977,7 @@ and the number of complitely correct timestampt (that pass all corresponding fil
         <tr>
           <td><code>data_period_start</code></td>
           <td>
-                <code>str</code>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2986,7 +2991,7 @@ and the number of complitely correct timestampt (that pass all corresponding fil
         <tr>
           <td><code>data_period_end</code></td>
           <td>
-                <code>str</code>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3000,11 +3005,11 @@ and the number of complitely correct timestampt (that pass all corresponding fil
         <tr>
           <td><code>error_and_transformation_counts</code></td>
           <td>
-                <code>dict[tuple</code>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a>]</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>int]): dictionary to track qa</p>
+              <p>dictionary to track qa</p>
             </div>
           </td>
           <td>
@@ -3018,11 +3023,7 @@ and the number of complitely correct timestampt (that pass all corresponding fil
 
           <details class="quote">
             <summary>Source code in <code>multimno/components/execution/event_cleaning/event_cleaning.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">432</span>
-<span class="normal">433</span>
-<span class="normal">434</span>
-<span class="normal">435</span>
-<span class="normal">436</span>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">436</span>
 <span class="normal">437</span>
 <span class="normal">438</span>
 <span class="normal">439</span>
@@ -3048,14 +3049,20 @@ and the number of complitely correct timestampt (that pass all corresponding fil
 <span class="normal">459</span>
 <span class="normal">460</span>
 <span class="normal">461</span>
-<span class="normal">462</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">data_period_filter_and_update_qa</span><span class="p">(</span>
+<span class="normal">462</span>
+<span class="normal">463</span>
+<span class="normal">464</span>
+<span class="normal">465</span>
+<span class="normal">466</span>
+<span class="normal">467</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">data_period_filter_and_update_qa</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">df</span><span class="p">:</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
     <span class="n">data_period_start</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">data_period_end</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">error_and_transformation_counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">:</span><span class="nb">int</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Filter rows which timestampt is not in specified date range.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Filter rows which timestampt is not in specified date range.</span>
 <span class="sd">    Count the number of error rows for quality metrics,</span>
 <span class="sd">    and the number of complitely correct timestampt (that pass all corresponding filters)</span>
 
@@ -3063,7 +3070,7 @@ and the number of complitely correct timestampt (that pass all corresponding fil
 <span class="sd">        df (pyspark.sql.dataframe.DataFrame): df with timestamp column</span>
 <span class="sd">        data_period_start (str): start of date period</span>
 <span class="sd">        data_period_end (str): end of date period</span>
-<span class="sd">        error_and_transformation_counts (dict[tuple:int]): dictionary to track qa</span>
+<span class="sd">        error_and_transformation_counts (dict[tuple, int]): dictionary to track qa</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        pyspark.sql.dataframe.DataFrame: df with records in specified date period</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -3130,11 +3137,11 @@ and the number of complitely correct timestampt (that pass all corresponding fil
         <tr>
           <td><code>error_and_transformation_counts</code></td>
           <td>
-                <code>dict[tuple</code>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a>]</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>int]): dictionary to track qa</p>
+              <p>dictionary to track qa</p>
             </div>
           </td>
           <td>
@@ -3170,10 +3177,7 @@ and the number of complitely correct timestampt (that pass all corresponding fil
 
           <details class="quote">
             <summary>Source code in <code>multimno/components/execution/event_cleaning/event_cleaning.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">337</span>
-<span class="normal">338</span>
-<span class="normal">339</span>
-<span class="normal">340</span>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">340</span>
 <span class="normal">341</span>
 <span class="normal">342</span>
 <span class="normal">343</span>
@@ -3199,7 +3203,10 @@ and the number of complitely correct timestampt (that pass all corresponding fil
 <span class="normal">363</span>
 <span class="normal">364</span>
 <span class="normal">365</span>
-<span class="normal">366</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">filter_invalid_cell_id_and_update_qa</span><span class="p">(</span>
+<span class="normal">366</span>
+<span class="normal">367</span>
+<span class="normal">368</span>
+<span class="normal">369</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">filter_invalid_cell_id_and_update_qa</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">error_and_transformation_counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">:</span><span class="nb">int</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -3207,7 +3214,7 @@ and the number of complitely correct timestampt (that pass all corresponding fil
 
 <span class="sd">    Args:</span>
 <span class="sd">        df (pyspark.sql.dataframe.DataFrame): dataframe of events</span>
-<span class="sd">        error_and_transformation_counts (dict[tuple:int]): dictionary to track qa</span>
+<span class="sd">        error_and_transformation_counts (dict[tuple, int]): dictionary to track qa</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        pyspark.sql.dataframe.DataFrame: Dataframe with erroneous values of cell_id filtered out</span>
@@ -3280,11 +3287,11 @@ and the number of complitely correct timestampt (that pass all corresponding fil
         <tr>
           <td><code>error_and_transformation_counts</code></td>
           <td>
-                <code>dict[tuple</code>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a>]</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>int]): dictionary to track qa</p>
+              <p>dictionary to track qa</p>
             </div>
           </td>
           <td>
@@ -3320,10 +3327,7 @@ and the number of complitely correct timestampt (that pass all corresponding fil
 
           <details class="quote">
             <summary>Source code in <code>multimno/components/execution/event_cleaning/event_cleaning.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">311</span>
-<span class="normal">312</span>
-<span class="normal">313</span>
-<span class="normal">314</span>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">314</span>
 <span class="normal">315</span>
 <span class="normal">316</span>
 <span class="normal">317</span>
@@ -3344,7 +3348,10 @@ and the number of complitely correct timestampt (that pass all corresponding fil
 <span class="normal">332</span>
 <span class="normal">333</span>
 <span class="normal">334</span>
-<span class="normal">335</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">filter_invalid_mcc_and_update_qa</span><span class="p">(</span>
+<span class="normal">335</span>
+<span class="normal">336</span>
+<span class="normal">337</span>
+<span class="normal">338</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">filter_invalid_mcc_and_update_qa</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">error_and_transformation_counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">:</span><span class="nb">int</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -3352,7 +3359,7 @@ and the number of complitely correct timestampt (that pass all corresponding fil
 
 <span class="sd">    Args:</span>
 <span class="sd">        df (pyspark.sql.dataframe.DataFrame): dataframe of events</span>
-<span class="sd">        error_and_transformation_counts (dict[tuple:int]): dictionary to track qa</span>
+<span class="sd">        error_and_transformation_counts (dict[tuple, int]): dictionary to track qa</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        pyspark.sql.dataframe.DataFrame: Dataframe with erroneous values of mcc filtered out</span>
@@ -3390,7 +3397,7 @@ and the number of complitely correct timestampt (that pass all corresponding fil
   
       <p>Filter rows with inappropriate location: neither cell_id
 nor latitude&amp;longitude are specified. Count the number of errors,
-since this filter depends on several columns "variable" in quality metrics table will be None</p>
+since this filter depends on several columns "variable" in quality metrics table will be None.</p>
 
 
 
@@ -3422,11 +3429,11 @@ since this filter depends on several columns "variable" in quality metrics table
         <tr>
           <td><code>error_and_transformation_counts</code></td>
           <td>
-                <code>dict[tuple</code>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a>]</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>int]): dictionary to track qa</p>
+              <p>dictionary to track qa</p>
             </div>
           </td>
           <td>
@@ -3462,10 +3469,7 @@ since this filter depends on several columns "variable" in quality metrics table
 
           <details class="quote">
             <summary>Source code in <code>multimno/components/execution/event_cleaning/event_cleaning.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">368</span>
-<span class="normal">369</span>
-<span class="normal">370</span>
-<span class="normal">371</span>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">371</span>
 <span class="normal">372</span>
 <span class="normal">373</span>
 <span class="normal">374</span>
@@ -3484,16 +3488,21 @@ since this filter depends on several columns "variable" in quality metrics table
 <span class="normal">387</span>
 <span class="normal">388</span>
 <span class="normal">389</span>
-<span class="normal">390</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">filter_null_locations_and_update_qa</span><span class="p">(</span>
+<span class="normal">390</span>
+<span class="normal">391</span>
+<span class="normal">392</span>
+<span class="normal">393</span>
+<span class="normal">394</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">filter_null_locations_and_update_qa</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">error_and_transformation_counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">:</span><span class="nb">int</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Filter rows with inappropriate location: neither cell_id</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Filter rows with inappropriate location: neither cell_id</span>
 <span class="sd">    nor latitude&amp;longitude are specified. Count the number of errors,</span>
-<span class="sd">    since this filter depends on several columns &quot;variable&quot; in quality metrics table will be None</span>
+<span class="sd">    since this filter depends on several columns &quot;variable&quot; in quality metrics table will be None.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        df (pyspark.sql.dataframe.DataFrame): df with possible null location columns</span>
-<span class="sd">        error_and_transformation_counts (dict[tuple:int]): dictionary to track qa</span>
+<span class="sd">        error_and_transformation_counts (dict[tuple, int]): dictionary to track qa</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        pyspark.sql.dataframe.DataFrame: filtered df with correctly specified location</span>
@@ -3562,7 +3571,7 @@ since null check is the one and only filter for this column</p>
         <tr>
           <td><code>filter_columns</code></td>
           <td>
-                <code>list[str]</code>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#list">list</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -3576,11 +3585,11 @@ since null check is the one and only filter for this column</p>
         <tr>
           <td><code>error_and_transformation_counts</code></td>
           <td>
-                <code>dict[tuple</code>
+                <code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a>]</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>int]): dictionary to track qa</p>
+              <p>dictionary to track qa</p>
             </div>
           </td>
           <td>
@@ -3594,9 +3603,7 @@ since null check is the one and only filter for this column</p>
 
           <details class="quote">
             <summary>Source code in <code>multimno/components/execution/event_cleaning/event_cleaning.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">278</span>
-<span class="normal">279</span>
-<span class="normal">280</span>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">280</span>
 <span class="normal">281</span>
 <span class="normal">282</span>
 <span class="normal">283</span>
@@ -3625,13 +3632,17 @@ since null check is the one and only filter for this column</p>
 <span class="normal">306</span>
 <span class="normal">307</span>
 <span class="normal">308</span>
-<span class="normal">309</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">filter_nulls_and_update_qa</span><span class="p">(</span>
+<span class="normal">309</span>
+<span class="normal">310</span>
+<span class="normal">311</span>
+<span class="normal">312</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">filter_nulls_and_update_qa</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">df</span><span class="p">:</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
     <span class="n">filter_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">error_and_transformation_counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">:</span><span class="nb">int</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">dataframe</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Loop throuh filter columns (user_id, timestamp)</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Loop throuh filter columns (user_id, timestamp)</span>
 <span class="sd">    delete rows that have null in the corresponfing column.</span>
 <span class="sd">    Counts the number of filtered records for quality metrics,</span>
 <span class="sd">    for user_id also calculates the overall correct values,</span>
@@ -3640,7 +3651,7 @@ since null check is the one and only filter for this column</p>
 <span class="sd">    Args:</span>
 <span class="sd">        df (pyspark.sql.dataframe.DataFrame): df events with possible nulls values</span>
 <span class="sd">        filter_columns (list[str], optional): columns to check for nulls</span>
-<span class="sd">        error_and_transformation_counts (dict[tuple:int]): dictionary to track qa</span>
+<span class="sd">        error_and_transformation_counts (dict[tuple, int]): dictionary to track qa</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        pyspark.sql.dataframe.DataFrame: df without null values in specified columns</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -3682,8 +3693,7 @@ Write results in default path of this class</p>
 
           <details class="quote">
             <summary>Source code in <code>multimno/components/execution/event_cleaning/event_cleaning.py</code></summary>
-            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">237</span>
-<span class="normal">238</span>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">238</span>
 <span class="normal">239</span>
 <span class="normal">240</span>
 <span class="normal">241</span>
@@ -3721,8 +3731,11 @@ Write results in default path of this class</p>
 <span class="normal">273</span>
 <span class="normal">274</span>
 <span class="normal">275</span>
-<span class="normal">276</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">save_syntactic_quality_metrics_by_column</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert output_qa_by_column.error_and_transformation_counts dictionary into spark df.</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">save_syntactic_quality_metrics_by_column</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert output_qa_by_column.error_and_transformation_counts dictionary into spark df.</span>
 <span class="sd">    Add additional columns, match schema of SilverEventDataSyntacticQualityMetricsByColumn class.</span>
 <span class="sd">    Write results in default path of this class</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -3810,8 +3823,10 @@ Write chunk results in separate folders named by processing date</p>
 <span class="normal">232</span>
 <span class="normal">233</span>
 <span class="normal">234</span>
-<span class="normal">235</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">save_syntactic_quality_metrics_frequency_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Join frequency distribution tables before and after,</span>
+<span class="normal">235</span>
+<span class="normal">236</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">save_syntactic_quality_metrics_frequency_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Join frequency distribution tables before and after,</span>
 <span class="sd">    from after table take only final_frequency and replace nulls with 0.</span>
 <span class="sd">    Create additional column date in DateType(),</span>
 <span class="sd">    match the schema of SilverEventDataSyntacticQualityMetricsByColumn class</span>
