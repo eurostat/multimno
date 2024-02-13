@@ -5,6 +5,7 @@ This repository contains code that processes MNO Data to generate population and
 
 - [MultiMNO](#multimno)
   - [Documentation](#documentation)
+  - [Minimum Requirements](#minimum-requirements)
   - [Setup](#setup)
     - [Docker installation](#docker-installation)
   - [Components](#components)
@@ -23,6 +24,19 @@ This repository contains code that processes MNO Data to generate population and
 Please perform a **git clone** command or download directly the code from GitHub as a zip file.
 
 Static documentation is generated in html format under the [site](./site) directory. To view the documentation please open [index.html](./site/index.html) with your favorite web browser. 
+
+## Minimum Requirements
+
+Hardware: 
+- **Cores:** 4
+- **RAM:** 16 Gb
+- **Disk:** 32 Gb of free space
+- Internet connection to Ubuntu/Spark/Docker official repositories for building the docker image
+
+Software:  
+  - **OS:** Ubuntu 22.04 / Mac 12.6 / Windows 11 + WSL2 with Ubuntu 22.04  
+  - **Docker-engine:** 25.0.X
+  - **Docker-compose:** 2.24.X
 
 ## Setup
 The code stored in this repository is aimed to be executed in a PySpark compatible cluster. For an easy deployment in local environments, configuration for creating a docker container with all necessary dependencies is included in the `.devcontainer` folder. This allows users to execute the code
