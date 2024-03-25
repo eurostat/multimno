@@ -1,6 +1,7 @@
 """
 Module that implements classes for reading data from different data sources into a Spark DataFrames.
 """
+
 from abc import ABCMeta, abstractmethod
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.types import StructType
@@ -38,7 +39,7 @@ class PathInterface(IOInterface, metaclass=ABCMeta):
 
     FILE_FORMAT = ""
 
-    def read_from_interface(self, spark: SparkSession, path: str, schema: StructType = None):
+    def read_from_interface(self, spark: SparkSession, path: str, schema: StructType = None) -> DataFrame:
         """Method that reads data from a file type data source as a Spark DataFrame.
 
         Args:
@@ -47,7 +48,7 @@ class PathInterface(IOInterface, metaclass=ABCMeta):
             schema (StructType, optional): Schema of the data. Defaults to None.
 
         Returns:
-            DataFrame: Spark dataframe.
+            df: Spark dataframe.
         """
         return spark.read.schema(schema).format(self.FILE_FORMAT).load(path)  # Read schema  # File format  # Load path
 
@@ -85,7 +86,7 @@ class JsonInterface(PathInterface):
 class ShapefileInterface(PathInterface):
     """Class that implements the PathInterface abstract class for reading/writing data from a ShapeFile data source."""
 
-    def read_from_interface(self, spark: SparkSession, path: str, schema: StructType = None):
+    def read_from_interface(self, spark: SparkSession, path: str, schema: StructType = None) -> DataFrame:
         """Method that reads data from a ShapeFile type data source as a Spark DataFrame.
 
         Args:
@@ -94,7 +95,7 @@ class ShapefileInterface(PathInterface):
             schema (StructType, optional): Schema of the data. Defaults to None.
 
         Returns:
-            DataFrame: Spark dataframe.
+            df: Spark dataframe.
         """
         df = ShapefileReader.readToGeometryRDD(spark.sparkContext, path)
         return Adapter.toDf(df, spark)
@@ -119,7 +120,7 @@ class CsvInterface(PathInterface):
 
     def read_from_interface(
         self, spark: SparkSession, path: str, schema: StructType, header: bool = True, sep: str = ","
-    ):
+    ) -> DataFrame:
         """Method that reads data from a csv type data source as a Spark DataFrame.
 
         Args:
@@ -128,7 +129,7 @@ class CsvInterface(PathInterface):
             schema (StructType, optional): Schema of the data. Defaults to None.
 
         Returns:
-            DataFrame: Spark dataframe.
+            df: Spark dataframe.
         """
         return spark.read.csv(path, schema=schema, header=header, sep=sep)
 

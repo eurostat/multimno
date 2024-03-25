@@ -1,0 +1,22 @@
+{
+    "general_config_path": "pipe_configs/configurations/general_config.ini",
+    "spark_submit_args": [],
+    "pipeline": [
+        {
+            "component_id": "SyntheticNetwork",
+            "component_config_path": "pipe_configs/configurations/synthetic/synthetic_network.ini"
+        },
+        {
+            "component_id": "SyntheticDiaries",
+            "component_config_path": "pipe_configs/configurations/synthetic/synthetic_diaries.ini"
+        },
+        {
+            "component_id": "SyntheticEvents",
+            "component_config_path": "pipe_configs/configurations/synthetic/synthetic_events.ini"
+        },
+        {
+            "component_id": "SyntheticEventsErrors",
+            "component_config_path": "pipe_configs/configurations/synthetic/synthetic_events_errors.ini"
+        }
+    ]
+}

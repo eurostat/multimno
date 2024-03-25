@@ -17,6 +17,7 @@ from pyspark.sql.types import (
 
 from multimno.core.data_objects.data_object import PathDataObject
 from multimno.core.io_interface import ParquetInterface
+from multimno.core.constants.columns import ColNames
 
 
 class SilverEventDataObject(PathDataObject):
@@ -27,23 +28,24 @@ class SilverEventDataObject(PathDataObject):
     ID = "SilverEventDO"
     SCHEMA = StructType(
         [
-            StructField("user_id", BinaryType(), nullable=False),
-            StructField("timestamp", TimestampType(), nullable=False),
-            StructField("mcc", IntegerType(), nullable=False),
-            StructField("cell_id", StringType(), nullable=True),
-            StructField("latitude", FloatType(), nullable=True),
-            StructField("longitude", FloatType(), nullable=True),
-            StructField("loc_error", FloatType(), nullable=True),
-            StructField("year", ShortType(), nullable=False),
-            StructField("month", ByteType(), nullable=False),
-            StructField("day", ByteType(), nullable=False),
+            StructField(ColNames.user_id, BinaryType(), nullable=False),
+            StructField(ColNames.timestamp, TimestampType(), nullable=False),
+            StructField(ColNames.mcc, IntegerType(), nullable=False),
+            StructField(ColNames.cell_id, StringType(), nullable=True),
+            StructField(ColNames.latitude, FloatType(), nullable=True),
+            StructField(ColNames.longitude, FloatType(), nullable=True),
+            StructField(ColNames.loc_error, FloatType(), nullable=True),
+            StructField(ColNames.year, ShortType(), nullable=False),
+            StructField(ColNames.month, ByteType(), nullable=False),
+            StructField(ColNames.day, ByteType(), nullable=False),
+            StructField(ColNames.user_id_modulo, IntegerType(), nullable=False),
         ]
     )
 
     def __init__(self, spark: SparkSession, default_path: str) -> None:
         super().__init__(spark, default_path)
         self.interface: ParquetInterface = ParquetInterface()
-        self.partition_columns = ["year", "month", "day"]
+        self.partition_columns = [ColNames.year, ColNames.month, ColNames.day, ColNames.user_id_modulo]
 
         # Clear path
         self.first_write = True

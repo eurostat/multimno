@@ -1,16 +1,27 @@
 # Test
-pytest
-pytest-cov
-pytest-html
-jupyterlab
+pytest~=8.0
+pytest-cov~=4.1
+pytest-html~=4.1
+
+# Visualization
+jupyterlab>=3.6.3,<4.0.0
+pydeck~=0.8
+matplotlib~=3.8
+folium~=0.16
+mapclassify~=2.6
 
 # Docs
-black
-pylint
-pylint-json2html
-mkdocs
-mkdocs-material
-mkdocs-gen-files
-mkdocs-literate-nav
-mkdocs-section-index
-mkdocstrings-python
+black~=24.2
+pylint~=3.1
+pylint-json2html~=0.5
+mkdocs~=1.5
+mkdocs-material~=9.5
+mkdocs-gen-files~=0.5
+mkdocs-literate-nav~=0.6
+mkdocs-section-index~=0.3
+mkdocs-nav-weight~=0.2
+mkdocstrings-python~=1.8
+mike~=2.0
+
+# Security
+bandit~=1.7

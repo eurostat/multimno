@@ -1,0 +1,152 @@
+import pytest
+from pyspark.sql import DataFrame, Row
+from pyspark.testing.utils import assertDataFrameEqual
+import pyspark.sql.functions as psf
+from sedona.sql import st_constructors as STC
+from multimno.core.grid import InspireGridGenerator
+
+from tests.test_code.fixtures import spark_session as spark
+from tests.test_code.test_utils import assert_geodataframe_almost_equal, assert_sparkgeodataframe_equal
+
+# Dummy to avoid linting errors using pytest
+fixtures = [spark]
+
+
+@pytest.fixture(scope="module")
+def grid_generator(spark):
+    # Use default values
+    return InspireGridGenerator(spark, resolution=100, grid_partition_size=500)
+
+
+@pytest.fixture(scope="module")
+def centroid_grid(spark):
+    data = [
+        Row(geometry="POINT (3157850 2031050)", grid_id="100mN2031000E3157800"),
+        Row(geometry="POINT (3157950 2031050)", grid_id="100mN2031000E3157900"),
+        Row(geometry="POINT (3158050 2031050)", grid_id="100mN2031000E3158000"),
+        Row(geometry="POINT (3158150 2031050)", grid_id="100mN2031000E3158100"),
+        Row(geometry="POINT (3158250 2031050)", grid_id="100mN2031000E3158200"),
+    ]
+    df = spark.createDataFrame(data)
+    df = df.withColumn(
+        "geometry",
+        STC.ST_GeomFromEWKT(
+            psf.concat(psf.lit(f"SRID={InspireGridGenerator.GRID_CRS_EPSG_CODE};"), psf.col("geometry"))
+        ),
+    )
+    df = df.select("grid_id", "geometry")
+
+    return df
+
+
+@pytest.fixture(scope="module")
+def tile_grid(spark):
+    data = [
+        Row(
+            geometry="POLYGON ((3157800 2031100, 3157900 2031100, 3157900 2031000, 3157800 2031000, 3157800 2031100))",
+            grid_id="100mN2031000E3157800",
+        ),
+        Row(
+            geometry="POLYGON ((3157900 2031100, 3158000 2031100, 3158000 2031000, 3157900 2031000, 3157900 2031100))",
+            grid_id="100mN2031000E3157900",
+        ),
+        Row(
+            geometry="POLYGON ((3158000 2031100, 3158100 2031100, 3158100 2031000, 3158000 2031000, 3158000 2031100))",
+            grid_id="100mN2031000E3158000",
+        ),
+        Row(
+            geometry="POLYGON ((3158100 2031100, 3158200 2031100, 3158200 2031000, 3158100 2031000, 3158100 2031100))",
+            grid_id="100mN2031000E3158100",
+        ),
+        Row(
+            geometry="POLYGON ((3158200 2031100, 3158300 2031100, 3158300 2031000, 3158200 2031000, 3158200 2031100))",
+            grid_id="100mN2031000E3158200",
+        ),
+    ]
+    df = spark.createDataFrame(data)
+    df = df.withColumn(
+        "geometry",
+        STC.ST_GeomFromEWKT(
+            psf.concat(psf.lit(f"SRID={InspireGridGenerator.GRID_CRS_EPSG_CODE};"), psf.col("geometry"))
+        ),
+    )
+    df = df.select("grid_id", "geometry")
+
+    return df
+
+
+@pytest.mark.skip(reason="TODO: New Grid implementation")
+def test_cover_extent_with_grid_centroids(grid_generator):
+    # Define the extent of the polygon
+    extent = [-3.715, 40.410, -3.694, 40.425]
+
+    # Generate the grid centroids covering the extent
+    result = grid_generator.cover_extent_with_grid_centroids(extent)
+
+    # Assert that the result is a DataFrame
+    assert isinstance(result, DataFrame)
+
+    # Assert that the result DataFrame has the expected columns
+    expected_columns = ["geometry", "grid_id"]
+    assert result.columns == expected_columns
+
+    # Assert that the result DataFrame
+    assert result.count() == 713
+
+
+@pytest.mark.skip(reason="TODO: New Grid implementation")
+def test_cover_extent_with_grid_cells(grid_generator):
+    # Define the extent of the polygon
+    extent = [-3.715, 40.410, -3.694, 40.425]
+
+    # Generate the grid cells covering the extent
+    result = grid_generator.cover_extent_with_grid_ids(extent)
+
+    # Assert that the result is a DataFrame
+    assert isinstance(result, DataFrame)
+
+    # Assert that the result DataFrame has the expected columns
+    expected_columns = ["grid_id"]
+    assert result.columns == expected_columns
+
+    # Assert that the result DataFrame
+    assert result.count() == 713
+
+
+@pytest.mark.skip(reason="TODO: New Grid implementation")
+def test_cover_extent_with_grid_tiles(grid_generator):
+    # Define the extent of the polygon
+    extent = [-3.715, 40.410, -3.694, 40.425]
+
+    # Generate the grid cells covering the extent
+    result = grid_generator.cover_extent_with_grid_tiles(extent)
+
+    # Assert that the result is a DataFrame
+    assert isinstance(result, DataFrame)
+
+    # Assert that the result DataFrame has the expected columns
+    expected_columns = ["geometry", "grid_id"]
+    assert result.columns == expected_columns
+
+    # Assert that the result DataFrame
+    assert result.count() == 713
+
+
+def test_grid_ids_to_centroids(grid_generator, centroid_grid):
+    test_grid = centroid_grid.drop("geometry")
+
+    grid_ids_to_centroids = grid_generator.grid_ids_to_centroids(test_grid)
+
+    assert_sparkgeodataframe_equal(centroid_grid, grid_ids_to_centroids)
+
+
+# TODO: Review
+# def test_grid_ids_to_tiles(grid_generator, tile_grid):
+#     test_grid = tile_grid.drop("geometry")
+
+#     grid_ids_to_tiles = grid_generator.grid_ids_to_tiles(test_grid)
+
+#     with pytest.raises(AssertionError):
+#         assert_sparkgeodataframe_equal(tile_grid, grid_ids_to_tiles)
+
+#     assert_geodataframe_almost_equal(tile_grid, grid_ids_to_tiles)

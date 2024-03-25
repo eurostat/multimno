@@ -1,6 +1,7 @@
 """
 Module that defines the data object abstract classes
 """
+
 from abc import ABCMeta
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.types import StructType

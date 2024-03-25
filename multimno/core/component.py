@@ -1,6 +1,7 @@
 """
 Module that defines the abstract pipeline component class
 """
+
 from typing import Dict
 from abc import ABCMeta, abstractmethod
 from configparser import ConfigParser
@@ -24,6 +25,7 @@ class Component(metaclass=ABCMeta):
         self.input_data_objects: Dict[str, DataObject] = None
         self.output_data_objects: Dict[str, DataObject] = None
         self.config: ConfigParser = parse_configuration(general_config_path, component_config_path)
+        self.SUB_COMPONENT_ID: str | None = self.config.get(self.COMPONENT_ID, "SUB_COMPONENT_ID", fallback=None)
         self.logger: Logger = generate_logger(self.config)
         self.spark: SparkSession = generate_spark_session(self.config)
         self.initalize_data_objects()

@@ -1,5 +1,5 @@
 """
-Silver Event Data frequency quality metrics.
+Silver Event Data deduplication frequency quality metrics.
 """
 
 from pyspark.sql import SparkSession
@@ -18,7 +18,8 @@ from multimno.core.io_interface import ParquetInterface
 
 class SilverEventDataSyntacticQualityMetricsFrequencyDistribution(PathDataObject):
     """
-    Class that models the Silver Event Data frequency quality metrics DataObject.
+    Class that models the Silver Event Data syntactic
+    frequency quality metrics DataObject.
     """
 
     ID = "SilverEventDataSyntacticQualityMetricsFrequencyDistribution"

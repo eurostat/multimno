@@ -1,23 +1,25 @@
 """
 Module that manages the application configuration.
 """
+
 import os
 from configparser import ConfigParser, ExtendedInterpolation
 
 
-def parse_configuration(general_config_path: str, component_config_path: str = ""):
+def parse_configuration(general_config_path: str, component_config_path: str = "") -> ConfigParser:
     """Function that parses a list of configurations in a single ConfigParser object. It expects
     the first element of the list to be the path to general configuration path. It will override
     values of the general configuration file with component configuration data.
 
     Args:
-        config_paths (list): List of paths. First Element is the general configuration path.
+        general_config_path (list): Path to the general configuration file.
+        component_config_path (str): Path to the component configuration file.
 
     Raises:
         FileNotFoundError: If the general configuration path is doesn't exist
 
     Returns:
-        ConfigParser: ConfigParser object with some general configuration values overriden by
+        config: ConfigParser object with the configuration data.
     """
 
     # Check general configuration file

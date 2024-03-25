@@ -1,119 +1,133 @@
-# MultiMNO
+# MultiMNO <!-- omit from toc -->
 
-This repository contains code that processes MNO Data to generate population and mobility insights.
+This repository contains code that processes MNO Data to generate population and mobility insights using 
+the Spark framework. 
 
 
-- [MultiMNO](#multimno)
-  - [Documentation](#documentation)
-  - [Minimum Requirements](#minimum-requirements)
+- [📄 Description](#-description)
+- [🗃️ Repository Structure](#️-repository-structure)
+- [📜 Code Documentation](#-code-documentation)
+- [🅿️ Pipeline](#️-pipeline)
+- [🛠️ Mandatory Requirements](#️-mandatory-requirements)
+- [📦 Synthetic data](#-synthetic-data)
+- [🏁 Quickstart](#-quickstart)
   - [Setup](#setup)
-    - [Docker installation](#docker-installation)
-  - [Components](#components)
-  - [Local Execution](#local-execution)
-    - [Docker image creation](#docker-image-creation)
-    - [Docker container creation](#docker-container-creation)
-    - [Hello world](#hello-world)
-    - [Try out the code](#try-out-the-code)
-    - [Clean up](#clean-up)
-  - [Production Deployment](#production-deployment)
+  - [Execution](#execution)
+    - [Dockerfile Lite](#dockerfile-lite)
+- [📓 User Manual](#-user-manual)
+- [🤝 Contribute](#-contribute)
+- [🖥️ Developement Guidelines](#️-developement-guidelines)
 
-## Documentation
 
-**Code must be downloaded in order to open the static documentation.**
+# 📄 Description
 
-Please perform a **git clone** command or download directly the code from GitHub as a zip file.
+This repository contains a python application that uses the PySpark library to process Big Data pipelines of MNO Data
+and generate multiple stadistical products related to mobility and sociodemographic analysis.
 
-Static documentation is generated in html format under the [site](./site) directory. To view the documentation please open [index.html](./site/index.html) with your favorite web browser. 
+The code stored in this repository is aimed to be executed in a PySpark compatible cluster and to be deployed in 
+cloud environments like AWS, GCP or Azure. Nevertheless, the code can be launched in local environments using a single 
+node Spark configuration once all the required libraries have been correctly set. 
 
-## Minimum Requirements
+For an easy deployment in local environments, configuration for creating a docker container 
+with all the setup done is provided in this repository.
 
-Hardware: 
-- **Cores:** 4
-- **RAM:** 16 Gb
-- **Disk:** 32 Gb of free space
-- Internet connection to Ubuntu/Spark/Docker official repositories for building the docker image
+# 🗃️ Repository Structure
 
-Software:  
-  - **OS:** Ubuntu 22.04 / Mac 12.6 / Windows 11 + WSL2 with Ubuntu 22.04  
-  - **Docker-engine:** 25.0.X
-  - **Docker-compose:** 2.24.X
+The repository contains the following directories:
+
+| Directory         | Type                                         | Description                                                                                                  |
+| ----------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **.devcontainer** | $${\color{#ac8e03}Development}$$             | Directory with config files for setting up a dev-environment using [Dev-Containers.](https://containers.dev) |
+| **.vscode**       | $${\color{#ac8e03}Development}$$             | Directory containing config files for developers using VsCode.                                               |
+| **docs**          | $${\color{#7030a0}Technical-Documentation}$$ | Documentation source files that will be used for the documentation site. Mainly markdown files.              |
+| **multimno**      | $${\color{#ff0000}Open-source-software}$$    | Main directory of the repository. It contains the Python source code of the application.                     |
+| **pipe_configs**  | $${\color{#0070c0}Data}$$                    | Directory containing examples of configuration files for the execution of the pipeline.                      |
+| **sample_data**   | $${\color{#0070c0}Data}$$                    | Directory containing Synthetic MNO-Data to be used to test the software.                                     |
+| **resources**     | $${\color{#ff0000}Open-source-software}$$    | Directory containing requirements files and development related configuration and script files.              |
+| **tests**         | $${\color{#00b050}Testing}$$                 | Directory containing test code and test files for the testing execution.                                     |
+
+---
+
+# 📜 Code Documentation
+
+Please refer to the following website: https://eurostat.github.io/multimno/latest/
+
+# 🅿️ Pipeline
+
+The pipeline of Big Data processing performed by the software can be found at 
+the following document: [MultiMNO Pipeline](docs/pipeline.md)
+
+# 🛠️ Mandatory Requirements
+
+Please verify that your system fullfils the [System Requirements.](docs/system_requirements.md#system-libraries) in order to assert that your system can execute the code. 
+
+# 📦 Synthetic data
+
+MNO synthetic data is given in the repository under the `sample_data/lakehouse/bronze` directory. This data 
+has been generated synthetically and contains the following specs:  
+
+- 🌍 **Spatial scope:** All data has been generated in a bounding box that covers the metropolitan area of Madrid.
+ The bounding box parameters are as follows:
+  - latitude_min = 40.352
+  - latitude_max = 40.486
+  - longitude_min = -3.751
+  - longitude_max = -3.579
+
+
+- 📆 **Temporal scope :** Data has been generated for 9 days, from 2023-01-01 to 2023-01-09 both included.
+- 🚶‍♂️**Users:** 100 different users.
+- 📡**Network:** 500 different cells.
+  
+# 🏁 Quickstart
 
 ## Setup
-The code stored in this repository is aimed to be executed in a PySpark compatible cluster. For an easy deployment in local environments, configuration for creating a docker container with all necessary dependencies is included in the `.devcontainer` folder. This allows users to execute the code
-in an isolated environment with all requirements and dependencies installed. 
+Use the following commands for a fast setup of an execution environment using docker. 
 
-### Docker installation
-Official guide: [Click here](https://docs.docker.com/engine/install/)
+> Please check the [Setup Guide](docs/UserManual/setup_guide.md) for a more indepth detail
+>  of the system setup to execute the code.
 
-## Components
-
-The components that are currently implemented are:
-* SyntheticEvents: Component that generates MNO Event synthetic data.
-* EventCleaning: Component that cleans MNO Event data.
-
-
-
-## Local Execution
-
-
-### Docker image creation
-
-Execute the following command:
+Build docker image
 ```bash
-docker compose -f .devcontainer/docker-compose.yml --env-file=.devcontainer/.env build
+docker build -t multimno:1.0-prod --target=multimno-prod .
 ```
 
-### Docker container creation
-Create a container and start a shell session in it with the commands:
+## Execution
+
+Run an example pipeline within a container:
 ```bash
-docker compose -f .devcontainer/docker-compose.yml --env-file=.devcontainer/.env up -d
-docker exec -it multimno_dev_container bash
+docker run --rm --name=multimno-container -v "${PWD}/sample_data:/opt/data" -v "${PWD}/pipe_configs:/opt/app/pipe_configs" multimno:1.0-prod pipe_configs/pipelines/pipeline.json
 ```
 
-### Hello world
-To test that the system has been correctly set try the hello world app with:
+This command will:
+- Create a docker container.
+- mount the `sample_data` directory in `/opt/data` within the container.
+- mount the `pipe_configs` directory in `/opt/app/pipe_configs` within the container.
+- Execute a pipeline stored in `/opt/app/pipe_configs/pipelines/pipeline.json` within the container. This is the same file
+as the one in the repository.
+- Delete the container once the execution finishes.
 
-```bash
-spark-submit multimno/hello_world.py
-```
+> NOTE: It is necessary to adjusts paths in the pipeline.json and in the general_configuration.ini 
+> file if the destination paths are altered.
 
-The hello world application will read a geoparquet file containing three geometries and will union all of them into a single geometry. The output will be a HTML file: *[sample_data/output/census.html](sample_data/output/census.html)* where the single geometry (corresponding to the Basque Country) can be seen.
+### Dockerfile Lite
 
+As the multimno software is a python application designed to be executed in a Spark cluster, a lightweight Dockerfile called `Dockerfile-lite` is given for execution of the software in existing Spark clusters.
 
-### Try out the code
-Configuration for executing a demo pipeline is given in the file: *[pipe_configs/pipelines/pipeline.json](pipe_configs/pipelines/pipeline.json)*
-This file contains the order of the execution of the pipeline components and references to its configuration files.
+Please refer to [Lite section](docs/UserManual/setup_guide.md#docker-lite-version) of the setup guide on details on how to use this deployment. 
 
-```bash
-python multimno/orchestrator.py pipe_configs/pipelines/pipeline.json
-```
+# 📓 User Manual
 
-This demo will create synthetic Event data and clean it under the path *[sample_data/lakehouse](sample_data/lakehouse)*   
+A user manual is provided composed of three sections:
+* [Configuration](docs/UserManual/configuration/index.md): Section containing the explanation of all the configuration files used by the software. 
+* [Setup Guide](docs/UserManual/setup_guide.md): How to prepare the system for the software execution.
+* [Execution Guide](docs/UserManual/execution.md): How to execute the software.   
 
-Synthetic event data will be created in: *[sample_data/lakehouse/bronze/mno_events](sample_data/lakehouse/bronze/mno_events)*  
+# 🤝 Contribute
 
-Cleaned event data and the quality insights will be created in: *[sample_data/lakehouse/silver/mno_events](sample_data/lakehouse/bronze/mno_events)*  
+Please follow the [contribute guide](docs/DevGuide/1_contribute.md) to see the rules and guidelines on 
+how to contribute to the multimno repository.
 
-A jupyter notebook is given for the results visualization. To use it, start a jupyterlab session with:
-```bash
-jl
-```
-Then go to http://localhost:${JL_PORT}/lab
-  * ***JL_PORT** was defined in the *[.devcontainer/.env](.devcontainer/.env)* file.*  
+# 🖥️ Developement Guidelines
 
-For example :http://localhost:8888/lab
-
-Then open the notebook: *[notebooks/demo_visualization.ipynb ](notebooks/demo_visualization.ipynb )* and execute all cells.
-
-### Clean up
-Exit the terminal with:
-
-Ctrl+D or writing `exit`
-
-Delete the container created with:
-```bash
-docker compose -f .devcontainer/docker-compose.yml --env-file=.devcontainer/.env down
-```
-
-## Production Deployment
-TBD
+Please follow the [development guidelines](docs/DevGuide/2_dev_guidelines.md) to setup a dev-environment and 
+see the recommended best practices for development, testing and documentation.

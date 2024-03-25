@@ -1,6 +1,7 @@
 """
 Module that manages the logging functionality.
 """
+
 import copy
 import logging.config
 
@@ -19,7 +20,7 @@ def generate_logger(config: ConfigParser):
         config (ConfigParser): Object with the final configuration.
 
     Returns:
-        Logger: Python logging object.
+        (logging.Logger): Python logging object.
     """
     # Parse config
     log_level = config.get(LOG_CONFIG_KEY, "level")

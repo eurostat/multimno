@@ -1,8 +1,18 @@
 """
 Bronze MNO Event data module
 """
+
 from pyspark.sql import SparkSession
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType, BinaryType
+from pyspark.sql.types import (
+    StructType,
+    StructField,
+    StringType,
+    IntegerType,
+    FloatType,
+    BinaryType,
+    ShortType,
+    ByteType,
+)
 
 from multimno.core.data_objects.data_object import PathDataObject
 from multimno.core.io_interface import ParquetInterface
@@ -24,6 +34,10 @@ class BronzeEventDataObject(PathDataObject):
             StructField(ColNames.latitude, FloatType(), nullable=True),
             StructField(ColNames.longitude, FloatType(), nullable=True),
             StructField(ColNames.loc_error, FloatType(), nullable=True),
+            # partition columns
+            StructField(ColNames.year, ShortType(), nullable=True),
+            StructField(ColNames.month, ByteType(), nullable=True),
+            StructField(ColNames.day, ByteType(), nullable=True),
         ]
     )
 

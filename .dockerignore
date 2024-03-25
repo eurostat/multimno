@@ -1,1 +1,5 @@
-
+*
+!pipe_configs/
+!multimno/
+!resources/
+!orchestrator_multimno.py

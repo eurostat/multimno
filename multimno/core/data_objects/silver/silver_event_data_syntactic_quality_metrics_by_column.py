@@ -1,6 +1,7 @@
 """
 Silver Event Data quality metrics.
 """
+
 from collections import defaultdict
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
@@ -26,8 +27,7 @@ class SilverEventDataSyntacticQualityMetricsByColumn(PathDataObject):
     SCHEMA = StructType(
         [
             StructField("result_timestamp", TimestampType(), nullable=False),
-            StructField("data_period_start", DateType(), nullable=False),
-            StructField("data_period_end", DateType(), nullable=False),
+            StructField("date", DateType(), nullable=False),
             StructField("variable", StringType(), nullable=True),
             StructField("type_of_error", ShortType(), nullable=True),
             StructField("type_of_transformation", ShortType(), nullable=True),
@@ -38,7 +38,7 @@ class SilverEventDataSyntacticQualityMetricsByColumn(PathDataObject):
     def __init__(self, spark: SparkSession, default_path: str) -> None:
         super().__init__(spark, default_path)
         self.interface: ParquetInterface = ParquetInterface()
-        self.partition_columns = None
+        self.partition_columns = ["date"]
 
         # (variable, type_of_error, type_of_transformation) : value
         self.error_and_transformation_counts = defaultdict(int)
@@ -51,6 +51,6 @@ class SilverEventDataSyntacticQualityMetricsByColumn(PathDataObject):
 
         self.df.write.format(
             self.interface.FILE_FORMAT,  # File format
-        ).mode(
+        ).partitionBy(partition_columns).mode(
             "append"
         ).save(path)

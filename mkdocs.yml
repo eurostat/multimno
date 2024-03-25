@@ -1,16 +1,35 @@
 site_name: MultiMNO
+repo_name: MultiMNO
+repo_url: https://github.com/eurostat/multimno
 
 theme:
   name: "material"
+  features:
+    - toc.integrate
+    - navigation.path
+    - navigation.tabs
+    - navigation.tabs.sticky
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
 
 plugins:
-  - search
+  - search # Search bar
+  - section-index # Section tree
+  - mkdocs-nav-weight:
+      warning: true
+  # ---------- Generate mkdocs ----------
   - gen-files:
       scripts:
-        - scripts/gen_ref_pages.py
+        - resources/scripts/gen_ref_pages.py
   - literate-nav:
       nav_file: SUMMARY.md
-  - section-index
   - mkdocstrings:
       handlers:
         python:
@@ -18,12 +37,34 @@ plugins:
             - https://docs.python.org/3/objects.inv
             - https://spark.apache.org/docs/latest/api/python/objects.inv
           paths: [multimno]
+  # ---------- Doc Versioning ---------
+  - mike:
+      canonical_version: latest
 
+extra:
+  version:
+    provider: mike
+  
+markdown_extensions:
+  # ---------- Collapsible blocks ----------
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  # ---------- mermaid ----------
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  
 nav:
-  - Index: index.md
+  - Home: index.md
+  - Pipeline: pipeline.md
   - Reference: reference/
-  - Readme: readme.md
-  - Dev-Guide: dev_guide.md
+  - System Requirements: system_requirements.md
+  - License: LICENSE.md
+  - User Manual: UserManual/
+  - Dev Guide: DevGuide/
   # - Code quality: autodoc/code_quality_report.md
-  # - Test Report: autodoc/test_report.md
+  - Test Report: autodoc/test_report.md
   # - Coverage: autodoc/coverage

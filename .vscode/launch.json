@@ -6,33 +6,15 @@
     "configurations": [
         {
             "name": "Python: Current File",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true
         },
         {
-            "name": "C: SyntheticEvents",
-            "type": "python",
-            "request": "launch",
-            "program": "src/main.py",
-            "console": "integratedTerminal",
-            "justMyCode": true,
-            "args": ["SyntheticEvents", "pipe_configs/configurations/general_config.ini", "pipe_configs/configurations/synthetic_events/synth_config.ini"]
-        },
-        {
-            "name": "C: EventCleaning",
-            "type": "python",
-            "request": "launch",
-            "program": "src/main.py",
-            "console": "integratedTerminal",
-            "justMyCode": true,
-            "args": ["EventCleaning", "pipe_configs/configurations/general_config.ini", "pipe_configs/configurations/event/event_cleaning.ini"]
-        },
-        {
             "name": "P: Full Pipeline",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "src/orchestrator.py",
             "console": "integratedTerminal",

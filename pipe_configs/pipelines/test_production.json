@@ -1,0 +1,13 @@
+{
+    "general_config_path": "pipe_configs/configurations/general_config_production.ini",
+    "spark_submit_args": [
+        "--master=spark://spark-master:7077",
+        "--packages=org.apache.sedona:sedona-spark-3.5_2.12:1.5.1,org.datasyslab:geotools-wrapper:1.5.1-28.2"
+    ],
+    "pipeline": [
+        {
+            "component_id": "InspireGridGeneration",
+            "component_config_path": "pipe_configs/configurations/grid/grid_generation.ini"
+        }
+    ]
+}

@@ -163,7 +163,15 @@ cython_debug/
 .DS_Store
 
 # PROJECT IGNORE
-sample_data/
-!sample_data/hello_world/input
+!sample_data/
+sample_data/*
+!sample_data/lakehouse/
+sample_data/lakehouse/*
+!sample_data/lakehouse/bronze
+sample_data/lakehouse/bronze/*
+!sample_data/lakehouse/bronze/mno_network
+!sample_data/lakehouse/bronze/mno_events
+!sample_data/output/
+
 docs/autodoc
 docs/reference

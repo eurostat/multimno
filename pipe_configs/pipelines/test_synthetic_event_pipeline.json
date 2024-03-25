@@ -1,9 +1,0 @@
-{
-    "general_config_path": "/opt/dev/pipe_configs/configurations/general_config.ini",
-    "pipeline": [
-        {
-            "component_id": "SyntheticEvents",
-            "component_config_path": "/opt/dev/pipe_configs/configurations/synthetic_events/synth_config.ini"
-        }
-    ]
-}

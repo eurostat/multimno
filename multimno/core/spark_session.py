@@ -3,14 +3,20 @@ Module that manages the spark session.
 """
 
 from configparser import ConfigParser
+
+import py4j
 from sedona.spark import SedonaContext
 from pyspark.sql import SparkSession
-import py4j
+
 
 SPARK_CONFIG_KEY = "Spark"
+SPARK_VERSION_KEY = "SPARK_VERSION"
+SCALA_VERSION_KEY = "SCALA_VERSION"
+SEDONA_VERSION_KEY = "SEDONA_VERSION"
+GEOTOOLS_WRAPPER_VERSION_KEY = "GEOTOOLS_WRAPPER_VERSION"
 
 
-def generate_spark_session(config: ConfigParser):
+def generate_spark_session(config: ConfigParser) -> SparkSession:
     """Function that generates a Spark Sedona session.
 
     Args:
@@ -29,6 +35,10 @@ def generate_spark_session(config: ConfigParser):
     for k, v in conf_dict.items():
         builder = builder.config(k, v)
 
+    ##################
+    # SEDONA
+    ##################
+
     # Set sedona session
     spark = SedonaContext.create(builder.getOrCreate())
     sc = spark.sparkContext
@@ -42,7 +52,7 @@ def generate_spark_session(config: ConfigParser):
     return spark
 
 
-def check_if_data_path_exists(spark: SparkSession, data_path: str):
+def check_if_data_path_exists(spark: SparkSession, data_path: str) -> bool:
     """
     Checks whether data path exists, returns True if it does, False if not
 
@@ -51,7 +61,7 @@ def check_if_data_path_exists(spark: SparkSession, data_path: str):
         data_path (str): path to check
 
     Returns:
-        Bool: Whether the passed path exists
+        bool: Whether the passed path exists
     """
     conf = spark._jsc.hadoopConfiguration()
     uri = spark._jvm.java.net.URI.create(data_path)
@@ -118,7 +128,6 @@ def list_all_files_helper(
 
     Args:
         path (str): py4j.java_gateway.JavaObject: Object from parent function
-        hadoop (py4j.java_gateway.JavaPackage): Object from parent function
         fs (py4j.java_gateway.JavaClass): Object from parent function
         conf (py4j.java_gateway.JavaObject): Object from parent function
 
