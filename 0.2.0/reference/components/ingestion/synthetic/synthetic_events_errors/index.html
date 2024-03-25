@@ -1,0 +1,5301 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../synthetic_events/">
+      
+      
+        <link rel="next" href="../synthetic_network/">
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.14">
+    
+    
+      
+        <title>synthetic_events_errors - MultiMNO</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.10ba22f1.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#components.ingestion.synthetic.synthetic_events_errors" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../.." title="MultiMNO" class="md-header__button md-logo" aria-label="MultiMNO" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MultiMNO
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              synthetic_events_errors
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/eurostat/multimno" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MultiMNO
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../.." class="md-tabs__link">
+        
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../../UserManual/" class="md-tabs__link">
+        
+  
+    
+  
+  User Manual
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../../DevGuide/" class="md-tabs__link">
+        
+  
+    
+  
+  Dev Guide
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../../pipeline/" class="md-tabs__link">
+        
+  
+    
+  
+  Pipeline
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../../" class="md-tabs__link">
+          
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../../system_requirements/" class="md-tabs__link">
+        
+  
+    
+  
+  System Requirements
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../../LICENSE/" class="md-tabs__link">
+        
+  
+    
+  
+  License
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../../autodoc/test_report/" class="md-tabs__link">
+        
+  
+    
+  
+  Test Report
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="MultiMNO" class="md-nav__button md-logo" aria-label="MultiMNO" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    MultiMNO
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/eurostat/multimno" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MultiMNO
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../../UserManual/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    User Manual
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            User Manual
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../../UserManual/configuration/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Configuration
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            Configuration
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../UserManual/configuration/0_general_configuration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    General Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../UserManual/configuration/1_inspire_grid_generation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    InspireGridGeneration Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../UserManual/configuration/2_event_data_cleaning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    EventCleaning Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../UserManual/configuration/3_network_cleaning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    NetworkCleaning Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../UserManual/configuration/4_signal_strength_modeling/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SignalStrengthModeling Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../UserManual/configuration/5_cell_footprint_estimation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CellFootprintEstimation Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../UserManual/configuration/6_cell_connection_probability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CellConnectionProbabilityEstimation Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../UserManual/configuration/7_event_data_deduplication/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    EventDeduplication Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../UserManual/configuration/8_event_semantic_cleaning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SemanticCleaning Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../UserManual/configuration/9_device_activity_statistics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DeviceActivityStatistics
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../UserManual/configuration/10_continuous_time_segmentation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ContinuousTimeSegmentation Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../UserManual/configuration/11_daily_permanence_score/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DailyPermanenceScore Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../UserManual/configuration/12_network_quality_warnings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    NetworkQualityWarnings Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../UserManual/configuration/13_event_quality_warnings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    EventQualityWarnings Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../UserManual/configuration/14_semantic_quality_warnings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SemanticQualityWarnings Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../UserManual/setup_guide/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Setup Guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../UserManual/execution/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Execution
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../../DevGuide/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    Dev Guide
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Dev Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../DevGuide/1_contribute/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Contribute
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../DevGuide/2_dev_guidelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Developer Guidelines
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../pipeline/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Pipeline
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Reference
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    components
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5_1">
+            <span class="md-nav__icon md-icon"></span>
+            components
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_1" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../execution/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    execution
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_1" id="__nav_5_1_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            execution
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_1_1" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../execution/cell_connection_probability/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    cell_connection_probability
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_1_1" id="__nav_5_1_1_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_1_1_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            cell_connection_probability
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../execution/cell_connection_probability/cell_connection_probability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    cell_connection_probability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_1_2" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../execution/cell_footprint/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    cell_footprint
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_1_2" id="__nav_5_1_1_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_1_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            cell_footprint
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../execution/cell_footprint/cell_footprint_estimation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    cell_footprint_estimation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_1_3" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../execution/daily_permanence_score/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    daily_permanence_score
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_1_3" id="__nav_5_1_1_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_1_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            daily_permanence_score
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../execution/daily_permanence_score/daily_permanence_score/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    daily_permanence_score
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_1_4" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../execution/device_activity_statistics/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    device_activity_statistics
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_1_4" id="__nav_5_1_1_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_1_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            device_activity_statistics
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../execution/device_activity_statistics/device_activity_statistics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    device_activity_statistics
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_1_5" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../execution/event_cleaning/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    event_cleaning
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_1_5" id="__nav_5_1_1_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_1_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            event_cleaning
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../execution/event_cleaning/event_cleaning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    event_cleaning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_1_6" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../execution/event_deduplication/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    event_deduplication
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_1_6" id="__nav_5_1_1_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_1_1_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_1_6">
+            <span class="md-nav__icon md-icon"></span>
+            event_deduplication
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../execution/event_deduplication/event_deduplication/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    event_deduplication
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_1_7" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../execution/event_semantic_cleaning/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    event_semantic_cleaning
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_1_7" id="__nav_5_1_1_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_1_1_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_1_7">
+            <span class="md-nav__icon md-icon"></span>
+            event_semantic_cleaning
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../execution/event_semantic_cleaning/event_semantic_cleaning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    event_semantic_cleaning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_1_8" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../execution/network_cleaning/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    network_cleaning
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_1_8" id="__nav_5_1_1_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_1_1_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_1_8">
+            <span class="md-nav__icon md-icon"></span>
+            network_cleaning
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../execution/network_cleaning/network_cleaning/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    network_cleaning
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_1_9" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../execution/signal_strength/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    signal_strength
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_1_9" id="__nav_5_1_1_9_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_1_1_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_1_9">
+            <span class="md-nav__icon md-icon"></span>
+            signal_strength
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../execution/signal_strength/signal_stength_modeling/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    signal_stength_modeling
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_1_10" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../execution/time_segments/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    time_segments
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_1_10" id="__nav_5_1_1_10_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_1_1_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_1_10">
+            <span class="md-nav__icon md-icon"></span>
+            time_segments
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../execution/time_segments/continuous_time_segmentation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    continuous_time_segmentation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_2" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    ingestion
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_2" id="__nav_5_1_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_1_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            ingestion
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_2_1" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../grid_generation/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    grid_generation
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_2_1" id="__nav_5_1_2_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_1_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            grid_generation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../grid_generation/inspire_grid_generation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    inspire_grid_generation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_2_2" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    synthetic
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_2_2" id="__nav_5_1_2_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_1_2_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5_1_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            synthetic
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../synthetic_diaries/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    synthetic_diaries
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../synthetic_events/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    synthetic_events
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    synthetic_events_errors
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    synthetic_events_errors
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#components.ingestion.synthetic.synthetic_events_errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      synthetic_events_errors
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#components.ingestion.synthetic.synthetic_events_errors.SyntheticEventsErrors" class="md-nav__link">
+    <span class="md-ellipsis">
+      SyntheticEventsErrors
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SyntheticEventsErrors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#components.ingestion.synthetic.synthetic_events_errors.SyntheticEventsErrors.calc_hashed_user_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      calc_hashed_user_id
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#components.ingestion.synthetic.synthetic_events_errors.SyntheticEventsErrors.generate_erroneous_type_values" class="md-nav__link">
+    <span class="md-ellipsis">
+      generate_erroneous_type_values
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#components.ingestion.synthetic.synthetic_events_errors.SyntheticEventsErrors.generate_errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      generate_errors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#components.ingestion.synthetic.synthetic_events_errors.SyntheticEventsErrors.generate_nulls_in_mandatory_fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      generate_nulls_in_mandatory_fields
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#components.ingestion.synthetic.synthetic_events_errors.SyntheticEventsErrors.generate_out_of_bounds_dates" class="md-nav__link">
+    <span class="md-ellipsis">
+      generate_out_of_bounds_dates
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../synthetic_network/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    synthetic_network
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_3" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../quality/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    quality
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_3" id="__nav_5_1_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_3">
+            <span class="md-nav__icon md-icon"></span>
+            quality
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_3_1" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../quality/event_quality_warnings/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    event_quality_warnings
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_3_1" id="__nav_5_1_3_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_1_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            event_quality_warnings
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quality/event_quality_warnings/event_quality_warnings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    event_quality_warnings
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_3_2" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../quality/network_quality_warnings/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    network_quality_warnings
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_3_2" id="__nav_5_1_3_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_1_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            network_quality_warnings
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quality/network_quality_warnings/network_quality_warnings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    network_quality_warnings
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_3_3" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../quality/semantic_quality_warnings/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    semantic_quality_warnings
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_3_3" id="__nav_5_1_3_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_1_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            semantic_quality_warnings
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quality/semantic_quality_warnings/semantic_quality_warnings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    semantic_quality_warnings
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../core/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    core
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_2">
+            <span class="md-nav__icon md-icon"></span>
+            core
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2_1" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../core/constants/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    constants
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_2_1" id="__nav_5_2_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            constants
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/constants/columns/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    columns
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/constants/conditions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    conditions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/constants/error_types/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    error_types
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/constants/measure_definitions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    measure_definitions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/constants/network_default_thresholds/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    network_default_thresholds
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/constants/semantic_qw_default_thresholds/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    semantic_qw_default_thresholds
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/constants/transformations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    transformations
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/constants/warnings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    warnings
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2_2" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../core/data_objects/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    data_objects
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_2_2" id="__nav_5_2_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            data_objects
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2_2_1" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../core/data_objects/bronze/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    bronze
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_2_2_1" id="__nav_5_2_2_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_2_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_2_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            bronze
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/bronze/bronze_event_data_object/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    bronze_event_data_object
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/bronze/bronze_network_physical_data_object/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    bronze_network_physical_data_object
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/bronze/bronze_synthetic_diaries_data_object/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    bronze_synthetic_diaries_data_object
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/landing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    landing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2_2_3" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../core/data_objects/silver/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    silver
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_2_2_3" id="__nav_5_2_2_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_2_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_2_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            silver
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_cell_connection_probabilities_data_object/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_cell_connection_probabilities_data_object
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_cell_footprint_data_object/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_cell_footprint_data_object
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_cell_intersection_groups_data_object/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_cell_intersection_groups_data_object
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_daily_permanence_score_data_object/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_daily_permanence_score_data_object
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_device_activity_statistics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_device_activity_statistics
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_event_data_object/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_event_data_object
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_event_data_syntactic_quality_metrics_by_column/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_event_data_syntactic_quality_metrics_by_column
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_event_data_syntactic_quality_metrics_frequency_distribution/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_event_data_syntactic_quality_metrics_frequency_distribution
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_event_data_syntactic_quality_warnings_for_plots/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_event_data_syntactic_quality_warnings_for_plots
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_event_data_syntactic_quality_warnings_log_table/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_event_data_syntactic_quality_warnings_log_table
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_event_flagged_data_object/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_event_flagged_data_object
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_grid_data_object/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_grid_data_object
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_network_data_object/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_network_data_object
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_network_data_syntactic_quality_metrics_by_column/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_network_data_syntactic_quality_metrics_by_column
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_network_syntactic_quality_warnings_log_table/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_network_syntactic_quality_warnings_log_table
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_network_syntactic_quality_warnings_plot_data/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_network_syntactic_quality_warnings_plot_data
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_semantic_quality_metrics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_semantic_quality_metrics
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_semantic_quality_warnings_log_table/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_semantic_quality_warnings_log_table
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_semantic_quality_warnings_plot_data/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_semantic_quality_warnings_plot_data
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_signal_strength_data_object/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_signal_strength_data_object
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/silver/silver_time_segments_data_object/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    silver_time_segments_data_object
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/data_objects/data_object/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    data_object
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/component/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    component
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/configuration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/grid/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    grid
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/io_interface/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    io_interface
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/log/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    log
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/settings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    settings
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/spark_session/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    spark_session
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../core/utils/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    utils
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../main/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    main
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../system_requirements/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    System Requirements
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../LICENSE/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    License
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../autodoc/test_report/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Test Report
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+  <h1>synthetic_events_errors</h1>
+
+<div class="doc doc-object doc-module">
+
+
+
+<a id="components.ingestion.synthetic.synthetic_events_errors"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Module that adds errors to synthetic MNO event data.</p>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="components.ingestion.synthetic.synthetic_events_errors.SyntheticEventsErrors" class="doc doc-heading">
+          <code>SyntheticEventsErrors</code>
+
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="multimno.core.component.Component">Component</span></code></p>
+
+  
+      <p>Class that handles adding errors to synthetic data. It inherits from the Component abstract class.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>multimno/components/ingestion/synthetic/synthetic_events_errors.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 25</span>
+<span class="normal"> 26</span>
+<span class="normal"> 27</span>
+<span class="normal"> 28</span>
+<span class="normal"> 29</span>
+<span class="normal"> 30</span>
+<span class="normal"> 31</span>
+<span class="normal"> 32</span>
+<span class="normal"> 33</span>
+<span class="normal"> 34</span>
+<span class="normal"> 35</span>
+<span class="normal"> 36</span>
+<span class="normal"> 37</span>
+<span class="normal"> 38</span>
+<span class="normal"> 39</span>
+<span class="normal"> 40</span>
+<span class="normal"> 41</span>
+<span class="normal"> 42</span>
+<span class="normal"> 43</span>
+<span class="normal"> 44</span>
+<span class="normal"> 45</span>
+<span class="normal"> 46</span>
+<span class="normal"> 47</span>
+<span class="normal"> 48</span>
+<span class="normal"> 49</span>
+<span class="normal"> 50</span>
+<span class="normal"> 51</span>
+<span class="normal"> 52</span>
+<span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span>
+<span class="normal">299</span>
+<span class="normal">300</span>
+<span class="normal">301</span>
+<span class="normal">302</span>
+<span class="normal">303</span>
+<span class="normal">304</span>
+<span class="normal">305</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">SyntheticEventsErrors</span><span class="p">(</span><span class="n">Component</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class that handles adding errors to synthetic data. It inherits from the Component abstract class.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">COMPONENT_ID</span> <span class="o">=</span> <span class="s2">&quot;SyntheticEventsErrors&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">general_config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">component_config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">general_config_path</span><span class="o">=</span><span class="n">general_config_path</span><span class="p">,</span> <span class="n">component_config_path</span><span class="o">=</span><span class="n">component_config_path</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COMPONENT_ID</span><span class="p">,</span> <span class="s2">&quot;seed&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timestamp_format</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COMPONENT_ID</span><span class="p">,</span> <span class="s2">&quot;timestamp_format&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Error generation parameters.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">do_error_generation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COMPONENT_ID</span><span class="p">,</span> <span class="s2">&quot;do_error_generation&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_ratio_of_mandatory_columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">COMPONENT_ID</span><span class="p">,</span> <span class="s2">&quot;max_ratio_of_mandatory_columns_to_generate_as_null&quot;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">null_row_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COMPONENT_ID</span><span class="p">,</span> <span class="s2">&quot;null_row_probability&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COMPONENT_ID</span><span class="p">,</span> <span class="s2">&quot;data_type_error_probability&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">out_of_bounds_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COMPONENT_ID</span><span class="p">,</span> <span class="s2">&quot;out_of_bounds_probability&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">starting_timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COMPONENT_ID</span><span class="p">,</span> <span class="s2">&quot;starting_timestamp&quot;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">timestamp_format</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ending_timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COMPONENT_ID</span><span class="p">,</span> <span class="s2">&quot;ending_timestamp&quot;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">timestamp_format</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mandatory_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">BronzeEventDataObject</span><span class="o">.</span><span class="n">SCHEMA</span><span class="p">]</span>
+        <span class="c1"># Do not allow error generation on year-month-day columns to avoid partitioning errors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_generation_allowed_columns</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mandatory_columns</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">ColNames</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">day</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># self.sort_output = self.config.getboolean(self.COMPONENT_ID, &quot;sort_output&quot;)</span>
+
+    <span class="k">def</span> <span class="nf">initalize_data_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Input (synthetic_events results)</span>
+        <span class="n">input_events_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CONFIG_BRONZE_PATHS_KEY</span><span class="p">,</span> <span class="s2">&quot;event_data_bronze&quot;</span><span class="p">)</span>
+        <span class="n">input_bronze_event</span> <span class="o">=</span> <span class="n">BronzeEventDataObject</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spark</span><span class="p">,</span> <span class="n">input_events_path</span><span class="p">,</span> <span class="n">partition_columns</span><span class="o">=</span><span class="p">[</span><span class="n">ColNames</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">day</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_data_objects</span> <span class="o">=</span> <span class="p">{</span><span class="n">BronzeEventDataObject</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span> <span class="n">input_bronze_event</span><span class="p">}</span>
+
+        <span class="c1"># Output</span>
+        <span class="n">output_records_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CONFIG_BRONZE_PATHS_KEY</span><span class="p">,</span> <span class="s2">&quot;event_with_err_data_bronze&quot;</span><span class="p">)</span>
+        <span class="n">output_bronze_event</span> <span class="o">=</span> <span class="n">BronzeEventDataObject</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spark</span><span class="p">,</span> <span class="n">output_records_path</span><span class="p">,</span> <span class="n">partition_columns</span><span class="o">=</span><span class="p">[</span><span class="n">ColNames</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">day</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_data_objects</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;SyntheticErrors&quot;</span><span class="p">:</span> <span class="n">output_bronze_event</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Get input events df</span>
+        <span class="n">records_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_data_objects</span><span class="p">[</span><span class="n">BronzeEventDataObject</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span><span class="o">.</span><span class="n">df</span>
+
+        <span class="c1"># Create a copy of original MSID column for final sorting and joining</span>
+        <span class="n">records_df</span> <span class="o">=</span> <span class="n">records_df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">&quot;user_id_copy&quot;</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">user_id</span><span class="p">))</span>
+
+        <span class="n">bronze_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">BronzeEventDataObject</span><span class="o">.</span><span class="n">SCHEMA</span><span class="p">]</span>
+
+        <span class="n">records_df</span> <span class="o">=</span> <span class="n">records_df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">bronze_columns</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;user_id_copy&quot;</span><span class="p">])</span>
+
+        <span class="c1"># If error generation is enabled, replace clean dataset with errorful dataset.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_error_generation</span><span class="p">:</span>
+            <span class="n">records_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_errors</span><span class="p">(</span><span class="n">records_df</span><span class="p">)</span>
+
+        <span class="n">records_df</span> <span class="o">=</span> <span class="n">records_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;user_id_copy&quot;</span><span class="p">))</span>
+
+        <span class="c1"># records_df = records_df.select(bronze_columns)</span>
+
+        <span class="c1"># Assign output data object dataframe</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_data_objects</span><span class="p">[</span><span class="s2">&quot;SyntheticErrors&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">records_df</span>
+
+    <span class="k">def</span> <span class="nf">calc_hashed_user_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates SHA2 hash of user id, takes the first 31 bits and converts them to a non-negative 32-bit integer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            df (pyspark.sql.DataFrame): Data of clean synthetic events with a user id column.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pyspark.sql.DataFrame: Dataframe, where user_id column is transformered to a hashed value.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: is this method used?</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">&quot;hashed_user_id&quot;</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">sha2</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">ColNames</span><span class="o">.</span><span class="n">user_id</span><span class="p">]</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="s2">&quot;string&quot;</span><span class="p">),</span> <span class="mi">256</span><span class="p">))</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">unhex</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;hashed_user_id&quot;</span><span class="p">)))</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;hashed_user_id&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">df</span>
+
+    <span class="k">def</span> <span class="nf">generate_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">synth_df_raw</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Transforms a dataframe with clean synthetic records, by calculating year, month and day columns,</span>
+<span class="sd">        creating an event_id column, and generating all types of erronous records.</span>
+<span class="sd">        Calls all error generation functions.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            synth_df_raw (pyspark.sql.DataFrame): Data of raw and clean synthetic events.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pyspark.sql.DataFrame: Dataframe, with erroneous records, according to probabilities defined in the configuration.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">synth_df_raw</span> <span class="o">=</span> <span class="n">synth_df_raw</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">year</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">timestamp</span><span class="p">)))</span>
+        <span class="n">synth_df_raw</span> <span class="o">=</span> <span class="n">synth_df_raw</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">month</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">timestamp</span><span class="p">)))</span>
+        <span class="n">synth_df_raw</span> <span class="o">=</span> <span class="n">synth_df_raw</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">dayofmonth</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">timestamp</span><span class="p">)))</span>
+        <span class="n">synth_df_raw</span> <span class="o">=</span> <span class="n">synth_df_raw</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">&quot;is_modified&quot;</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="kc">False</span><span class="p">))</span>
+
+        <span class="n">synth_df</span> <span class="o">=</span> <span class="n">synth_df_raw</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
+
+        <span class="n">synth_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_nulls_in_mandatory_fields</span><span class="p">(</span><span class="n">synth_df</span><span class="p">)</span>
+        <span class="n">synth_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_out_of_bounds_dates</span><span class="p">(</span><span class="n">synth_df</span><span class="p">)</span>
+        <span class="n">synth_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_erroneous_type_values</span><span class="p">(</span><span class="n">synth_df</span><span class="p">)</span>
+
+        <span class="n">synth_df</span> <span class="o">=</span> <span class="n">synth_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;is_modified&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">synth_df</span>
+
+    <span class="k">def</span> <span class="nf">generate_nulls_in_mandatory_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates null values in some fields of some rows based on configuration parameters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            df (pyspark.sql.DataFrame): clean synthetic data</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pyspark.sql.DataFrame: synthetic records dataframe with nulls in some columns of some rows</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Two probability parameters from config apply:</span>
+        <span class="c1"># First one sets how many rows (as fraction of all rows) are selected for possible value nulling.</span>
+        <span class="c1"># Second one sets the likelyhood for each column to be set to null.</span>
+        <span class="c1"># If 1.0, then all mandatory columns of each selected row will be nulled.</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">null_row_prob</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="c1"># TODO logging</span>
+            <span class="k">return</span> <span class="n">df</span>
+
+        <span class="c1"># Split input dataframe to unchanged and changed portions</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
+        <span class="n">error_row_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">null_row_prob</span>
+        <span class="n">unchanged_row_prob</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">error_row_prob</span>
+        <span class="n">unchanged_rows_df</span><span class="p">,</span> <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">randomSplit</span><span class="p">([</span><span class="n">unchanged_row_prob</span><span class="p">,</span> <span class="n">error_row_prob</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+
+        <span class="c1"># Randomly select one column to be set as null to ensure at least one column is nulled.</span>
+        <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">error_rows_df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+            <span class="s2">&quot;rand_selection&quot;</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_generation_allowed_columns</span><span class="p">)))</span>
+        <span class="p">)</span>
+        <span class="c1"># Randomly set some column values of rows to null, likelyhood based on ratio confing param.</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">column</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_generation_allowed_columns</span><span class="p">):</span>
+            <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">error_rows_df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+                <span class="n">column</span><span class="p">,</span>
+                <span class="n">F</span><span class="o">.</span><span class="n">when</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_ratio_of_mandatory_columns</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;rand_selection&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">i</span><span class="p">),</span>
+                    <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">column</span><span class="p">)),</span>
+            <span class="p">)</span>
+        <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">error_rows_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;rand_selection&quot;</span><span class="p">)</span>
+        <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">error_rows_df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">&quot;is_modified&quot;</span><span class="p">,</span> <span class="n">lit</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+
+        <span class="c1"># Re-combine unchanged and changed rows of the dataframe.</span>
+        <span class="k">return</span> <span class="n">unchanged_rows_df</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">error_rows_df</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">generate_out_of_bounds_dates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Transforms the timestamp column values to be out of bound of the selected period,</span>
+<span class="sd">        based on probabilities from configuration.</span>
+<span class="sd">        Only rows with non-null timestamp values can become altered here.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            df (pyspark.sql.DataFrame): Dataframe of clean synthetic events.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pyspark.sql.DataFrame: Data where some timestamp column values are out of bounds as per config.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_of_bounds_prob</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="c1"># TODO logging</span>
+            <span class="k">return</span> <span class="n">df</span>
+
+        <span class="c1"># Calculate approximate span in months from config parameters.</span>
+        <span class="c1"># The parameters should approximately cover the range of &quot;clean&quot; dates, so that the erroneous values can be generated outside the range.</span>
+        <span class="n">events_span_in_months</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+            <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ending_timestamp</span><span class="p">)</span> <span class="o">-</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">starting_timestamp</span><span class="p">))</span><span class="o">.</span><span class="n">days</span> <span class="o">/</span> <span class="mi">30</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Split rows by null/non-null timestamp.</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
+        <span class="n">null_timestamp_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">timestamp</span><span class="p">)</span><span class="o">.</span><span class="n">isNull</span><span class="p">())</span>
+        <span class="n">nonnull_timestamp_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">timestamp</span><span class="p">)</span><span class="o">.</span><span class="n">isNotNull</span><span class="p">())</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">unpersist</span><span class="p">()</span>
+
+        <span class="c1"># From non-null timestamp rows, select a subset for adding errors to, depending on config parameter.</span>
+        <span class="n">nonnull_timestamp_df</span> <span class="o">=</span> <span class="n">nonnull_timestamp_df</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
+        <span class="n">error_row_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_of_bounds_prob</span>
+        <span class="n">unchanged_row_prob</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">error_row_prob</span>
+        <span class="n">unchanged_rows_df</span><span class="p">,</span> <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">nonnull_timestamp_df</span><span class="o">.</span><span class="n">randomSplit</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">unchanged_row_prob</span><span class="p">,</span> <span class="n">error_row_prob</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span>
+        <span class="p">)</span>
+        <span class="c1"># Combine null timestamp rows and not-modified non-null timestamp rows.</span>
+        <span class="n">unchanged_rows_df</span> <span class="o">=</span> <span class="n">unchanged_rows_df</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">null_timestamp_df</span><span class="p">)</span>
+
+        <span class="c1"># Add months offset to error rows to make their timestamp values become outside expected range.</span>
+        <span class="n">months_to_add_col</span> <span class="o">=</span> <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">F</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">))</span> <span class="o">*</span> <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="n">events_span_in_months</span><span class="p">)</span>
+        <span class="n">modified_date_col</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">add_months</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">timestamp</span><span class="p">),</span> <span class="n">months_to_add_col</span><span class="p">)</span>
+        <span class="n">time_col</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">date_format</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">timestamp</span><span class="p">),</span> <span class="s2">&quot; HH:mm:ss&quot;</span><span class="p">)</span>
+        <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">error_rows_df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">modified_date_col</span><span class="p">,</span> <span class="n">time_col</span><span class="p">))</span>
+        <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">error_rows_df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">&quot;is_modified&quot;</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+
+        <span class="c1"># Combine changed and unchanged rows dataframes.</span>
+        <span class="k">return</span> <span class="n">unchanged_rows_df</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">error_rows_df</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">generate_erroneous_type_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates errors for sampled rows. Errors are custom defined, for instance a random string, or corrupt timestamp.</span>
+<span class="sd">        Does not cast the columns to a different type.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            df (pyspark.sql.DataFrame): dataframe that may have out of bound and null records.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pyspark.sql.DataFrame: dataframe with erroneous rows, and possibly, with nulls and out of bound records.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_prob</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># TODO logging</span>
+            <span class="k">return</span> <span class="n">df</span>
+
+        <span class="c1"># Split dataframe by whether the row has been modified during the error-adding process already.</span>
+        <span class="c1"># Already errored rows do not get further changes.</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
+        <span class="n">previously_modified_rows_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;is_modified&quot;</span><span class="p">))</span>
+        <span class="n">unmodified_rows_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;is_modified&quot;</span><span class="p">)))</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">unpersist</span><span class="p">()</span>
+
+        <span class="c1"># From unmodified rows, select a subset for adding errors to, depending on config parameter.</span>
+        <span class="n">unmodified_rows_df</span> <span class="o">=</span> <span class="n">unmodified_rows_df</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
+        <span class="n">error_row_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_prob</span>
+        <span class="n">unchanged_row_prob</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">error_row_prob</span>
+        <span class="n">unchanged_rows_df</span><span class="p">,</span> <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">unmodified_rows_df</span><span class="o">.</span><span class="n">randomSplit</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">unchanged_row_prob</span><span class="p">,</span> <span class="n">error_row_prob</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span>
+        <span class="p">)</span>
+        <span class="c1"># Gather rows that are not modified in this step (combine previously-modified rows and not-selected unmodified rows).</span>
+        <span class="n">unchanged_rows_df</span> <span class="o">=</span> <span class="n">unchanged_rows_df</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">previously_modified_rows_df</span><span class="p">)</span>
+
+        <span class="c1"># Iterate over mandatory columns to mutate the value, depending on column data type.</span>
+        <span class="k">for</span> <span class="n">struct_schema</span> <span class="ow">in</span> <span class="n">BronzeEventDataObject</span><span class="o">.</span><span class="n">SCHEMA</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">struct_schema</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_generation_allowed_columns</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">column</span> <span class="o">=</span> <span class="n">struct_schema</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">col_dtype</span> <span class="o">=</span> <span class="n">struct_schema</span><span class="o">.</span><span class="n">dataType</span>
+
+            <span class="k">if</span> <span class="n">col_dtype</span> <span class="ow">in</span> <span class="p">[</span><span class="n">BinaryType</span><span class="p">()]:</span>
+                <span class="c1"># md5 is a smaller hash,</span>
+                <span class="n">to_value</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">unhex</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">base64</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">column</span><span class="p">))</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">StringType</span><span class="p">())))</span>
+
+            <span class="k">if</span> <span class="n">col_dtype</span> <span class="ow">in</span> <span class="p">[</span><span class="n">FloatType</span><span class="p">(),</span> <span class="n">IntegerType</span><span class="p">()]:</span>
+                <span class="c1"># changes mcc, lat, lon</span>
+                <span class="n">to_value</span> <span class="o">=</span> <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">column</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="n">F</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">+</span> <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="mi">180</span><span class="p">))</span> <span class="o">*</span> <span class="mi">10000</span><span class="p">))</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="s2">&quot;int&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">column</span> <span class="o">==</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">timestamp</span> <span class="ow">and</span> <span class="n">col_dtype</span> <span class="o">==</span> <span class="n">StringType</span><span class="p">():</span>
+                <span class="c1"># Timezone difference manipulation may be performed here, if cleaning module were to support it.</span>
+                <span class="c1"># statically one timezone difference</span>
+                <span class="c1"># timezone_to = random.randint(0, 12)</span>
+                <span class="n">to_value</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+                    <span class="n">F</span><span class="o">.</span><span class="n">substring</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">column</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+                    <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">),</span>
+                    <span class="n">F</span><span class="o">.</span><span class="n">substring</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">column</span><span class="p">),</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span>
+                    <span class="c1"># TODO: Temporary remove of timezone addition as cleaning</span>
+                    <span class="c1"># module does not support it</span>
+                    <span class="c1"># F.lit(f&quot;+0{timezone_to}:00&quot;)</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">column</span> <span class="o">==</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">cell_id</span> <span class="ow">and</span> <span class="n">col_dtype</span> <span class="o">==</span> <span class="n">StringType</span><span class="p">():</span>
+                <span class="n">random_string</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">ascii_uppercase</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">6</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span>
+                <span class="n">to_value</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="n">random_string</span><span class="p">),</span> <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="s2">&quot;int&quot;</span><span class="p">))</span>
+
+            <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">error_rows_df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">to_value</span><span class="p">)</span>
+        <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">error_rows_df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">&quot;is_modified&quot;</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">unchanged_rows_df</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">error_rows_df</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="components.ingestion.synthetic.synthetic_events_errors.SyntheticEventsErrors.calc_hashed_user_id" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">calc_hashed_user_id</span><span class="p">(</span><span class="n">df</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Calculates SHA2 hash of user id, takes the first 31 bits and converts them to a non-negative 32-bit integer.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>df</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Data of clean synthetic events with a user id column.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>pyspark.sql.DataFrame: Dataframe, where user_id column is transformered to a hashed value.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>multimno/components/ingestion/synthetic/synthetic_events_errors.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">calc_hashed_user_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates SHA2 hash of user id, takes the first 31 bits and converts them to a non-negative 32-bit integer.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df (pyspark.sql.DataFrame): Data of clean synthetic events with a user id column.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pyspark.sql.DataFrame: Dataframe, where user_id column is transformered to a hashed value.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: is this method used?</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">&quot;hashed_user_id&quot;</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">sha2</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">ColNames</span><span class="o">.</span><span class="n">user_id</span><span class="p">]</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="s2">&quot;string&quot;</span><span class="p">),</span> <span class="mi">256</span><span class="p">))</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">unhex</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;hashed_user_id&quot;</span><span class="p">)))</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;hashed_user_id&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">df</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="components.ingestion.synthetic.synthetic_events_errors.SyntheticEventsErrors.generate_erroneous_type_values" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">generate_erroneous_type_values</span><span class="p">(</span><span class="n">df</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Generates errors for sampled rows. Errors are custom defined, for instance a random string, or corrupt timestamp.
+Does not cast the columns to a different type.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>df</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>dataframe that may have out of bound and null records.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>pyspark.sql.DataFrame: dataframe with erroneous rows, and possibly, with nulls and out of bound records.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>multimno/components/ingestion/synthetic/synthetic_events_errors.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span>
+<span class="normal">299</span>
+<span class="normal">300</span>
+<span class="normal">301</span>
+<span class="normal">302</span>
+<span class="normal">303</span>
+<span class="normal">304</span>
+<span class="normal">305</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">generate_erroneous_type_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates errors for sampled rows. Errors are custom defined, for instance a random string, or corrupt timestamp.</span>
+<span class="sd">    Does not cast the columns to a different type.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df (pyspark.sql.DataFrame): dataframe that may have out of bound and null records.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pyspark.sql.DataFrame: dataframe with erroneous rows, and possibly, with nulls and out of bound records.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_prob</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># TODO logging</span>
+        <span class="k">return</span> <span class="n">df</span>
+
+    <span class="c1"># Split dataframe by whether the row has been modified during the error-adding process already.</span>
+    <span class="c1"># Already errored rows do not get further changes.</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
+    <span class="n">previously_modified_rows_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;is_modified&quot;</span><span class="p">))</span>
+    <span class="n">unmodified_rows_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;is_modified&quot;</span><span class="p">)))</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">unpersist</span><span class="p">()</span>
+
+    <span class="c1"># From unmodified rows, select a subset for adding errors to, depending on config parameter.</span>
+    <span class="n">unmodified_rows_df</span> <span class="o">=</span> <span class="n">unmodified_rows_df</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
+    <span class="n">error_row_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_prob</span>
+    <span class="n">unchanged_row_prob</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">error_row_prob</span>
+    <span class="n">unchanged_rows_df</span><span class="p">,</span> <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">unmodified_rows_df</span><span class="o">.</span><span class="n">randomSplit</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">unchanged_row_prob</span><span class="p">,</span> <span class="n">error_row_prob</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span>
+    <span class="p">)</span>
+    <span class="c1"># Gather rows that are not modified in this step (combine previously-modified rows and not-selected unmodified rows).</span>
+    <span class="n">unchanged_rows_df</span> <span class="o">=</span> <span class="n">unchanged_rows_df</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">previously_modified_rows_df</span><span class="p">)</span>
+
+    <span class="c1"># Iterate over mandatory columns to mutate the value, depending on column data type.</span>
+    <span class="k">for</span> <span class="n">struct_schema</span> <span class="ow">in</span> <span class="n">BronzeEventDataObject</span><span class="o">.</span><span class="n">SCHEMA</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">struct_schema</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_generation_allowed_columns</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">column</span> <span class="o">=</span> <span class="n">struct_schema</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">col_dtype</span> <span class="o">=</span> <span class="n">struct_schema</span><span class="o">.</span><span class="n">dataType</span>
+
+        <span class="k">if</span> <span class="n">col_dtype</span> <span class="ow">in</span> <span class="p">[</span><span class="n">BinaryType</span><span class="p">()]:</span>
+            <span class="c1"># md5 is a smaller hash,</span>
+            <span class="n">to_value</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">unhex</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">base64</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">column</span><span class="p">))</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">StringType</span><span class="p">())))</span>
+
+        <span class="k">if</span> <span class="n">col_dtype</span> <span class="ow">in</span> <span class="p">[</span><span class="n">FloatType</span><span class="p">(),</span> <span class="n">IntegerType</span><span class="p">()]:</span>
+            <span class="c1"># changes mcc, lat, lon</span>
+            <span class="n">to_value</span> <span class="o">=</span> <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">column</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="n">F</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">+</span> <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="mi">180</span><span class="p">))</span> <span class="o">*</span> <span class="mi">10000</span><span class="p">))</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="s2">&quot;int&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">column</span> <span class="o">==</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">timestamp</span> <span class="ow">and</span> <span class="n">col_dtype</span> <span class="o">==</span> <span class="n">StringType</span><span class="p">():</span>
+            <span class="c1"># Timezone difference manipulation may be performed here, if cleaning module were to support it.</span>
+            <span class="c1"># statically one timezone difference</span>
+            <span class="c1"># timezone_to = random.randint(0, 12)</span>
+            <span class="n">to_value</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+                <span class="n">F</span><span class="o">.</span><span class="n">substring</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">column</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+                <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">),</span>
+                <span class="n">F</span><span class="o">.</span><span class="n">substring</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">column</span><span class="p">),</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span>
+                <span class="c1"># TODO: Temporary remove of timezone addition as cleaning</span>
+                <span class="c1"># module does not support it</span>
+                <span class="c1"># F.lit(f&quot;+0{timezone_to}:00&quot;)</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">column</span> <span class="o">==</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">cell_id</span> <span class="ow">and</span> <span class="n">col_dtype</span> <span class="o">==</span> <span class="n">StringType</span><span class="p">():</span>
+            <span class="n">random_string</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">ascii_uppercase</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">6</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span>
+            <span class="n">to_value</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="n">random_string</span><span class="p">),</span> <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="s2">&quot;int&quot;</span><span class="p">))</span>
+
+        <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">error_rows_df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">to_value</span><span class="p">)</span>
+    <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">error_rows_df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">&quot;is_modified&quot;</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">unchanged_rows_df</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">error_rows_df</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="components.ingestion.synthetic.synthetic_events_errors.SyntheticEventsErrors.generate_errors" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">generate_errors</span><span class="p">(</span><span class="n">synth_df_raw</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Transforms a dataframe with clean synthetic records, by calculating year, month and day columns,
+creating an event_id column, and generating all types of erronous records.
+Calls all error generation functions.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>synth_df_raw</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Data of raw and clean synthetic events.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>pyspark.sql.DataFrame: Dataframe, with erroneous records, according to probabilities defined in the configuration.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>multimno/components/ingestion/synthetic/synthetic_events_errors.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">generate_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">synth_df_raw</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transforms a dataframe with clean synthetic records, by calculating year, month and day columns,</span>
+<span class="sd">    creating an event_id column, and generating all types of erronous records.</span>
+<span class="sd">    Calls all error generation functions.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        synth_df_raw (pyspark.sql.DataFrame): Data of raw and clean synthetic events.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pyspark.sql.DataFrame: Dataframe, with erroneous records, according to probabilities defined in the configuration.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">synth_df_raw</span> <span class="o">=</span> <span class="n">synth_df_raw</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">year</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">timestamp</span><span class="p">)))</span>
+    <span class="n">synth_df_raw</span> <span class="o">=</span> <span class="n">synth_df_raw</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">month</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">timestamp</span><span class="p">)))</span>
+    <span class="n">synth_df_raw</span> <span class="o">=</span> <span class="n">synth_df_raw</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">dayofmonth</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">timestamp</span><span class="p">)))</span>
+    <span class="n">synth_df_raw</span> <span class="o">=</span> <span class="n">synth_df_raw</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">&quot;is_modified&quot;</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="kc">False</span><span class="p">))</span>
+
+    <span class="n">synth_df</span> <span class="o">=</span> <span class="n">synth_df_raw</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
+
+    <span class="n">synth_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_nulls_in_mandatory_fields</span><span class="p">(</span><span class="n">synth_df</span><span class="p">)</span>
+    <span class="n">synth_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_out_of_bounds_dates</span><span class="p">(</span><span class="n">synth_df</span><span class="p">)</span>
+    <span class="n">synth_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_erroneous_type_values</span><span class="p">(</span><span class="n">synth_df</span><span class="p">)</span>
+
+    <span class="n">synth_df</span> <span class="o">=</span> <span class="n">synth_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;is_modified&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">synth_df</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="components.ingestion.synthetic.synthetic_events_errors.SyntheticEventsErrors.generate_nulls_in_mandatory_fields" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">generate_nulls_in_mandatory_fields</span><span class="p">(</span><span class="n">df</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Generates null values in some fields of some rows based on configuration parameters.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>df</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>clean synthetic data</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>pyspark.sql.DataFrame: synthetic records dataframe with nulls in some columns of some rows</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>multimno/components/ingestion/synthetic/synthetic_events_errors.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">generate_nulls_in_mandatory_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates null values in some fields of some rows based on configuration parameters.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df (pyspark.sql.DataFrame): clean synthetic data</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pyspark.sql.DataFrame: synthetic records dataframe with nulls in some columns of some rows</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Two probability parameters from config apply:</span>
+    <span class="c1"># First one sets how many rows (as fraction of all rows) are selected for possible value nulling.</span>
+    <span class="c1"># Second one sets the likelyhood for each column to be set to null.</span>
+    <span class="c1"># If 1.0, then all mandatory columns of each selected row will be nulled.</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">null_row_prob</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="c1"># TODO logging</span>
+        <span class="k">return</span> <span class="n">df</span>
+
+    <span class="c1"># Split input dataframe to unchanged and changed portions</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
+    <span class="n">error_row_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">null_row_prob</span>
+    <span class="n">unchanged_row_prob</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">error_row_prob</span>
+    <span class="n">unchanged_rows_df</span><span class="p">,</span> <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">randomSplit</span><span class="p">([</span><span class="n">unchanged_row_prob</span><span class="p">,</span> <span class="n">error_row_prob</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+
+    <span class="c1"># Randomly select one column to be set as null to ensure at least one column is nulled.</span>
+    <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">error_rows_df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+        <span class="s2">&quot;rand_selection&quot;</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_generation_allowed_columns</span><span class="p">)))</span>
+    <span class="p">)</span>
+    <span class="c1"># Randomly set some column values of rows to null, likelyhood based on ratio confing param.</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">column</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_generation_allowed_columns</span><span class="p">):</span>
+        <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">error_rows_df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+            <span class="n">column</span><span class="p">,</span>
+            <span class="n">F</span><span class="o">.</span><span class="n">when</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_ratio_of_mandatory_columns</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;rand_selection&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">i</span><span class="p">),</span>
+                <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">column</span><span class="p">)),</span>
+        <span class="p">)</span>
+    <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">error_rows_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;rand_selection&quot;</span><span class="p">)</span>
+    <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">error_rows_df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">&quot;is_modified&quot;</span><span class="p">,</span> <span class="n">lit</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+
+    <span class="c1"># Re-combine unchanged and changed rows of the dataframe.</span>
+    <span class="k">return</span> <span class="n">unchanged_rows_df</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">error_rows_df</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="components.ingestion.synthetic.synthetic_events_errors.SyntheticEventsErrors.generate_out_of_bounds_dates" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">generate_out_of_bounds_dates</span><span class="p">(</span><span class="n">df</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Transforms the timestamp column values to be out of bound of the selected period,
+based on probabilities from configuration.
+Only rows with non-null timestamp values can become altered here.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>df</code></td>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dataframe of clean synthetic events.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><a class="autorefs autorefs-external" title="pyspark.sql.DataFrame" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame">DataFrame</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>pyspark.sql.DataFrame: Data where some timestamp column values are out of bounds as per config.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>multimno/components/ingestion/synthetic/synthetic_events_errors.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">generate_out_of_bounds_dates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transforms the timestamp column values to be out of bound of the selected period,</span>
+<span class="sd">    based on probabilities from configuration.</span>
+<span class="sd">    Only rows with non-null timestamp values can become altered here.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df (pyspark.sql.DataFrame): Dataframe of clean synthetic events.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pyspark.sql.DataFrame: Data where some timestamp column values are out of bounds as per config.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_of_bounds_prob</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="c1"># TODO logging</span>
+        <span class="k">return</span> <span class="n">df</span>
+
+    <span class="c1"># Calculate approximate span in months from config parameters.</span>
+    <span class="c1"># The parameters should approximately cover the range of &quot;clean&quot; dates, so that the erroneous values can be generated outside the range.</span>
+    <span class="n">events_span_in_months</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+        <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ending_timestamp</span><span class="p">)</span> <span class="o">-</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">starting_timestamp</span><span class="p">))</span><span class="o">.</span><span class="n">days</span> <span class="o">/</span> <span class="mi">30</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Split rows by null/non-null timestamp.</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
+    <span class="n">null_timestamp_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">timestamp</span><span class="p">)</span><span class="o">.</span><span class="n">isNull</span><span class="p">())</span>
+    <span class="n">nonnull_timestamp_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">timestamp</span><span class="p">)</span><span class="o">.</span><span class="n">isNotNull</span><span class="p">())</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">unpersist</span><span class="p">()</span>
+
+    <span class="c1"># From non-null timestamp rows, select a subset for adding errors to, depending on config parameter.</span>
+    <span class="n">nonnull_timestamp_df</span> <span class="o">=</span> <span class="n">nonnull_timestamp_df</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
+    <span class="n">error_row_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_of_bounds_prob</span>
+    <span class="n">unchanged_row_prob</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">error_row_prob</span>
+    <span class="n">unchanged_rows_df</span><span class="p">,</span> <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">nonnull_timestamp_df</span><span class="o">.</span><span class="n">randomSplit</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">unchanged_row_prob</span><span class="p">,</span> <span class="n">error_row_prob</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span>
+    <span class="p">)</span>
+    <span class="c1"># Combine null timestamp rows and not-modified non-null timestamp rows.</span>
+    <span class="n">unchanged_rows_df</span> <span class="o">=</span> <span class="n">unchanged_rows_df</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">null_timestamp_df</span><span class="p">)</span>
+
+    <span class="c1"># Add months offset to error rows to make their timestamp values become outside expected range.</span>
+    <span class="n">months_to_add_col</span> <span class="o">=</span> <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">F</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">))</span> <span class="o">*</span> <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="n">events_span_in_months</span><span class="p">)</span>
+    <span class="n">modified_date_col</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">add_months</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">timestamp</span><span class="p">),</span> <span class="n">months_to_add_col</span><span class="p">)</span>
+    <span class="n">time_col</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">date_format</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">timestamp</span><span class="p">),</span> <span class="s2">&quot; HH:mm:ss&quot;</span><span class="p">)</span>
+    <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">error_rows_df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">modified_date_col</span><span class="p">,</span> <span class="n">time_col</span><span class="p">))</span>
+    <span class="n">error_rows_df</span> <span class="o">=</span> <span class="n">error_rows_df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">&quot;is_modified&quot;</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+
+    <span class="c1"># Combine changed and unchanged rows dataframes.</span>
+    <span class="k">return</span> <span class="n">unchanged_rows_df</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">error_rows_df</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../../../..", "features": ["toc.integrate", "navigation.path", "navigation.tabs", "navigation.tabs.sticky"], "search": "../../../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.bd41221c.min.js"></script>
+      
+    
+  </body>
+</html>
