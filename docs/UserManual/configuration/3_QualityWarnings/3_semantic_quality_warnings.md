@@ -1,6 +1,6 @@
 ---
 title: SemanticQualityWarnings Configuration
-weight: 14
+weight: 3
 ---
 
 # SemanticQualityWarnings Configuration

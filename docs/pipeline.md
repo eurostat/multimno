@@ -25,24 +25,18 @@ The software can perform the following pipeline:
 flowchart TD;
     %% --- Reference Data ---
     %% Inspire grid generation
+    subgraph Ingestion
     InspireGridGeneration-->InspireGridData[(Inspire Grid\n)];
+    end
     %% --- MNO Data ---
     %% -- NETWORK --
+    subgraph Cleaning
     %% RAW Network cleaning
     PhysicalNetworkRAWData[(MNO-Network\nPhysical\nRAW)]-->NetworkCleaning-->PhysicalNetworkData[(MNO-Network\nPhysical)];
     NetworkCleaning-->NetworkQAData[(MNO-Network\nQuality Checks)];
     %% RAW Network QA
     NetworkQAData-->NetworkQualityWarnings-->NetworkWarnings[(Network\nQuality Warnings)];
     NetworkQualityWarnings-->NetworkReports{{Network\nQA \ngraph data\ncsv}};
-    %% Signal Strength
-    InspireGridData-->SignalStrengthModeling;
-    PhysicalNetworkData-->SignalStrengthModeling-->SignalStrengthData[(Signal Strength)];
-    %% Cell Footprint
-    SignalStrengthData-->CellFootprintEstimation-->CellFootprintData[(Cell Footprint\nValues)];
-    CellFootprintEstimation-->CellIntersectionGroupsData[(Cell Intersection Groups)];
-    %% Cell Connection Probability
-    CellFootprintData-->CellConnectionProbabilityEstimation;
-    InspireGridData-->CellConnectionProbabilityEstimation-->CellConnectionProbabilityData[(Cell Connection\nProbability)];
     %% -- EVENTS --
     %% RAW Events cleaning
     EventsRAWData[(MNO-Event\nRAW)]-->EventCleaning-->EventsData[(MNO-Event)];
@@ -52,34 +46,63 @@ flowchart TD;
     EventsQAfreq-->EventQualityWarnings;
     EventQualityWarnings-->EventsWarnings[(Events\nQuality Warnings)];
     EventQualityWarnings-->EventsReports{{Event QA \ngraph data\ncsv}};
-    %% Events deduplication
-    EventsData-->EventDeduplication-->EventsDeduplicated[(MNO-Event\nDeduplicated)];
-    EventDeduplication-->EventsDeduplicatedQA[(MNO-Event\nDeduplicated\nQuality Checks)];
-    EventDeduplication-->EventsDeduplicatedQAfreq[(MNO-Event\nDeduplicated\nQuality Checks\nfrequency)];
-    %% Events warnings
-    EventsDeduplicatedQA-->EventQualityWarnings2;
-    EventsDeduplicatedQAfreq-->EventQualityWarnings2-->EventsDeduplicatedWarnings[(Events\nDeduplicated\nQuality Warnings)];
-    EventQualityWarnings2-->EventsDeduplicatedReports{{Event Deduplicated\nQA \ngraph data\ncsv}};
-    %% --- Combination ---
     %% Event Semantic Checks
-    EventsDeduplicated-->SemanticCleaning-->EventsSemanticCleaned[(Events\nSemantic\nCleaned)];
+    EventsData-->SemanticCleaning-->EventsSemanticCleaned[(Events\nSemantic\nCleaned)];
     PhysicalNetworkData-->SemanticCleaning;
     SemanticCleaning-->DeviceSemanticQualityMetrics[(Device\nSemantic\nQuality\nMetrics)];
     %% Event Semantic Warnings
     EventsSemanticCleaned-->SemanticQualityWarnings-->EventSemanticWarnings[(Event\nSemantic\nQuality\nWarnings)];
     DeviceSemanticQualityMetrics-->SemanticQualityWarnings-->EventSemanticReports{{Event Semantic QA \ngraph data\ncsv}};
     %% Device activity Statistics
-    EventsSemanticCleaned-->DeviceActivityStatistics-->DeviceActivityStatisticsData[(Device\nActivity\nStatistics)];
+    EventsData-->DeviceActivityStatistics-->DeviceActivityStatisticsData[(Device\nActivity\nStatistics)];
     PhysicalNetworkData-->DeviceActivityStatistics;
+    end
+    
 
+    subgraph Network Processing
+    %% Signal Strength
+    InspireGridData-->SignalStrengthModeling;
+    PhysicalNetworkData-->SignalStrengthModeling-->SignalStrengthData[(Signal Strength)];
+    %% Cell Footprint
+    SignalStrengthData-->CellFootprintEstimation-->CellFootprintData[(Cell Footprint\nValues)];
+    CellFootprintEstimation-->CellIntersectionGroupsData[(Cell Intersection Groups)];
+    %% Cell Connection Probability
+    CellFootprintData-->CellConnectionProbabilityEstimation;
+    InspireGridData-->CellConnectionProbabilityEstimation-->CellConnectionProbabilityData[(Cell Connection\nProbability)];
+    end
+    
+    subgraph Daily Products
     %% --- Daily Processing module ---
     %% Daily Permanence Score
-    EventsSemanticCleaned-->DailyPermanenceScore-->DPSdata[(Daily\nPerformance\nScore\nData)];
+    EventsSemanticCleaned-->DailyPermanenceScore-->DPSdata[(Daily\nPermanence\nScore\nData)];
     CellFootprintData-->DailyPermanenceScore;
     %% Continuous Time segmentation
     EventsSemanticCleaned-->ContinuousTimeSegmentation-->DailyCTSdata[(Daily\nContinuous\nTime\nSegmentation)];
     CellFootprintData-->ContinuousTimeSegmentation;
     CellIntersectionGroupsData-->ContinuousTimeSegmentation;
+    %% Present Population Estimation
+    EventsSemanticCleaned-->PresentPopulation-->PresentPopulationData[(Present\nPopulation)];
+    CellConnectionProbabilityData-->PresentPopulation-->PresentPopulationZoneData[(Present\nPopulation\nZone)];
+    InspireGridData-->PresentPopulation;
+    end
+
+
+    %% --- Longitudinal module ---
+    subgraph MidTerm Products
+    %% Midterm Permanence Score
+    HolidayData[(Holiday\nData)]
+    DPSdata-->MidTermPermanenceScore-->MPSdata[(MidTerm\nPermanence\nScore\nData)];
+    HolidayData-->MidTermPermanenceScore;
+    end
+
+    %% [LONGTERM]
+    subgraph LongTerm Products
+    %% Longterm Permanence Score
+    MPSdata-->LongTermPermanenceScore-->LPSdata[(LongTerm\nPermanence\nScore\nData)];
+    LPSdata-->UsualEnvironmentLabelling-->UELdata[(UsualEnvironment\nLabelling\nData)];
+    UELdata-->UsualEnvironmentAggregation-->UEAdata[(UsualEnvironment\nAggregation\nData)];
+    InspireGridData-->UsualEnvironmentAggregation;
+    end
 
     classDef green fill:#229954,stroke:#333,stroke-width:2px;
     classDef light_green fill:#AFE1AF,stroke:#333,stroke-width:1px;
@@ -89,7 +112,7 @@ flowchart TD;
     classDef gold fill:#FFD700,stroke:#333,stroke-width:2px;
 
     %% --- Reference Data ---
-    class InspireGridData light_silver
+    class InspireGridData,HolidayData light_silver
     %% --- MNO Data ---
     %% -- NETWORK --
     class PhysicalNetworkRAWData bronze
@@ -113,11 +136,17 @@ flowchart TD;
     class EventsSemanticCleaned light_silver
     class DeviceSemanticQualityMetrics,EventSemanticWarnings silver
     class EventSemanticReports gold
+    %% Present population
+    class PresentPopulationData,PresentPopulationZoneData light_silver
     %% --- Daily Processing module ---
     %% Daily Permanence Score
     class DPSdata light_silver
     %% Continuous Time segmentation
     class DailyCTSdata light_silver
+    %% Longitudinal data
+    class MPSdata,LPSdata light_silver
+    %% UE data
+    class UELdata,UEAdata light_silver
 
     %% ---- Components ----
     class InspireGridGeneration light_green
@@ -130,7 +159,10 @@ flowchart TD;
     %% -> Device Activity Statistics should start from semantic cleaned events
     class DeviceActivityStatistics light_green
     %% Daily
-    class DailyPermanenceScore,ContinuousTimeSegmentation light_green
+    class DailyPermanenceScore,ContinuousTimeSegmentation,PresentPopulation light_green
+    %% Longitudinal - Midterm
+    class MidTermPermanenceScore light_green
+    class LongTermPermanenceScore,UsualEnvironmentLabelling,UsualEnvironmentAggregation light_green
 ```
 
 

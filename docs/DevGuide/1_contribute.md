@@ -41,7 +41,7 @@ This branch shall have the following naming convention:
 
 Please remember to keep the forked development branch up-to-date with the latest changes.
 
-Don't forget to look up the [developer guide](./2_dev_guidelines.md) to check the code style, testing and development
+Don't forget to look up the [developer guidelines](./2_dev_guidelines.md) to check the code style, testing and development
 practices that shall be followed to develop new code for the multimno repository.
 
 ## Opening a pull request

@@ -4,6 +4,7 @@ weight: 1
 ---
 # Setup Guide
 
+The **multimno** software is a python application using the [PySpark library](https://spark.apache.org/docs/latest/api/python/index.html#:~:text=PySpark%20is%20the%20Python%20API,for%20interactively%20analyzing%20your%20data.) to harness the power of Apache Spark, a fast and general-purpose cluster-computing system. PySpark provides an interface for Apache Spark in Python, enabling developers to utilize Spark's high-level APIs and distributed computing capabilities while working in the Python programming language. The Spark framework is critical to this application as it handles the distribution of data and computation across the cluster, ensures fault tolerance, and optimizes execution for performance gains. Deployment of a PySpark application can be done on a single node (local mode), where Spark runs on a single machine for simplicity and ease of development or testing. Alternatively, for production and scaling, it can be deployed on a cluster (cluster mode) comprising multiple machines, either on-premises or in the cloud, where Spark distributes tasks across the nodes, allowing for parallel processing and efficient handling of large-scale data workloads.
 There are two ways of setting up a system for executing the source code:  
   1) Building the docker image provided. (Recommended for local executions)  
   2) Installing and setting up all required system libraries.  

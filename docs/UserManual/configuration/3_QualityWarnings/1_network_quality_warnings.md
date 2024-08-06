@@ -1,6 +1,6 @@
 ---
 title: NetworkQualityWarnings Configuration
-weight: 12
+weight: 1
 ---
 
 # NetworkQualityWarnings Configuration

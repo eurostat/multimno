@@ -25,11 +25,13 @@ The expected parameters in `network_cleaning.ini` are as follows:
 - **latitude_max**: float, maximum accepted latitude (WGS84) for the latitude of cells in the input data. Values higher than this will be treated as out of bounds/range.
 - **longitude_min**: float, minimum accepted longitude (WGS84) for the longitude of cells in the input data. Values lower than this will be treated as out of bounds/range.
 - **longitude_max**: float, minimum accepted longitude (WGS84) for the longitude of cells in the input data. Values higher than this will be treated as out of bounds/range.
-- **cell_type_options**: comma-separated list of strings, this parameter indicates the accepted values in the `cell_type_options` field. Other values will be treated as out of bounds/range. Example: `macrocell, microcell, picocell`.
-- **data_period_start**: string, format should be the one specified `data_period_format` (e.g., `2023-01-01` for `%Y-%m-%d`), the first date for which data will be processed by the component. All dates between this one and the specified in `data_period_end` will be processed (both inclusive).
-- **data_period_end**: string, format should be "yyyy-MM-dd" (e.g., `2023-01-09` for `%Y-%m-%d`), the last date for which data will be processed by the component. All dates between the specified in `data_period_start` and this one will be processed (both inclusive).
-- **data_period_format**: string, it indicates the format expected in `data_period_start` and `data_period_end`. For example, use `%Y-%m-%d` for the usual "2023-01-09" format separated by `-`.
+- **cell_type_options**: comma-separated list of strings, this parameter indicates the accepted values in the `cell_type` field. Other values will be treated as out of bounds/range. Example: `macrocell, microcell, picocell`.
+- **technology_options**: comma-separated list of strings, this parameter indicates the accepted values in the `technology` field. Other values will be treated as out of bounds/range. Example: `5G, LTE, UMTS, GSM`.
+- **data_period_start**: string, format should be the "yyyy-MM-dd" (e.g., `2023-01-01`), the first date for which data will be processed by the component. All dates between this one and the specified in `data_period_end` will be processed (both inclusive).
+- **data_period_end**: string, format should be "yyyy-MM-dd" (e.g., `2023-01-09`), the last date for which data will be processed by the component. All dates between the specified in `data_period_start` and this one will be processed (both inclusive).
 - **valid_date_timestamp_format**: string, the timestamp format that is expected to be in the input network data and that will be parsed with PySpark using thiis format. Example: `yyyy-MM-dd'T'HH:mm:ss`
+- **frequent_error_criterion**: string, criterion to use when computing the most frequent errors encountered. It can take two values: `absolute` if one wants to find the top *k* most frequent errors (e.g., `k=10`); or `percentage` if one wants to find the most frequent errors that represent `k` percentage of all errors found. Example: `percentage`.
+- **top_k_errors**: integer if `frequent_error_criterion=absolute` or float if `top_k_errors` if `frequent_error_criterion=percentage`, represents what portion of the most frequent errors to save. Example: `10`.
 
 ## Configuration example
 
@@ -45,12 +47,13 @@ longitude_min = -3.751
 longitude_max = -3.579
 
 cell_type_options = macrocell, microcell, picocell
-
+technology_options = 5G, LTE, UMTS, GSM
 # Left- and right-inclusive date range for the data to be read
 data_period_start = 2023-01-01
 data_period_end = 2023-01-09
-data_period_format = %Y-%m-%d
 
 valid_date_timestamp_format = yyyy-MM-dd'T'HH:mm:ss
 
+frequent_error_criterion = percentage  # allowed values: `absolute`, `percentage`
+top_k_errors = 40.5
 ```

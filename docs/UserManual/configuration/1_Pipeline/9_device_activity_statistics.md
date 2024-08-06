@@ -13,7 +13,6 @@ local_timezone = UTC
 
 [Paths.Silver]
 # Data
-event_data_silver_deduplicated = ${Paths:silver_dir}/mno_events_deduplicated
 network_data_silver = ${Paths:silver_dir}/mno_network
 
 device_activity_statistics = ${Paths:silver_dir}/device_activity_statistics

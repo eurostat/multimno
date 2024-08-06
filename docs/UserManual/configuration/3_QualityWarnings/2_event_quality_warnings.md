@@ -1,6 +1,6 @@
 ---
 title: EventQualityWarnings Configuration
-weight: 13
+weight: 2
 ---
 
 # EventQualityWarnings Configuration
@@ -15,21 +15,14 @@ event_syntactic_quality_metrics_by_column = ${Paths:silver_dir}/event_syntactic_
 event_syntactic_quality_metrics_frequency_distribution = ${Paths:silver_dir}/event_syntactic_quality_metrics_frequency_distribution
 event_syntactic_quality_warnings_log_table = ${Paths:silver_dir}/event_syntactic_quality_warnings_log_table
 event_syntactic_quality_warnings_for_plots = ${Paths:silver_dir}/event_syntactic_quality_warnings_for_plots
-# for Event Deduplication Quality Warnings
-event_deduplicated_quality_metrics_by_column = ${Paths:silver_dir}/event_deduplicated_quality_metrics_by_column
-event_deduplicated_quality_metrics_frequency_distribution = ${Paths:silver_dir}/event_deduplicated_quality_metrics_frequency_distribution
-event_deduplicated_quality_warnings_log_table = ${Paths:silver_dir}/event_deduplicated_quality_warnings_log_table
+
 ```
 
 Below there is a description of one of sub component’s config  - `event_cleaning_quality_warnings.ini`. 
 
 Parameters are as follows:
 
-Under  `[EventQualityWarnings]` config section: 
-
--**SUB_COMPONENT_ID** - string, default EventCleaningQualityWarnings, the config section's name should be identical to component id of EventQualityWarnings class, the value of SUB_COMPONENT_ID should be identical to the name of the following section, in this example - EventCleaningQualityWarnings
-
-Under `[EventCleaningQualityWarnings]` config section: 
+Under `[EventQualityWarnings]` config section: 
 
 - **input_qm_by_column_path_key** - string, key in Paths.Silver section in general config for a path to corresponding Quality Metrics By Column data
 
@@ -107,12 +100,9 @@ not_right_syntactic_format_thresholds
 
 no_location_thresholds
 
+no_domain_thresholds
+
 out_of_bounding_box_thresholds
-
-the last two are meant to be specified in event_deduplication_quality_warnings.ini
-
-# possible thresholds in event_deduplcaition_quality_warnings.ini
-deduplication_diff_location_thresholds
 
 deduplication_same_location_thresholds
 ```
@@ -122,12 +112,7 @@ deduplication_same_location_thresholds
 ## Configuration example
 
 ```ini
-# the name section should be identical to COMPONENT_ID of EventQualityWarnings Component
-# the value of SUB_COMPONENT_ID key shoudl be identical to the name of the following section
 [EventQualityWarnings]
-SUB_COMPONENT_ID = EventCleaningQualityWarnings
-
-[EventCleaningQualityWarnings]
 # keys in Paths.Silver section in general config
 input_qm_by_column_path_key = event_syntactic_quality_metrics_by_column
 input_qm_freq_distr_path_key = event_syntactic_quality_metrics_frequency_distribution
@@ -136,10 +121,10 @@ output_qw_for_plots_path_key = event_syntactic_quality_warnings_for_plots
 # BY NOW make sure that the first day(s) of research period has enough previous data
 # of df_qa_by_column and df_qa_freq_distribution 
 # (e.g. staring from 2023-01-01, if period is a week and start period is 2023-01-08)
-data_period_start = 2023-01-08
+data_period_start = 2023-01-01
 # you can exceed max(df_qa_by_column.date) 
 # although you will still get QWs for dates till max(df_qa_by_column.date), including
-data_period_end = 2023-01-15
+data_period_end = 2023-01-09
 # should be either week or month
 lookback_period = week
 # SIZE QA
@@ -179,10 +164,12 @@ error_rate_tresholds = {
 # for more clarity please check event_cleaning.py
 error_type_qw_checks = {
     'missing_value': ['user_id', 'mcc', 'timestamp'],
-    'out_of_admissible_values': ['cell_id', 'mcc', 'timestamp'],
+    'out_of_admissible_values': ['cell_id', 'mcc', 'mnc', 'plmn', 'timestamp'],
     'not_right_syntactic_format': ['timestamp'], 
+    'no_domain': [None],
     'no_location':[None], 
-    'out_of_bounding_box':[None]
+    'out_of_bounding_box':[None],
+    'same_location_duplicate':[None]
     }
 # for each dict_error_type_thresholds make sure you specified all relevant columns
 # the order of thresholds is important, should be: AVERAGE, VARIABILITY, and ABS_VALUE_UPPER_LIMIT
@@ -194,6 +181,14 @@ missing_value_thresholds = {
     'mcc': {"Missing_value_RATE_BYDATE_MCC_AVERAGE": 30,
             "Missing_value_RATE_BYDATE_MCC_VARIABILITY": 2,
             "Missing_value_RATE_BYDATE_MCC_ABS_VALUE_UPPER_LIMIT": 20
+           },
+    'mnc': {"Missing_value_RATE_BYDATE_MNC_AVERAGE": 30,
+            "Missing_value_RATE_BYDATE_MNC_VARIABILITY": 2,
+            "Missing_value_RATE_BYDATE_MNC_ABS_VALUE_UPPER_LIMIT": 20
+           }, 
+    'plmn': {"Missing_value_RATE_BYDATE_PLMN_AVERAGE": 30,
+            "Missing_value_RATE_BYDATE_PLMN_VARIABILITY": 2,
+            "Missing_value_RATE_BYDATE_PLMN_ABS_VALUE_UPPER_LIMIT": 20
            }, 
     'timestamp': {"Missing_value_RATE_BYDATE_TIMESTAMP_AVERAGE": 30,
                   "Missing_value_RATE_BYDATE_TIMESTAMP_VARIABILITY": 2,
@@ -209,6 +204,14 @@ out_of_admissible_values_thresholds = {
             "Out_of_range_RATE_BYDATE_MCC_VARIABILITY": 2,
             "Out_of_range_RATE_BYDATE_MCC_ABS_VALUE_UPPER_LIMIT": 20
            }, 
+    'mnc': {"Out_of_range_RATE_BYDATE_MNC_AVERAGE": 30,
+            "Out_of_range_RATE_BYDATE_MNC_VARIABILITY": 2,
+            "Out_of_range_RATE_BYDATE_MNC_ABS_VALUE_UPPER_LIMIT": 20
+           },
+    'plmn': {"Out_of_range_RATE_BYDATE_PLMN_AVERAGE": 30,
+            "Out_of_range_RATE_BYDATE_PLMN_VARIABILITY": 2,
+            "Out_of_range_RATE_BYDATE_PLMN_ABS_VALUE_UPPER_LIMIT": 20
+           },
     'timestamp': {"Out_of_range_RATE_BYDATE_TIMESTAMP_AVERAGE": 30,
                   "Out_of_range_RATE_BYDATE_TIMESTAMP_VARIABILITY": 2,
                   "Out_of_range_RATE_BYDATE_TIMESTAMP_ABS_VALUE_UPPER_LIMIT": 20
@@ -226,11 +229,24 @@ no_location_thresholds = {
            "No_location_RATE_BYDATE_ABS_VALUE_UPPER_LIMIT": 20
           }
     }
+no_domain_thresholds = {
+    None: {"No_domain_RATE_BYDATE_AVERAGE": 30,
+           "No_domain_RATE_BYDATE_VARIABILITY": 2,
+           "No_domain_RATE_BYDATE_ABS_VALUE_UPPER_LIMIT": 20
+          }
+    }
 out_of_bounding_box_thresholds = {
     None: {"Out_of_bbox_RATE_BYDATE_AVERAGE": 30,
            "Out_of_bbox_RATE_BYDATE_VARIABILITY": 2,
            "Out_of_bbox_RATE_BYDATE_ABS_VALUE_UPPER_LIMIT": 20
           }
     }
+deduplication_same_location_thresholds = {
+    None: {"Deduplication_same_location_RATE_BYDATE_AVERAGE": 30,
+           "Deduplication_same_location_RATE_BYDATE_VARIABILITY": 2,
+           "Deduplication_same_location_RATE_BYDATE_ABS_VALUE_UPPER_LIMIT": 20
+          }
+    }
+
 clear_destination_directory = True
 ```
