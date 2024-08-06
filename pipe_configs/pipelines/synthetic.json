@@ -13,10 +13,6 @@
         {
             "component_id": "SyntheticEvents",
             "component_config_path": "pipe_configs/configurations/synthetic/synthetic_events.ini"
-        },
-        {
-            "component_id": "SyntheticEventsErrors",
-            "component_config_path": "pipe_configs/configurations/synthetic/synthetic_events_errors.ini"
         }
     ]
 }

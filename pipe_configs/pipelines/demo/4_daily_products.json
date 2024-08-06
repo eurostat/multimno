@@ -1,0 +1,18 @@
+{
+    "general_config_path": "pipe_configs/configurations/general_config.ini",
+    "spark_submit_args": ["--driver-memory=6G"],
+    "pipeline": [
+        {
+            "component_id": "ContinuousTimeSegmentation",
+            "component_config_path": "pipe_configs/configurations/daily_aggregations/continuous_time_segmentation.ini"
+        },
+        {
+            "component_id": "DailyPermanenceScore",
+            "component_config_path": "pipe_configs/configurations/daily_aggregations/daily_permanence_score.ini"
+        },
+        {
+            "component_id": "PresentPopulationEstimation",
+            "component_config_path": "pipe_configs/configurations/daily_aggregations/present_population_estimation.ini"
+        }
+    ]
+}

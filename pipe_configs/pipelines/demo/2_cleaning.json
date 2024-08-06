@@ -1,0 +1,22 @@
+{
+    "general_config_path": "pipe_configs/configurations/general_config.ini",
+    "spark_submit_args": [],
+    "pipeline": [
+        {
+            "component_id": "EventCleaning",
+            "component_config_path": "pipe_configs/configurations/event/event_cleaning.ini"
+        },
+        {
+            "component_id": "NetworkCleaning",
+            "component_config_path": "pipe_configs/configurations/network/network_cleaning.ini"
+        },
+        {
+            "component_id": "SemanticCleaning",
+            "component_config_path": "pipe_configs/configurations/event/event_semantic_cleaning.ini"
+        },
+        {
+            "component_id": "DeviceActivityStatistics",
+            "component_config_path": "pipe_configs/configurations/device_activity_statistics/device_activity_statistics.ini"
+        }
+    ]
+}

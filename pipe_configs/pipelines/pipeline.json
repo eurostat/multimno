@@ -11,16 +11,16 @@
             "component_config_path": "pipe_configs/configurations/event/event_cleaning.ini"
         },
         {
-            "component_id": "EventQualityWarnings",
-            "component_config_path": "pipe_configs/configurations/event/event_cleaning_quality_warnings.ini"
-        },
-        {
             "component_id": "NetworkCleaning",
             "component_config_path": "pipe_configs/configurations/network/network_cleaning.ini"
         },
         {
-            "component_id": "NetworkQualityWarnings",
-            "component_config_path": "pipe_configs/configurations/network/network_quality_warnings.ini"
+            "component_id": "SemanticCleaning",
+            "component_config_path": "pipe_configs/configurations/event/event_semantic_cleaning.ini"
+        },
+        {
+            "component_id": "DeviceActivityStatistics",
+            "component_config_path": "pipe_configs/configurations/device_activity_statistics/device_activity_statistics.ini"
         },
         {
             "component_id": "SignalStrengthModeling",
@@ -35,32 +35,32 @@
             "component_config_path": "pipe_configs/configurations/network/cell_connection_probability_estimation.ini"
         },
         {
-            "component_id": "EventDeduplication",
-            "component_config_path": "pipe_configs/configurations/event/event_deduplication.ini"
-        },
-        {
-            "component_id": "EventQualityWarnings",
-            "component_config_path": "pipe_configs/configurations/event/event_deduplication_quality_warnings.ini"
-        },
-        {
-            "component_id": "SemanticCleaning",
-            "component_config_path": "pipe_configs/configurations/event/event_semantic_cleaning.ini"
-        },
-        {
-            "component_id": "SemanticQualityWarnings",
-            "component_config_path": "pipe_configs/configurations/event/event_semantic_quality_warnings.ini"
-        },
-        {
-            "component_id": "DeviceActivityStatistics",
-            "component_config_path": "pipe_configs/configurations/device_activity_statistics/device_activity_statistics.ini"
-        },
-        {
             "component_id": "ContinuousTimeSegmentation",
             "component_config_path": "pipe_configs/configurations/daily_aggregations/continuous_time_segmentation.ini"
         },
         {
             "component_id": "DailyPermanenceScore",
             "component_config_path": "pipe_configs/configurations/daily_aggregations/daily_permanence_score.ini"
+        },
+        {
+            "component_id": "PresentPopulationEstimation",
+            "component_config_path": "pipe_configs/configurations/daily_aggregations/present_population_estimation.ini"
+        },
+        {
+            "component_id": "MidtermPermanenceScore",
+            "component_config_path": "pipe_configs/configurations/midterm_analysis/midterm_permanence_score.ini"
+        },
+        {
+            "component_id": "LongtermPermanenceScore",
+            "component_config_path": "pipe_configs/configurations/longterm_analysis/longterm_permanence_score.ini"
+        },
+        {
+            "component_id": "UsualEnvironmentLabeling",
+            "component_config_path": "pipe_configs/configurations/longterm_analysis/usual_environment_labeling.ini"
+        },
+        {
+            "component_id": "UsualEnvironmentAggregation",
+            "component_config_path": "pipe_configs/configurations/longterm_analysis/usual_environment_aggregation.ini"
         }
     ]
 }

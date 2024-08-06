@@ -1,0 +1,11 @@
+{
+    "general_config_path": "pipe_configs/configurations/general_config.ini",
+    "spark_submit_args": [
+    ],
+    "pipeline": [
+        {
+            "component_id": "GiscoDataIngestion",
+            "component_config_path": "pipe_configs/configurations/ingestion/gisco_data_ingestion.ini"
+        }
+    ]
+}
