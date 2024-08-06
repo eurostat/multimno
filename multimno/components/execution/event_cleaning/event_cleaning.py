@@ -7,19 +7,35 @@ from collections import defaultdict
 import pandas as pd
 import pyspark
 import pyspark.sql.functions as F
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType, ShortType
+from pyspark.sql.types import (
+    StructType,
+    StructField,
+    StringType,
+    IntegerType,
+    ShortType,
+)
 
 from multimno.core.component import Component
-from multimno.core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObject
-from multimno.core.data_objects.silver.silver_event_data_object import SilverEventDataObject
+from multimno.core.data_objects.bronze.bronze_event_data_object import (
+    BronzeEventDataObject,
+)
+from multimno.core.data_objects.silver.silver_event_data_object import (
+    SilverEventDataObject,
+)
 from multimno.core.data_objects.silver.silver_event_data_syntactic_quality_metrics_by_column import (
     SilverEventDataSyntacticQualityMetricsByColumn,
 )
 from multimno.core.data_objects.silver.silver_event_data_syntactic_quality_metrics_frequency_distribution import (
     SilverEventDataSyntacticQualityMetricsFrequencyDistribution,
 )
-from multimno.core.spark_session import check_if_data_path_exists, delete_file_or_folder
-from multimno.core.settings import CONFIG_BRONZE_PATHS_KEY, CONFIG_SILVER_PATHS_KEY
+from multimno.core.spark_session import (
+    check_if_data_path_exists,
+    delete_file_or_folder,
+)
+from multimno.core.settings import (
+    CONFIG_BRONZE_PATHS_KEY,
+    CONFIG_SILVER_PATHS_KEY,
+)
 from multimno.core.constants.columns import ColNames
 from multimno.core.constants.error_types import ErrorTypes
 from multimno.core.constants.transformations import Transformations
@@ -37,10 +53,20 @@ class EventCleaning(Component):
 
         self.timestamp_format = self.config.get(EventCleaning.COMPONENT_ID, "timestamp_format")
         self.input_timezone = self.config.get(EventCleaning.COMPONENT_ID, "input_timezone")
+        self.local_mcc = self.config.getint(EventCleaning.COMPONENT_ID, "local_mcc")
 
         self.do_bounding_box_filtering = self.config.getboolean(
-            EventCleaning.COMPONENT_ID, "do_bounding_box_filtering", fallback=False
+            EventCleaning.COMPONENT_ID,
+            "do_bounding_box_filtering",
+            fallback=False,
         )
+
+        self.do_same_location_deduplication = self.config.getboolean(
+            EventCleaning.COMPONENT_ID,
+            "do_same_location_deduplication",
+            fallback=False,
+        )
+
         self.bounding_box = self.config.geteval(EventCleaning.COMPONENT_ID, "bounding_box")
 
         self.spark_data_folder_date_format = self.config.get(
@@ -93,20 +119,28 @@ class EventCleaning(Component):
             event_syntactic_quality_metrics_by_column
         )
         if self.clear_destination_directory:
-            delete_file_or_folder(self.spark, event_syntactic_quality_metrics_by_column.default_path)
+            delete_file_or_folder(
+                self.spark,
+                event_syntactic_quality_metrics_by_column.default_path,
+            )
 
         self.output_qa_by_column = event_syntactic_quality_metrics_by_column
 
         event_syntactic_quality_metrics_frequency_distribution_path = self.config.get(
-            CONFIG_SILVER_PATHS_KEY, "event_syntactic_quality_metrics_frequency_distribution"
+            CONFIG_SILVER_PATHS_KEY,
+            "event_syntactic_quality_metrics_frequency_distribution",
         )
         event_syntactic_quality_metrics_frequency_distribution = (
             SilverEventDataSyntacticQualityMetricsFrequencyDistribution(
-                self.spark, event_syntactic_quality_metrics_frequency_distribution_path
+                self.spark,
+                event_syntactic_quality_metrics_frequency_distribution_path,
             )
         )
         if self.clear_destination_directory:
-            delete_file_or_folder(self.spark, event_syntactic_quality_metrics_frequency_distribution.default_path)
+            delete_file_or_folder(
+                self.spark,
+                event_syntactic_quality_metrics_frequency_distribution.default_path,
+            )
 
         self.output_data_objects[SilverEventDataSyntacticQualityMetricsFrequencyDistribution.ID] = (
             event_syntactic_quality_metrics_frequency_distribution
@@ -147,12 +181,12 @@ class EventCleaning(Component):
 
         df_events = self.filter_nulls_and_update_qa(
             df_events,
-            [ColNames.user_id, ColNames.timestamp, ColNames.mcc],
+            [ColNames.user_id, ColNames.timestamp],
             self.output_qa_by_column.error_and_transformation_counts,
         )
 
-        # MCC correct format verification: 3 digit value
-        df_events = self.filter_invalid_mcc_and_update_qa(
+        # Check MCC, MNC, PLMN and add domain column
+        df_events = self.filter_invalid_domain_columns_and_update_qa(
             df_events, self.output_qa_by_column.error_and_transformation_counts
         )
 
@@ -189,7 +223,16 @@ class EventCleaning(Component):
         if self.do_bounding_box_filtering:
             df_events = df_events.cache()
             df_events = self.bounding_box_filtering_and_update_qa(
-                df_events, self.bounding_box, self.output_qa_by_column.error_and_transformation_counts
+                df_events,
+                self.bounding_box,
+                self.output_qa_by_column.error_and_transformation_counts,
+            )
+
+        if self.do_same_location_deduplication:
+            df_events = df_events.cache()
+            df_events = self.remove_same_location_duplicates_and_update_qa(
+                df_events,
+                self.output_qa_by_column.error_and_transformation_counts,
             )
 
         self.quality_metrics_distribution_after = df_events.groupBy(ColNames.cell_id, ColNames.user_id).agg(
@@ -214,6 +257,9 @@ class EventCleaning(Component):
         df_events = df_events.repartition(ColNames.user_id_modulo)
         df_events = df_events.sortWithinPartitions(ColNames.user_id, ColNames.timestamp)
 
+        # TODO: remove this, if we decide to save domain column
+        df_events = df_events.select(SilverEventDataObject.SCHEMA.fieldNames())
+
         self.output_data_objects[SilverEventDataObject.ID].df = self.spark.createDataFrame(
             df_events.rdd, SilverEventDataObject.SCHEMA
         )
@@ -231,7 +277,9 @@ class EventCleaning(Component):
 
         # Using outer join and groupby after because Spark can not handle joining with null values in columns
         self.output_qa_freq_distribution.df = self.quality_metrics_distribution_before.join(
-            self.quality_metrics_distribution_after, [ColNames.cell_id, ColNames.user_id], "outer"
+            self.quality_metrics_distribution_after,
+            [ColNames.cell_id, ColNames.user_id],
+            "outer",
         ).select(self.quality_metrics_distribution_before.columns + [ColNames.final_frequency])
 
         self.output_qa_freq_distribution.df = self.output_qa_freq_distribution.df.groupBy(
@@ -247,11 +295,13 @@ class EventCleaning(Component):
         self.output_qa_freq_distribution.df = self.output_qa_freq_distribution.df.fillna(0, ColNames.final_frequency)
 
         self.output_qa_freq_distribution.df = self.output_qa_freq_distribution.df.withColumn(
-            ColNames.date, F.to_date(F.lit(self.current_date), self.spark_data_folder_date_format)
+            ColNames.date,
+            F.to_date(F.lit(self.current_date), self.spark_data_folder_date_format),
         )
 
         self.output_qa_freq_distribution.df = self.spark.createDataFrame(
-            self.output_qa_freq_distribution.df.rdd, self.output_qa_freq_distribution.SCHEMA
+            self.output_qa_freq_distribution.df.rdd,
+            self.output_qa_freq_distribution.SCHEMA,
         )
 
         self.output_qa_freq_distribution.write()
@@ -335,7 +385,9 @@ class EventCleaning(Component):
         return df
 
     def filter_invalid_mcc_and_update_qa(
-        self, df: pyspark.sql.dataframe.DataFrame, error_and_transformation_counts: dict[tuple:int]
+        self,
+        df: pyspark.sql.dataframe.DataFrame,
+        error_and_transformation_counts: dict[tuple:int],
     ) -> pyspark.sql.dataframe.DataFrame:
         """
         Remove any rows where the value for mcc is not a 3 digit number (between 100 and 999)
@@ -360,8 +412,114 @@ class EventCleaning(Component):
 
         return df
 
+    def filter_invalid_mnc_and_update_qa(
+        self,
+        df: pyspark.sql.dataframe.DataFrame,
+        error_and_transformation_counts: dict[tuple:int],
+    ) -> pyspark.sql.dataframe.DataFrame:
+        """
+        Remove any rows where the value for mnc is not a two or three digit
+        numerical string
+
+        Args:
+            df (pyspark.sql.dataframe.DataFrame): dataframe of events
+            error_and_transformation_counts (dict[tuple, int]): dictionary to track qa
+
+        Returns:
+            pyspark.sql.dataframe.DataFrame: Dataframe with erroneous values of mnc filtered out
+        """
+
+        filtered_df = df.filter(
+            ((F.length(F.col(ColNames.mnc)) == 2) | (F.length(F.col(ColNames.mnc)) == 3))
+            & (F.col(ColNames.mnc).cast("int").isNotNull())
+        )
+
+        error_and_transformation_counts[(ColNames.mnc, ErrorTypes.out_of_admissible_values, None)] += (
+            df.count() - filtered_df.count()
+        )
+
+        error_and_transformation_counts[(ColNames.mnc, ErrorTypes.no_error, None)] += filtered_df.count()
+
+        df = filtered_df.cache()
+
+        return df
+
+    def filter_invalid_plmn_and_update_qa(
+        self,
+        df: pyspark.sql.dataframe.DataFrame,
+        error_and_transformation_counts: dict[tuple:int],
+    ) -> pyspark.sql.dataframe.DataFrame:
+        """
+        Remove any rows where the value for plmn is not a 5 or 6 digit number (between 10000 and 999999)
+
+        Args:
+            df (pyspark.sql.dataframe.DataFrame): dataframe of events
+            error_and_transformation_counts (dict[tuple, int]): dictionary to track qa
+
+        Returns:
+            pyspark.sql.dataframe.DataFrame: Dataframe with erroneous values of plmn filtered out
+        """
+
+        filtered_df = df.filter(F.col(ColNames.plmn).between(10000, 999999))
+        error_and_transformation_counts[(ColNames.plmn, ErrorTypes.out_of_admissible_values, None)] += (
+            df.count() - filtered_df.count()
+        )
+
+        error_and_transformation_counts[(ColNames.plmn, ErrorTypes.no_error, None)] += filtered_df.count()
+        df = filtered_df.cache()
+
+        return df
+
+    def filter_invalid_domain_columns_and_update_qa(
+        self,
+        df: pyspark.sql.dataframe.DataFrame,
+        error_and_transformation_counts: dict[tuple:int],
+    ) -> pyspark.sql.dataframe.DataFrame:
+        """
+        Filters out rows that have no domain columns (mcc, mnc, plmn)
+        Checks MCC and MNC for domestic and inbound data
+        Checks PLMN for outbound data
+
+        Args:
+            df (pyspark.sql.dataframe.DataFrame): dataframe of events
+            error_and_transformation_counts (_type_): dictionary to track qa
+
+        Returns:
+            pyspark.sql.dataframe.DataFrame: Dataframe with erroneous rows removed
+        """
+
+        # Filter out columns that have no domain columns
+        filtered_df = df.filter(
+            (F.col(ColNames.plmn).isNotNull() | ((F.col(ColNames.mcc).isNotNull()) & (F.col(ColNames.mnc).isNotNull())))
+        )
+
+        error_and_transformation_counts[(None, ErrorTypes.no_domain, None)] += df.count() - filtered_df.count()
+
+        # Make domain column
+        filtered_df = filtered_df.withColumn(
+            ColNames.domain,
+            F.when(F.col(ColNames.plmn).isNotNull(), ColNames.outbound).otherwise(
+                F.when(F.col(ColNames.mcc) == self.local_mcc, ColNames.domestic).otherwise(ColNames.inbound)
+            ),
+        )
+
+        # For Domestic and inbound check MCC and MNC
+        with_mcc_df = filtered_df.filter(F.col(ColNames.domain) != ColNames.outbound)
+        with_mcc_df = self.filter_invalid_mcc_and_update_qa(with_mcc_df, error_and_transformation_counts)
+        with_mcc_df = self.filter_invalid_mnc_and_update_qa(with_mcc_df, error_and_transformation_counts)
+
+        # Check PLMN for outbound
+        outbound_df = filtered_df.filter(F.col(ColNames.domain) == ColNames.outbound)
+        outbound_df = self.filter_invalid_plmn_and_update_qa(outbound_df, error_and_transformation_counts)
+
+        final_df = with_mcc_df.union(outbound_df)
+
+        return final_df
+
     def filter_invalid_cell_id_and_update_qa(
-        self, df: pyspark.sql.dataframe.DataFrame, error_and_transformation_counts: dict[tuple:int]
+        self,
+        df: pyspark.sql.dataframe.DataFrame,
+        error_and_transformation_counts: dict[tuple:int],
     ) -> pyspark.sql.dataframe.DataFrame:
         """
         Remove any rows where the value for cell_id is not a 14 or 15 digit number
@@ -393,7 +551,9 @@ class EventCleaning(Component):
         return df
 
     def filter_null_locations_and_update_qa(
-        self, df: pyspark.sql.dataframe.DataFrame, error_and_transformation_counts: dict[tuple:int]
+        self,
+        df: pyspark.sql.dataframe.DataFrame,
+        error_and_transformation_counts: dict[tuple:int],
     ) -> pyspark.sql.dataframe.DataFrame:
         """
         Filter rows with inappropriate location: neither cell_id
@@ -411,6 +571,7 @@ class EventCleaning(Component):
         filtered_df = df.filter(
             (F.col(ColNames.cell_id).isNotNull())
             | (F.col(ColNames.longitude).isNotNull() & F.col(ColNames.latitude).isNotNull())
+            | (F.col(ColNames.domain) == ColNames.outbound)
         )
 
         error_and_transformation_counts[(None, ErrorTypes.no_location, None)] += df.count() - filtered_df.count()
@@ -445,7 +606,10 @@ class EventCleaning(Component):
         # Can we use a conditional(F.when) to check if column can be casted?
         filtered_df = df.withColumn(
             ColNames.timestamp,
-            F.to_utc_timestamp(F.to_timestamp(ColNames.timestamp, timestampt_format), input_timezone),
+            F.to_utc_timestamp(
+                F.to_timestamp(ColNames.timestamp, timestampt_format),
+                input_timezone,
+            ),
         ).filter(F.col(ColNames.timestamp).isNotNull())
 
         error_and_transformation_counts[
@@ -491,7 +655,10 @@ class EventCleaning(Component):
         return filtered_df
 
     def bounding_box_filtering_and_update_qa(
-        self, df: pyspark.sql.dataframe.DataFrame, bounding_box: dict, error_and_transformation_counts: dict[tuple:int]
+        self,
+        df: pyspark.sql.dataframe.DataFrame,
+        bounding_box: dict,
+        error_and_transformation_counts: dict[tuple:int],
     ) -> pyspark.sql.dataframe.DataFrame:
         """
         Filter rows which not null longitude & latitude values are
@@ -523,8 +690,50 @@ class EventCleaning(Component):
 
         return filtered_df
 
+    def remove_same_location_duplicates_and_update_qa(
+        self,
+        df: pyspark.sql.dataframe.DataFrame,
+        error_and_transformation_counts: dict[tuple:int],
+    ) -> pyspark.sql.dataframe.DataFrame:
+        """
+        Remove rows that have identical records for
+        timestamp, cell_id, longitude, latitude, plmn and user_id.
+        Counts the number of removed records for quality metrics.
+
+        Args:
+            df (pyspark.sql.dataframe.DataFrame): df events with possible duplicates
+            duplication_counts (dict[tuple, int]): dictionary to track qa
+        Returns:
+            pyspark.sql.dataframe.DataFrame: df without duplicate rows
+            in terms of user_id, cell_id, latitutde, longitude, plmn
+            and timestamp combination
+        """
+
+        # if lot and lan are null, they are null for all rows (presumably)
+        # the same goes for cell_id
+
+        deduplicated_df = df.drop_duplicates(
+            [
+                ColNames.user_id,
+                ColNames.cell_id,
+                ColNames.latitude,
+                ColNames.longitude,
+                ColNames.timestamp,
+                ColNames.plmn,
+            ]
+        )
+
+        error_and_transformation_counts[(None, ErrorTypes.same_location_duplicate, None)] += (
+            df.count() - deduplicated_df.count()
+        )
+
+        return deduplicated_df
+
     def calculate_user_id_modulo(
-        self, df: pyspark.sql.dataframe.DataFrame, modulo_value: int, hex_truncation_end: int = 12
+        self,
+        df: pyspark.sql.dataframe.DataFrame,
+        modulo_value: int,
+        hex_truncation_end: int = 12,
     ) -> pyspark.sql.dataframe.DataFrame:
         """Calculates the extra column user_id_modulo, as the result of the modulo function
         applied on the binary user id column. The modulo value will affect the number of
@@ -545,7 +754,11 @@ class EventCleaning(Component):
 
         df = df.withColumn(
             ColNames.user_id_modulo,
-            F.conv(F.substring(F.hex(F.col(ColNames.user_id)), 1, hex_truncation_end), 16, 10).cast("long")
+            F.conv(
+                F.substring(F.hex(F.col(ColNames.user_id)), 1, hex_truncation_end),
+                16,
+                10,
+            ).cast("long")
             % F.lit(modulo_value).cast("bigint"),
         )
 

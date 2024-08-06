@@ -30,7 +30,9 @@ class SilverEventDataObject(PathDataObject):
         [
             StructField(ColNames.user_id, BinaryType(), nullable=False),
             StructField(ColNames.timestamp, TimestampType(), nullable=False),
-            StructField(ColNames.mcc, IntegerType(), nullable=False),
+            StructField(ColNames.mcc, IntegerType(), nullable=True),
+            StructField(ColNames.mnc, StringType(), nullable=True),
+            StructField(ColNames.plmn, IntegerType(), nullable=True),
             StructField(ColNames.cell_id, StringType(), nullable=True),
             StructField(ColNames.latitude, FloatType(), nullable=True),
             StructField(ColNames.longitude, FloatType(), nullable=True),
@@ -45,7 +47,12 @@ class SilverEventDataObject(PathDataObject):
     def __init__(self, spark: SparkSession, default_path: str) -> None:
         super().__init__(spark, default_path)
         self.interface: ParquetInterface = ParquetInterface()
-        self.partition_columns = [ColNames.year, ColNames.month, ColNames.day, ColNames.user_id_modulo]
+        self.partition_columns = [
+            ColNames.year,
+            ColNames.month,
+            ColNames.day,
+            ColNames.user_id_modulo,
+        ]
 
         # Clear path
         self.first_write = True

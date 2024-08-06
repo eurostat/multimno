@@ -18,33 +18,82 @@ import sys
 from multimno.components.ingestion.synthetic.synthetic_network import SyntheticNetwork
 from multimno.components.ingestion.synthetic.synthetic_diaries import SyntheticDiaries
 from multimno.components.ingestion.synthetic.synthetic_events import SyntheticEvents
-from multimno.components.ingestion.synthetic.synthetic_events_errors import SyntheticEventsErrors
 
 # Ingestion
-from multimno.components.ingestion.grid_generation.inspire_grid_generation import InspireGridGeneration
-from multimno.components.execution.device_activity_statistics.device_activity_statistics import DeviceActivityStatistics
+from multimno.components.ingestion.grid_generation.inspire_grid_generation import (
+    InspireGridGeneration,
+)
+from multimno.components.ingestion.spatial_data_ingestion.overture_data_ingestion import (
+    OvertureDataIngestion,
+)
+from multimno.components.ingestion.spatial_data_ingestion.gisco_data_ingestion import (
+    GiscoDataIngestion,
+)
+
+# Execution - Spatial
+from multimno.components.execution.grid_enrichment.grid_enrichment import GridEnrichment
+from multimno.components.execution.geozones_grid_mapping.geozones_grid_mapping import (
+    GeozonesGridMapping,
+)
 
 # Execution - Events
 from multimno.components.execution.event_cleaning.event_cleaning import EventCleaning
-from multimno.components.execution.event_deduplication.event_deduplication import EventDeduplication
-from multimno.components.execution.event_semantic_cleaning.event_semantic_cleaning import SemanticCleaning
+from multimno.components.execution.event_semantic_cleaning.event_semantic_cleaning import (
+    SemanticCleaning,
+)
 
 # Execution - Network
-from multimno.components.execution.network_cleaning.network_cleaning import NetworkCleaning
-from multimno.components.execution.signal_strength.signal_stength_modeling import SignalStrengthModeling
-from multimno.components.execution.cell_footprint.cell_footprint_estimation import CellFootprintEstimation
+from multimno.components.execution.network_cleaning.network_cleaning import (
+    NetworkCleaning,
+)
+from multimno.components.execution.signal_strength.signal_stength_modeling import (
+    SignalStrengthModeling,
+)
+from multimno.components.execution.cell_footprint.cell_footprint_estimation import (
+    CellFootprintEstimation,
+)
 from multimno.components.execution.cell_connection_probability.cell_connection_probability import (
     CellConnectionProbabilityEstimation,
 )
 
 # Exection - Daily
-from multimno.components.execution.time_segments.continuous_time_segmentation import ContinuousTimeSegmentation
-from multimno.components.execution.daily_permanence_score.daily_permanence_score import DailyPermanenceScore
+from multimno.components.execution.time_segments.continuous_time_segmentation import (
+    ContinuousTimeSegmentation,
+)
+from multimno.components.execution.daily_permanence_score.daily_permanence_score import (
+    DailyPermanenceScore,
+)
+from multimno.components.execution.present_population.present_population_estimation import PresentPopulationEstimation
+
+# Execution - Midterm
+from multimno.components.execution.midterm_permanence_score.midterm_permanence_score import MidtermPermanenceScore
+
+# Execution - Longterm
+from multimno.components.execution.longterm_permanence_score.longterm_permanence_score import LongtermPermanenceScore
+from multimno.components.execution.usual_environment_labeling.usual_environment_labeling import UsualEnvironmentLabeling
+
+from multimno.components.execution.usual_environment_labeling.usual_environment_labeling import (
+    UsualEnvironmentLabeling,
+)
+
+# Aggregation
+from multimno.components.execution.usual_environment_aggregation.usual_environment_aggregation import (
+    UsualEnvironmentAggregation,
+)
 
 # Quality
-from multimno.components.quality.event_quality_warnings.event_quality_warnings import EventQualityWarnings
-from multimno.components.quality.semantic_quality_warnings.semantic_quality_warnings import SemanticQualityWarnings
-from multimno.components.quality.network_quality_warnings.network_quality_warnings import NetworkQualityWarnings
+from multimno.components.quality.event_quality_warnings.event_quality_warnings import (
+    EventQualityWarnings,
+)
+from multimno.components.quality.semantic_quality_warnings.semantic_quality_warnings import (
+    SemanticQualityWarnings,
+)
+from multimno.components.quality.network_quality_warnings.network_quality_warnings import (
+    NetworkQualityWarnings,
+)
+from multimno.components.execution.device_activity_statistics.device_activity_statistics import (
+    DeviceActivityStatistics,
+)
 
 
 CONSTRUCTORS = {
@@ -52,12 +101,15 @@ CONSTRUCTORS = {
     SyntheticNetwork.COMPONENT_ID: SyntheticNetwork,
     SyntheticDiaries.COMPONENT_ID: SyntheticDiaries,
     SyntheticEvents.COMPONENT_ID: SyntheticEvents,
-    SyntheticEventsErrors.COMPONENT_ID: SyntheticEventsErrors,
     # Ingestion
     InspireGridGeneration.COMPONENT_ID: InspireGridGeneration,
+    OvertureDataIngestion.COMPONENT_ID: OvertureDataIngestion,
+    GiscoDataIngestion.COMPONENT_ID: GiscoDataIngestion,
+    # Execution - Spatial
+    GridEnrichment.COMPONENT_ID: GridEnrichment,
+    GeozonesGridMapping.COMPONENT_ID: GeozonesGridMapping,
     # Execution - Events
     EventCleaning.COMPONENT_ID: EventCleaning,
-    EventDeduplication.COMPONENT_ID: EventDeduplication,
     SemanticCleaning.COMPONENT_ID: SemanticCleaning,
     # Execution - Network
     NetworkCleaning.COMPONENT_ID: NetworkCleaning,
@@ -68,6 +120,14 @@ CONSTRUCTORS = {
     # Execution - Daily
     ContinuousTimeSegmentation.COMPONENT_ID: ContinuousTimeSegmentation,
     DailyPermanenceScore.COMPONENT_ID: DailyPermanenceScore,
+    PresentPopulationEstimation.COMPONENT_ID: PresentPopulationEstimation,
+    # Execution - Midterm
+    MidtermPermanenceScore.COMPONENT_ID: MidtermPermanenceScore,
+    # Execution - Longterm
+    LongtermPermanenceScore.COMPONENT_ID: LongtermPermanenceScore,
+    UsualEnvironmentLabeling.COMPONENT_ID: UsualEnvironmentLabeling,
+    UsualEnvironmentAggregation.COMPONENT_ID: UsualEnvironmentAggregation,
+    PresentPopulationEstimation.COMPONENT_ID: PresentPopulationEstimation,
     # Quality
     EventQualityWarnings.COMPONENT_ID: EventQualityWarnings,
     SemanticQualityWarnings.COMPONENT_ID: SemanticQualityWarnings,

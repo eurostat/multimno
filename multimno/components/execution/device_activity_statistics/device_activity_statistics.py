@@ -15,9 +15,15 @@ from pyspark.sql import Window, DataFrame
 
 
 from multimno.core.component import Component
-from multimno.core.data_objects.silver.silver_event_data_object import SilverEventDataObject
-from multimno.core.data_objects.silver.silver_network_data_object import SilverNetworkDataObject
-from multimno.core.data_objects.silver.silver_device_activity_statistics import SilverDeviceActivityStatistics
+from multimno.core.data_objects.silver.silver_event_data_object import (
+    SilverEventDataObject,
+)
+from multimno.core.data_objects.silver.silver_network_data_object import (
+    SilverNetworkDataObject,
+)
+from multimno.core.data_objects.silver.silver_device_activity_statistics import (
+    SilverDeviceActivityStatistics,
+)
 
 
 from multimno.core.spark_session import check_if_data_path_exists, delete_file_or_folder
@@ -42,7 +48,7 @@ class DeviceActivityStatistics(Component):
     def initalize_data_objects(self):
         # Input
         # TODO: update this to semantically cleaned files after merge
-        self.input_events_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "event_data_silver_deduplicated")
+        self.input_events_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "event_data_silver")
         # TODO: Figure out how this would work with coverage areas. We don't have location of cells in those cases
         self.input_topology_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "network_data_silver")
         self.output_statistics_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "device_activity_statistics")
@@ -190,7 +196,9 @@ class DeviceActivityStatistics(Component):
         self.spark.catalog.clearCache()
 
     def preprocess_events(
-        self, df_events: pyspark.sql.dataframe.DataFrame, df_network: pyspark.sql.dataframe.DataFrame
+        self,
+        df_events: pyspark.sql.dataframe.DataFrame,
+        df_network: pyspark.sql.dataframe.DataFrame,
     ) -> DataFrame:
         """
         Preprocesses events dataframe to be able to calculate all metrics. Steps:
@@ -243,16 +251,22 @@ class DeviceActivityStatistics(Component):
         # Add timestamp and location of next record
         window = Window.partitionBy(*[ColNames.user_id_modulo, ColNames.user_id]).orderBy(ColNames.timestamp)
         df_events = df_events.withColumn(
-            f"next_{ColNames.timestamp}", F.lead(F.col(ColNames.timestamp), 1).over(window)
+            f"next_{ColNames.timestamp}",
+            F.lead(F.col(ColNames.timestamp), 1).over(window),
         )
-        df_events = df_events.withColumn(f"next_{ColNames.latitude}", F.lead(F.col(ColNames.latitude), 1).over(window))
         df_events = df_events.withColumn(
-            f"next_{ColNames.longitude}", F.lead(F.col(ColNames.longitude), 1).over(window)
+            f"next_{ColNames.latitude}",
+            F.lead(F.col(ColNames.latitude), 1).over(window),
+        )
+        df_events = df_events.withColumn(
+            f"next_{ColNames.longitude}",
+            F.lead(F.col(ColNames.longitude), 1).over(window),
         )
 
         # Calculate time gap to next event
         df_events = df_events.withColumn(
-            "time_gap_s", F.unix_timestamp(f"next_{ColNames.timestamp}") - F.unix_timestamp(ColNames.timestamp)
+            "time_gap_s",
+            F.unix_timestamp(f"next_{ColNames.timestamp}") - F.unix_timestamp(ColNames.timestamp),
         )
 
         # Calculate the distance between current and next event
@@ -260,16 +274,24 @@ class DeviceActivityStatistics(Component):
         # There are many ways to calculate distance between points and all of them give different results
         df_events = df_events.withColumn(
             "source_geom",
-            STF.ST_SetSRID(STC.ST_Point(df_events[ColNames.latitude], df_events[ColNames.longitude]), 4326),
+            STF.ST_SetSRID(
+                STC.ST_Point(df_events[ColNames.latitude], df_events[ColNames.longitude]),
+                4326,
+            ),
         )
         df_events = df_events.withColumn(
             "destination_geom",
             STF.ST_SetSRID(
-                STC.ST_Point(df_events[f"next_{ColNames.latitude}"], df_events[f"next_{ColNames.longitude}"]), 4326
+                STC.ST_Point(
+                    df_events[f"next_{ColNames.latitude}"],
+                    df_events[f"next_{ColNames.longitude}"],
+                ),
+                4326,
             ),
         )
         df_events = df_events.withColumn(
-            "distance", STF.ST_DistanceSphere(df_events["source_geom"], df_events["destination_geom"])
+            "distance",
+            STF.ST_DistanceSphere(df_events["source_geom"], df_events["destination_geom"]),
         )
 
         return df_events

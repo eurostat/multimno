@@ -147,7 +147,7 @@ class SignalStrengthModeling(Component):
             # get standard deviation mapping table for azimuth beam width azimuth back loss pairs
             sd_azimuth_mapping_sdf = self.get_angular_adjustments_sd_mapping(
                 current_cells_sdf,
-                ColNames.azimuth_angle,
+                ColNames.horizontal_beam_width,
                 ColNames.azimuth_signal_strength_back_loss,
                 "azimuth",
             )
@@ -157,7 +157,7 @@ class SignalStrengthModeling(Component):
             current_cell_grid_directional = self.join_sd_mapping(
                 current_cell_grid_directional,
                 sd_azimuth_mapping_sdf,
-                ColNames.azimuth_angle,
+                ColNames.horizontal_beam_width,
                 ColNames.azimuth_signal_strength_back_loss,
             )
 
@@ -174,17 +174,16 @@ class SignalStrengthModeling(Component):
             # get standard deviation mapping table for elevation beam width elevation back loss pairs
             sd_elevation_mapping_sdf = self.get_angular_adjustments_sd_mapping(
                 current_cells_sdf,
-                ColNames.elevation_angle,
+                ColNames.vertical_beam_width,
                 ColNames.elevation_signal_strength_back_loss,
                 "elevation",
             )
-
             current_cell_grid_directional = current_cell_grid_sdf.where(F.col(ColNames.directionality) == 1)
 
             current_cell_grid_directional = self.join_sd_mapping(
                 current_cell_grid_directional,
                 sd_elevation_mapping_sdf,
-                ColNames.elevation_angle,
+                ColNames.vertical_beam_width,
                 ColNames.elevation_signal_strength_back_loss,
             )
 
@@ -236,9 +235,10 @@ class SignalStrengthModeling(Component):
         # assign default cell type to cell types not present in config
         sdf = sdf.withColumn(
             ColNames.cell_type,
-            F.when(~F.col(ColNames.cell_type).isin(list(self.default_cell_properties.keys())), "default").otherwise(
-                F.col(ColNames.cell_type)
-            ),
+            F.when(
+                ~F.col(ColNames.cell_type).isin(list(self.default_cell_properties.keys())),
+                "default",
+            ).otherwise(F.col(ColNames.cell_type)),
         )
 
         # all cell types which are absent from the default_properties_df will be assigned default values

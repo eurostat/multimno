@@ -8,8 +8,12 @@ from pyspark.sql import functions as F
 from sedona.sql import st_constructors as STC
 
 from multimno.core.constants.columns import ColNames
-from multimno.core.data_objects.silver.silver_cell_footprint_data_object import SilverCellFootprintDataObject
-from multimno.core.data_objects.silver.silver_signal_strength_data_object import SilverSignalStrengthDataObject
+from multimno.core.data_objects.silver.silver_cell_footprint_data_object import (
+    SilverCellFootprintDataObject,
+)
+from multimno.core.data_objects.silver.silver_signal_strength_data_object import (
+    SilverSignalStrengthDataObject,
+)
 from multimno.core.data_objects.silver.silver_cell_intersection_groups_data_object import (
     SilverCellIntersectionGroupsDataObject,
 )
@@ -82,6 +86,30 @@ def expected_intersection_groups(spark):
     """
     expected_data = [
         Row(
+            group_id="2_1",
+            cells=["216188987432445", "641660723865491"],
+            group_size=2,
+            year=2023,
+            month=1,
+            day=1,
+        ),
+        Row(
+            group_id="2_2",
+            cells=["156659001067698", "216188987432445"],
+            group_size=2,
+            year=2023,
+            month=1,
+            day=1,
+        ),
+        Row(
+            group_id="2_3",
+            cells=["156659001067698", "641660723865491"],
+            group_size=2,
+            year=2023,
+            month=1,
+            day=1,
+        ),
+        Row(
             group_id="3_1",
             cells=["156659001067698", "216188987432445", "641660723865491"],
             group_size=3,
@@ -89,9 +117,6 @@ def expected_intersection_groups(spark):
             month=1,
             day=1,
         ),
-        Row(group_id="2_1", cells=["156659001067698", "216188987432445"], group_size=2, year=2023, month=1, day=1),
-        Row(group_id="2_2", cells=["216188987432445", "641660723865491"], group_size=2, year=2023, month=1, day=1),
-        Row(group_id="2_3", cells=["156659001067698", "641660723865491"], group_size=2, year=2023, month=1, day=1),
     ]
 
     expected_sdf = spark.createDataFrame(expected_data, schema=SilverCellIntersectionGroupsDataObject.SCHEMA)

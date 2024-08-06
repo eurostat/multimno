@@ -34,14 +34,17 @@ class SilverEventSemanticQualityWarningsLogTable(PathDataObject):
             StructField("Error 2", FloatType(), nullable=False),
             StructField("Error 3", FloatType(), nullable=False),
             StructField("Error 4", FloatType(), nullable=False),
+            StructField("Error 5", FloatType(), nullable=False),
             StructField("Error 1 upper control limit", FloatType(), nullable=True),
             StructField("Error 2 upper control limit", FloatType(), nullable=True),
             StructField("Error 3 upper control limit", FloatType(), nullable=True),
             StructField("Error 4 upper control limit", FloatType(), nullable=True),
+            StructField("Error 5 upper control limit", FloatType(), nullable=True),
             StructField("Error 1 display warning", BooleanType(), nullable=False),
             StructField("Error 2 display warning", BooleanType(), nullable=False),
             StructField("Error 3 display warning", BooleanType(), nullable=False),
             StructField("Error 4 display warning", BooleanType(), nullable=False),
+            StructField("Error 5 display warning", BooleanType(), nullable=False),
             StructField("execution_id", TimestampType(), nullable=False),
             StructField(ColNames.year, ShortType(), nullable=False),
             StructField(ColNames.month, ByteType(), nullable=False),
@@ -49,7 +52,12 @@ class SilverEventSemanticQualityWarningsLogTable(PathDataObject):
         ]
     )
 
-    def __init__(self, spark: SparkSession, default_path: str, partition_columns: list[str] = None) -> None:
+    def __init__(
+        self,
+        spark: SparkSession,
+        default_path: str,
+        partition_columns: list[str] = None,
+    ) -> None:
         super().__init__(spark, default_path)
         self.interface = ParquetInterface()
         self.partition_columns = partition_columns

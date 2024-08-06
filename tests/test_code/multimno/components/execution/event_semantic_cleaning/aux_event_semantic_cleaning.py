@@ -16,10 +16,18 @@ from pyspark.sql.types import (
 import pyspark.sql.functions as F
 
 from multimno.core.constants.columns import ColNames
-from multimno.core.data_objects.silver.silver_network_data_object import SilverNetworkDataObject
-from multimno.core.data_objects.silver.silver_event_data_object import SilverEventDataObject
-from multimno.core.data_objects.silver.silver_event_flagged_data_object import SilverEventFlaggedDataObject
-from multimno.core.data_objects.silver.silver_semantic_quality_metrics import SilverEventSemanticQualityMetrics
+from multimno.core.data_objects.silver.silver_network_data_object import (
+    SilverNetworkDataObject,
+)
+from multimno.core.data_objects.silver.silver_event_data_object import (
+    SilverEventDataObject,
+)
+from multimno.core.data_objects.silver.silver_event_flagged_data_object import (
+    SilverEventFlaggedDataObject,
+)
+from multimno.core.data_objects.silver.silver_semantic_quality_metrics import (
+    SilverEventSemanticQualityMetrics,
+)
 from tests.test_code.fixtures import spark_session as spark
 
 fixtures = [spark]
@@ -86,6 +94,17 @@ def expected_metrics(spark):
                 ColNames.day: 3,
             }
         ),
+        Row(
+            **{
+                ColNames.result_timestamp: timestamp,  # irrelevant
+                ColNames.variable: ColNames.cell_id,
+                ColNames.type_of_error: 5,
+                ColNames.value: 2,
+                ColNames.year: 2023,
+                ColNames.month: 1,
+                ColNames.day: 3,
+            }
+        ),
     ]
 
     expected_data_df = spark.createDataFrame(expected_data, schema=SilverEventSemanticQualityMetrics.SCHEMA)
@@ -111,47 +130,234 @@ def expected_events(spark):
     # Events that make a reference to a non existen cell ID
     data.extend(
         [
-            (0, datetime.datetime(2023, 1, 3, 3, 0, 0), 214, cellids[0], None, None, None, 0),
-            (0, datetime.datetime(2023, 1, 3, 3, 10, 30), 214, cellids[0], None, None, None, 0),
-            (0, datetime.datetime(2023, 1, 3, 3, 20, 45), 214, 12345678901234, None, None, None, 1),  # non existent
+            (
+                0,
+                datetime.datetime(2023, 1, 3, 3, 0, 0),
+                214,
+                "01",
+                None,
+                cellids[0],
+                None,
+                None,
+                None,
+                0,
+            ),
+            (
+                0,
+                datetime.datetime(2023, 1, 3, 3, 10, 30),
+                214,
+                "01",
+                None,
+                cellids[0],
+                None,
+                None,
+                None,
+                0,
+            ),
+            (
+                0,
+                datetime.datetime(2023, 1, 3, 3, 20, 45),
+                214,
+                "01",
+                None,
+                12345678901234,
+                None,
+                None,
+                None,
+                1,
+            ),  # non existent
         ]
     )
 
     # Events that make a reference to an invalid cell ID
     data.extend(
         [
-            (1, datetime.datetime(2023, 1, 3, 10, 5, 0), 214, cellids[1], None, None, None, 0),
-            (1, datetime.datetime(2023, 1, 3, 10, 12, 33), 214, cellids[3], None, None, None, 2),  # invalid
-            (1, datetime.datetime(2023, 1, 3, 10, 26, 55), 214, cellids[0], None, None, None, 0),
+            (
+                1,
+                datetime.datetime(2023, 1, 3, 10, 5, 0),
+                214,
+                "01",
+                None,
+                cellids[1],
+                None,
+                None,
+                None,
+                0,
+            ),
+            (
+                1,
+                datetime.datetime(2023, 1, 3, 10, 12, 33),
+                214,
+                "01",
+                None,
+                cellids[3],
+                None,
+                None,
+                None,
+                2,
+            ),  # invalid
+            (
+                1,
+                datetime.datetime(2023, 1, 3, 10, 26, 55),
+                214,
+                "01",
+                None,
+                cellids[0],
+                None,
+                None,
+                None,
+                0,
+            ),
         ]
     )
 
     # A) Two isolated events are too far away to be realistic. Both should be flagged as erroneous
     data.extend(
         [
-            (2, datetime.datetime(2023, 1, 3, 12, 5, 0), 214, cellids[1], None, None, None, 4),  # madrid
-            (2, datetime.datetime(2023, 1, 3, 12, 32, 33), 214, cellids[6], None, None, None, 4),  # barcelona
+            (
+                2,
+                datetime.datetime(2023, 1, 3, 12, 5, 0),
+                214,
+                "01",
+                None,
+                cellids[1],
+                None,
+                None,
+                None,
+                4,
+            ),  # madrid
+            (
+                2,
+                datetime.datetime(2023, 1, 3, 12, 32, 33),
+                214,
+                "01",
+                None,
+                cellids[6],
+                None,
+                None,
+                None,
+                4,
+            ),  # barcelona
         ]
     )
 
     # B) Consecutive events, some clearly erroneous due to wrong cell locations, too far away. All flagged
     data.extend(
         [
-            (3, datetime.datetime(2023, 1, 3, 11, 15, 0), 214, cellids[1], None, None, None, 4),  # madrid
-            (3, datetime.datetime(2023, 1, 3, 11, 27, 33), 214, cellids[6], None, None, None, 3),  # barcelona
-            (3, datetime.datetime(2023, 1, 3, 11, 42, 0), 214, cellids[2], None, None, None, 4),  # madrid
+            (
+                3,
+                datetime.datetime(2023, 1, 3, 11, 15, 0),
+                214,
+                "01",
+                None,
+                cellids[1],
+                None,
+                None,
+                None,
+                4,
+            ),  # madrid
+            (
+                3,
+                datetime.datetime(2023, 1, 3, 11, 27, 33),
+                214,
+                "01",
+                None,
+                cellids[6],
+                None,
+                None,
+                None,
+                3,
+            ),  # barcelona
+            (
+                3,
+                datetime.datetime(2023, 1, 3, 11, 42, 0),
+                214,
+                "01",
+                None,
+                cellids[2],
+                None,
+                None,
+                None,
+                4,
+            ),  # madrid
         ]
     )
 
     # C) Consecutive events where only one event is clearly erroneous, only that one is flagged
     data.extend(
         [
-            (4, datetime.datetime(2023, 1, 3, 9, 30, 0), 214, cellids[1], None, None, None, 0),  # madrid
-            (4, datetime.datetime(2023, 1, 3, 9, 45, 0), 214, cellids[0], None, None, None, 0),  # madrid
-            (4, datetime.datetime(2023, 1, 3, 10, 00, 0), 214, cellids[1], None, None, None, 4),  # madrid
-            (4, datetime.datetime(2023, 1, 3, 10, 30, 33), 214, cellids[6], None, None, None, 3),  # barcelona
-            (4, datetime.datetime(2023, 1, 3, 11, 0, 0), 214, cellids[2], None, None, None, 4),  # madrid
-            (4, datetime.datetime(2023, 1, 3, 11, 25, 0), 214, cellids[0], None, None, None, 0),  # madrid
+            (
+                4,
+                datetime.datetime(2023, 1, 3, 9, 30, 0),
+                214,
+                "01",
+                None,
+                cellids[1],
+                None,
+                None,
+                None,
+                0,
+            ),  # madrid
+            (
+                4,
+                datetime.datetime(2023, 1, 3, 9, 45, 0),
+                214,
+                "01",
+                None,
+                cellids[0],
+                None,
+                None,
+                None,
+                0,
+            ),  # madrid
+            (
+                4,
+                datetime.datetime(2023, 1, 3, 10, 00, 0),
+                214,
+                "01",
+                None,
+                cellids[1],
+                None,
+                None,
+                None,
+                4,
+            ),  # madrid
+            (
+                4,
+                datetime.datetime(2023, 1, 3, 10, 30, 33),
+                214,
+                "01",
+                None,
+                cellids[6],
+                None,
+                None,
+                None,
+                3,
+            ),  # barcelona
+            (
+                4,
+                datetime.datetime(2023, 1, 3, 11, 0, 0),
+                214,
+                "01",
+                None,
+                cellids[2],
+                None,
+                None,
+                None,
+                4,
+            ),  # madrid
+            (
+                4,
+                datetime.datetime(2023, 1, 3, 11, 25, 0),
+                214,
+                "01",
+                None,
+                cellids[0],
+                None,
+                None,
+                None,
+                0,
+            ),  # madrid
         ]
     )
 
@@ -160,14 +366,102 @@ def expected_events(spark):
     # to be realistic.
     data.extend(
         [
-            (5, datetime.datetime(2023, 1, 3, 9, 30, 0), 214, cellids[1], None, None, None, 0),  # madrid
-            (5, datetime.datetime(2023, 1, 3, 9, 45, 0), 214, cellids[0], None, None, None, 0),  # madrid
-            (5, datetime.datetime(2023, 1, 3, 10, 00, 0), 214, cellids[1], None, None, None, 4),  # madrid
-            (5, datetime.datetime(2023, 1, 3, 10, 30, 33), 214, cellids[6], None, None, None, 4),  # barcelona
-            (5, datetime.datetime(2023, 1, 3, 10, 35, 33), 214, cellids[6], None, None, None, 0),  # barcelona
-            (5, datetime.datetime(2023, 1, 3, 10, 40, 33), 214, cellids[6], None, None, None, 4),  # barcelona
-            (5, datetime.datetime(2023, 1, 3, 11, 0, 0), 214, cellids[2], None, None, None, 4),  # madrid
-            (5, datetime.datetime(2023, 1, 3, 11, 25, 0), 214, cellids[0], None, None, None, 0),  # madrid
+            (
+                5,
+                datetime.datetime(2023, 1, 3, 9, 30, 0),
+                214,
+                "01",
+                None,
+                cellids[1],
+                None,
+                None,
+                None,
+                0,
+            ),  # madrid
+            (
+                5,
+                datetime.datetime(2023, 1, 3, 9, 45, 0),
+                214,
+                "01",
+                None,
+                cellids[0],
+                None,
+                None,
+                None,
+                0,
+            ),  # madrid
+            (
+                5,
+                datetime.datetime(2023, 1, 3, 10, 00, 0),
+                214,
+                "01",
+                None,
+                cellids[1],
+                None,
+                None,
+                None,
+                4,
+            ),  # madrid
+            (
+                5,
+                datetime.datetime(2023, 1, 3, 10, 30, 33),
+                214,
+                "01",
+                None,
+                cellids[6],
+                None,
+                None,
+                None,
+                4,
+            ),  # barcelona
+            (
+                5,
+                datetime.datetime(2023, 1, 3, 10, 35, 33),
+                214,
+                "01",
+                None,
+                cellids[6],
+                None,
+                None,
+                None,
+                0,
+            ),  # barcelona
+            (
+                5,
+                datetime.datetime(2023, 1, 3, 10, 40, 33),
+                214,
+                "01",
+                None,
+                cellids[6],
+                None,
+                None,
+                None,
+                4,
+            ),  # barcelona
+            (
+                5,
+                datetime.datetime(2023, 1, 3, 11, 0, 0),
+                214,
+                "01",
+                None,
+                cellids[2],
+                None,
+                None,
+                None,
+                4,
+            ),  # madrid
+            (
+                5,
+                datetime.datetime(2023, 1, 3, 11, 25, 0),
+                214,
+                "01",
+                None,
+                cellids[0],
+                None,
+                None,
+                None,
+                0,
+            ),  # madrid
         ]
     )
 
@@ -177,11 +471,13 @@ def expected_events(spark):
                 ColNames.user_id: evdata[0],
                 ColNames.timestamp: evdata[1],
                 ColNames.mcc: evdata[2],
-                ColNames.cell_id: evdata[3],
-                ColNames.latitude: evdata[4],
-                ColNames.longitude: evdata[5],
-                ColNames.loc_error: evdata[6],
-                ColNames.error_flag: evdata[7],
+                ColNames.mnc: evdata[3],
+                ColNames.plmn: evdata[4],
+                ColNames.cell_id: evdata[5],
+                ColNames.latitude: evdata[6],
+                ColNames.longitude: evdata[7],
+                ColNames.loc_error: evdata[8],
+                ColNames.error_flag: evdata[9],
                 ColNames.year: 2023,
                 ColNames.month: 1,
                 ColNames.day: 3,
@@ -189,6 +485,47 @@ def expected_events(spark):
         )
         for evdata in data
     ]
+
+    # E) Different location duplicates
+
+    event_df.extend(
+        [
+            Row(
+                **{
+                    ColNames.user_id: 6,
+                    ColNames.timestamp: datetime.datetime(2023, 1, 3, 7, 30, 0),
+                    ColNames.mcc: 154,
+                    ColNames.mnc: "01",
+                    ColNames.plmn: None,
+                    ColNames.cell_id: "341098809306399",
+                    ColNames.latitude: -3.703464,
+                    ColNames.longitude: 40.417163,
+                    ColNames.loc_error: None,
+                    ColNames.error_flag: 5,
+                    ColNames.year: 2023,
+                    ColNames.month: 1,
+                    ColNames.day: 3,
+                }
+            ),
+            Row(
+                **{
+                    ColNames.user_id: 6,
+                    ColNames.timestamp: datetime.datetime(2023, 1, 3, 7, 30, 0),
+                    ColNames.mcc: 154,
+                    ColNames.mnc: "01",
+                    ColNames.plmn: None,
+                    ColNames.cell_id: "341098809306812",
+                    ColNames.latitude: -3.703464,
+                    ColNames.longitude: 40.417160,
+                    ColNames.loc_error: None,
+                    ColNames.error_flag: 5,
+                    ColNames.year: 2023,
+                    ColNames.month: 1,
+                    ColNames.day: 3,
+                }
+            ),
+        ]
+    )
 
     # Temporary schema
     event_df = spark.createDataFrame(
@@ -198,6 +535,8 @@ def expected_events(spark):
                 StructField(ColNames.user_id, IntegerType(), nullable=False),
                 StructField(ColNames.timestamp, TimestampType(), nullable=False),
                 StructField(ColNames.mcc, IntegerType(), nullable=False),
+                StructField(ColNames.mnc, StringType(), nullable=True),
+                StructField(ColNames.plmn, IntegerType(), nullable=True),
                 StructField(ColNames.cell_id, StringType(), nullable=True),
                 StructField(ColNames.latitude, FloatType(), nullable=True),
                 StructField(ColNames.longitude, FloatType(), nullable=True),
@@ -230,12 +569,30 @@ def expected_events(spark):
 def set_input_data(spark: SparkSession, config: ConfigParser):
     """"""
     network_test_data_path = config["Paths.Silver"]["network_data_silver"]
-    event_test_data_path = config["Paths.Silver"]["event_data_silver_deduplicated"]
+    event_test_data_path = config["Paths.Silver"]["event_data_silver"]
 
     network_data_list = [
-        [-3.703464, 40.417163, 135347071883677, datetime.datetime(2023, 1, 1, 0, 1, 0), None],
-        [-3.696964, 40.419069, 844911684991697, datetime.datetime(2023, 1, 1, 0, 1, 0), None],
-        [-3.701318, 40.420054, 285720901775959, datetime.datetime(2023, 1, 1, 0, 1, 0), None],
+        [
+            -3.703464,
+            40.417163,
+            135347071883677,
+            datetime.datetime(2023, 1, 1, 0, 1, 0),
+            None,
+        ],
+        [
+            -3.696964,
+            40.419069,
+            844911684991697,
+            datetime.datetime(2023, 1, 1, 0, 1, 0),
+            None,
+        ],
+        [
+            -3.701318,
+            40.420054,
+            285720901775959,
+            datetime.datetime(2023, 1, 1, 0, 1, 0),
+            None,
+        ],
         [
             -3.698481,
             40.416471,
@@ -243,11 +600,50 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
             datetime.datetime(2023, 1, 1, 0, 1, 0),
             datetime.datetime(2023, 1, 2, 14, 0, 0),
         ],
-        [-2.129117, 40.067046, 125400344428713, datetime.datetime(2023, 1, 1, 0, 1, 0), None],
-        [-2.128266, 40.065068, 843918051560813, datetime.datetime(2023, 1, 1, 0, 1, 0), None],
-        [-3.553227, 44.757038, 624029536387408, datetime.datetime(2023, 1, 1, 0, 1, 0), None],
-        [2.169443, 41.381887, 674835541016450, datetime.datetime(2023, 1, 1, 0, 1, 0), None],
+        [
+            -2.129117,
+            40.067046,
+            125400344428713,
+            datetime.datetime(2023, 1, 1, 0, 1, 0),
+            None,
+        ],
+        [
+            -2.128266,
+            40.065068,
+            843918051560813,
+            datetime.datetime(2023, 1, 1, 0, 1, 0),
+            None,
+        ],
+        [
+            -3.553227,
+            44.757038,
+            624029536387408,
+            datetime.datetime(2023, 1, 1, 0, 1, 0),
+            None,
+        ],
+        [
+            2.169443,
+            41.381887,
+            674835541016450,
+            datetime.datetime(2023, 1, 1, 0, 1, 0),
+            None,
+        ],
+        [
+            -3.703464,
+            40.417163,
+            341098809306399,
+            datetime.datetime(2023, 1, 1, 0, 1, 0),
+            None,
+        ],  # to ensure that the cell exists for different location duplicate cases
+        [
+            -3.703464,
+            40.417160,
+            341098809306812,
+            datetime.datetime(2023, 1, 1, 0, 1, 0),
+            None,
+        ],  # to ensure that the cell exists for different location duplicate cases
     ]
+
     cellids = [str(netdata[2]) for netdata in network_data_list]
     data = []
     modulo_value = 512
@@ -256,63 +652,349 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
     # Events that make a reference to a non existen cell ID
     data.extend(
         [
-            (0, datetime.datetime(2023, 1, 3, 3, 0, 0), 214, cellids[0], None, None, None),
-            (0, datetime.datetime(2023, 1, 3, 3, 10, 30), 214, cellids[0], None, None, None),
-            (0, datetime.datetime(2023, 1, 3, 3, 20, 45), 214, 12345678901234, None, None, None),  # non existent
+            (
+                0,
+                datetime.datetime(2023, 1, 3, 3, 0, 0),
+                214,
+                "01",
+                None,
+                cellids[0],
+                None,
+                None,
+                None,
+            ),
+            (
+                0,
+                datetime.datetime(2023, 1, 3, 3, 10, 30),
+                214,
+                "01",
+                None,
+                cellids[0],
+                None,
+                None,
+                None,
+            ),
+            (
+                0,
+                datetime.datetime(2023, 1, 3, 3, 20, 45),
+                214,
+                "01",
+                None,
+                12345678901234,
+                None,
+                None,
+                None,
+            ),  # non existent
         ]
     )
 
     # Events that make a reference to an invalid cell ID
     data.extend(
         [
-            (1, datetime.datetime(2023, 1, 3, 10, 5, 0), 214, cellids[1], None, None, None),
-            (1, datetime.datetime(2023, 1, 3, 10, 12, 33), 214, cellids[3], None, None, None),  # invalid
-            (1, datetime.datetime(2023, 1, 3, 10, 26, 55), 214, cellids[0], None, None, None),
+            (
+                1,
+                datetime.datetime(2023, 1, 3, 10, 5, 0),
+                214,
+                "01",
+                None,
+                cellids[1],
+                None,
+                None,
+                None,
+            ),
+            (
+                1,
+                datetime.datetime(2023, 1, 3, 10, 12, 33),
+                214,
+                "01",
+                None,
+                cellids[3],
+                None,
+                None,
+                None,
+            ),  # invalid
+            (
+                1,
+                datetime.datetime(2023, 1, 3, 10, 26, 55),
+                214,
+                "01",
+                None,
+                cellids[0],
+                None,
+                None,
+                None,
+            ),
         ]
     )
 
     # A) Two isolated events are too far away to be realistic. Both should be flagged as erroneous
     data.extend(
         [
-            (2, datetime.datetime(2023, 1, 3, 12, 5, 0), 214, cellids[1], None, None, None),  # madrid
-            (2, datetime.datetime(2023, 1, 3, 12, 32, 33), 214, cellids[6], None, None, None),  # barcelona
+            (
+                2,
+                datetime.datetime(2023, 1, 3, 12, 5, 0),
+                214,
+                "01",
+                None,
+                cellids[1],
+                None,
+                None,
+                None,
+            ),  # madrid
+            (
+                2,
+                datetime.datetime(2023, 1, 3, 12, 32, 33),
+                214,
+                "01",
+                None,
+                cellids[6],
+                None,
+                None,
+                None,
+            ),  # barcelona
         ]
     )
 
     # B) Consecutive events, some clearly erroneous due to wrong cell locations, too far away. All flagged
     data.extend(
         [
-            (3, datetime.datetime(2023, 1, 3, 11, 15, 0), 214, cellids[1], None, None, None),  # madrid
-            (3, datetime.datetime(2023, 1, 3, 11, 27, 33), 214, cellids[6], None, None, None),  # barcelona
-            (3, datetime.datetime(2023, 1, 3, 11, 42, 0), 214, cellids[2], None, None, None),  # madrid
+            (
+                3,
+                datetime.datetime(2023, 1, 3, 11, 15, 0),
+                214,
+                "01",
+                None,
+                cellids[1],
+                None,
+                None,
+                None,
+            ),  # madrid
+            (
+                3,
+                datetime.datetime(2023, 1, 3, 11, 27, 33),
+                214,
+                "01",
+                None,
+                cellids[6],
+                None,
+                None,
+                None,
+            ),  # barcelona
+            (
+                3,
+                datetime.datetime(2023, 1, 3, 11, 42, 0),
+                214,
+                "01",
+                None,
+                cellids[2],
+                None,
+                None,
+                None,
+            ),  # madrid
         ]
     )
 
     # C) Consecutive events where only one event is clearly erroneous, only that one is flagged
     data.extend(
         [
-            (4, datetime.datetime(2023, 1, 3, 9, 30, 0), 214, cellids[1], None, None, None),  # madrid
-            (4, datetime.datetime(2023, 1, 3, 9, 45, 0), 214, cellids[0], None, None, None),  # madrid
-            (4, datetime.datetime(2023, 1, 3, 10, 00, 0), 214, cellids[1], None, None, None),  # madrid
-            (4, datetime.datetime(2023, 1, 3, 10, 30, 33), 214, cellids[6], None, None, None),  # barcelona
-            (4, datetime.datetime(2023, 1, 3, 11, 0, 0), 214, cellids[2], None, None, None),  # madrid
-            (4, datetime.datetime(2023, 1, 3, 11, 25, 0), 214, cellids[0], None, None, None),  # madrid
+            (
+                4,
+                datetime.datetime(2023, 1, 3, 9, 30, 0),
+                214,
+                "01",
+                None,
+                cellids[1],
+                None,
+                None,
+                None,
+            ),  # madrid
+            (
+                4,
+                datetime.datetime(2023, 1, 3, 9, 45, 0),
+                214,
+                "01",
+                None,
+                cellids[0],
+                None,
+                None,
+                None,
+            ),  # madrid
+            (
+                4,
+                datetime.datetime(2023, 1, 3, 10, 00, 0),
+                214,
+                "01",
+                None,
+                cellids[1],
+                None,
+                None,
+                None,
+            ),  # madrid
+            (
+                4,
+                datetime.datetime(2023, 1, 3, 10, 30, 33),
+                214,
+                "01",
+                None,
+                cellids[6],
+                None,
+                None,
+                None,
+            ),  # barcelona
+            (
+                4,
+                datetime.datetime(2023, 1, 3, 11, 0, 0),
+                214,
+                "01",
+                None,
+                cellids[2],
+                None,
+                None,
+                None,
+            ),  # madrid
+            (
+                4,
+                datetime.datetime(2023, 1, 3, 11, 25, 0),
+                214,
+                "01",
+                None,
+                cellids[0],
+                None,
+                None,
+                None,
+            ),  # madrid
         ]
     )
 
     # D) Consecutive events where only one event is clearly erroneous, only that one is flagged
     data.extend(
         [
-            (5, datetime.datetime(2023, 1, 3, 9, 30, 0), 214, cellids[1], None, None, None),  # madrid
-            (5, datetime.datetime(2023, 1, 3, 9, 45, 0), 214, cellids[0], None, None, None),  # madrid
-            (5, datetime.datetime(2023, 1, 3, 10, 00, 0), 214, cellids[1], None, None, None),  # madrid
-            (5, datetime.datetime(2023, 1, 3, 10, 30, 33), 214, cellids[6], None, None, None),  # barcelona
-            (5, datetime.datetime(2023, 1, 3, 10, 35, 33), 214, cellids[6], None, None, None),  # barcelona
-            (5, datetime.datetime(2023, 1, 3, 10, 40, 33), 214, cellids[6], None, None, None),  # barcelona
-            (5, datetime.datetime(2023, 1, 3, 11, 0, 0), 214, cellids[2], None, None, None),  # madrid
-            (5, datetime.datetime(2023, 1, 3, 11, 25, 0), 214, cellids[0], None, None, None),  # madrid
+            (
+                5,
+                datetime.datetime(2023, 1, 3, 9, 30, 0),
+                214,
+                "01",
+                None,
+                cellids[1],
+                None,
+                None,
+                None,
+            ),  # madrid
+            (
+                5,
+                datetime.datetime(2023, 1, 3, 9, 45, 0),
+                214,
+                "01",
+                None,
+                cellids[0],
+                None,
+                None,
+                None,
+            ),  # madrid
+            (
+                5,
+                datetime.datetime(2023, 1, 3, 10, 00, 0),
+                214,
+                "01",
+                None,
+                cellids[1],
+                None,
+                None,
+                None,
+            ),  # madrid
+            (
+                5,
+                datetime.datetime(2023, 1, 3, 10, 30, 33),
+                214,
+                "01",
+                None,
+                cellids[6],
+                None,
+                None,
+                None,
+            ),  # barcelona
+            (
+                5,
+                datetime.datetime(2023, 1, 3, 10, 35, 33),
+                214,
+                "01",
+                None,
+                cellids[6],
+                None,
+                None,
+                None,
+            ),  # barcelona
+            (
+                5,
+                datetime.datetime(2023, 1, 3, 10, 40, 33),
+                214,
+                "01",
+                None,
+                cellids[6],
+                None,
+                None,
+                None,
+            ),  # barcelona
+            (
+                5,
+                datetime.datetime(2023, 1, 3, 11, 0, 0),
+                214,
+                "01",
+                None,
+                cellids[2],
+                None,
+                None,
+                None,
+            ),  # madrid
+            (
+                5,
+                datetime.datetime(2023, 1, 3, 11, 25, 0),
+                214,
+                "01",
+                None,
+                cellids[0],
+                None,
+                None,
+                None,
+            ),  # madrid
         ]
     )
+
+    # E) Different location duplicates
+
+    data.extend(
+        [
+            (
+                6,
+                datetime.datetime(2023, 1, 3, 7, 30),
+                154,
+                "01",
+                None,
+                "341098809306399",
+                -3.703464,
+                40.417163,
+                None,
+                2023,
+                1,
+                1,
+            ),
+            (
+                6,
+                datetime.datetime(2023, 1, 3, 7, 30),
+                154,
+                "01",
+                None,
+                "341098809306812",
+                -3.703464,
+                40.417160,
+                None,
+                2023,
+                1,
+                1,
+            ),
+        ]
+    )
+
     network_df = [
         Row(
             **{
@@ -327,6 +1009,7 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
                 ColNames.horizontal_beam_width: 30.0,
                 ColNames.vertical_beam_width: 30.0,
                 ColNames.power: 200.0,
+                ColNames.range: 3000.0,
                 ColNames.frequency: 2,
                 ColNames.technology: "5G",
                 ColNames.valid_date_start: netdata[3],
@@ -346,10 +1029,12 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
                 ColNames.user_id: evdata[0],
                 ColNames.timestamp: evdata[1],
                 ColNames.mcc: evdata[2],
-                ColNames.cell_id: evdata[3],
-                ColNames.latitude: evdata[4],
-                ColNames.longitude: evdata[5],
-                ColNames.loc_error: evdata[6],
+                ColNames.mnc: evdata[3],
+                ColNames.plmn: evdata[4],
+                ColNames.cell_id: evdata[5],
+                ColNames.latitude: evdata[6],
+                ColNames.longitude: evdata[7],
+                ColNames.loc_error: evdata[8],
                 ColNames.year: 2023,
                 ColNames.month: 1,
                 ColNames.day: 3,
@@ -367,6 +1052,8 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
                 StructField(ColNames.user_id, IntegerType(), nullable=False),
                 StructField(ColNames.timestamp, TimestampType(), nullable=False),
                 StructField(ColNames.mcc, IntegerType(), nullable=False),
+                StructField(ColNames.mnc, StringType(), nullable=True),
+                StructField(ColNames.plmn, IntegerType(), nullable=True),
                 StructField(ColNames.cell_id, StringType(), nullable=True),
                 StructField(ColNames.latitude, FloatType(), nullable=True),
                 StructField(ColNames.longitude, FloatType(), nullable=True),

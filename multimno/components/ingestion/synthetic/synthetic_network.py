@@ -119,6 +119,8 @@ class SyntheticNetwork(Component):
         self.antenna_height_max = self.config.getfloat(self.COMPONENT_ID, "antenna_height_max")
         self.power_min = self.config.getfloat(self.COMPONENT_ID, "power_min")
         self.power_max = self.config.getfloat(self.COMPONENT_ID, "power_max")
+        self.range_min = self.config.getfloat(self.COMPONENT_ID, "range_min")
+        self.range_max = self.config.getfloat(self.COMPONENT_ID, "range_max")
         self.frequency_min = self.config.getfloat(self.COMPONENT_ID, "frequency_min")
         self.frequency_max = self.config.getfloat(self.COMPONENT_ID, "frequency_max")
 
@@ -161,7 +163,7 @@ class SyntheticNetwork(Component):
         bronze_network = BronzeNetworkDataObject(
             self.spark, output_network_data_path, partition_columns=[ColNames.year, ColNames.month, ColNames.day]
         )
-        self.output_data_objects = {"SyntheticNetwork": bronze_network}
+        self.output_data_objects = {bronze_network.ID: bronze_network}
 
     def read(self):
         pass  # No input datasets are used in this component
@@ -186,7 +188,7 @@ class SyntheticNetwork(Component):
 
         cells_df = self.generate_errors(cells_df)
 
-        self.output_data_objects["SyntheticNetwork"].df = cells_df
+        self.output_data_objects[BronzeNetworkDataObject.ID].df = cells_df
 
     def clean_cells_generator(self):
         """Method that generates valid and fully complete (mandatory and optional) cell physical attibutes.
@@ -214,6 +216,7 @@ class SyntheticNetwork(Component):
                 hor_beam_width (float),
                 ver_beam_width (float),
                 power (float),
+                range (float),
                 frequency (int),
                 technology (str),
                 valid_date_start (str),
@@ -257,6 +260,9 @@ class SyntheticNetwork(Component):
 
         # Power, float in specified range (unit: watts, W)
         powers = [self.rng.uniform(self.power_min, self.power_max) for _ in range(self.n_cells)]
+
+        # Range, float in specified range (unit: metres, m)
+        ranges = [self.rng.uniform(self.range_min, self.range_max) for _ in range(self.n_cells)]
 
         # Frequency: int in specifed range (unit: MHz)
         frequencies = [self.rng.randint(self.frequency_min, self.frequency_max) for _ in range(self.n_cells)]
@@ -313,6 +319,7 @@ class SyntheticNetwork(Component):
                         hor_beam_widths[i],
                         ver_beam_widths[i],
                         powers[i],
+                        ranges[i],
                         frequencies[i],
                         technologies[i],
                         valid_date_start_dts[i].strftime(self.timestamp_format),
@@ -465,10 +472,18 @@ class SyntheticNetwork(Component):
             .cast(FloatType()),
         )
 
+        # range: non positive value
+        df = df.withColumn(
+            ColNames.range,
+            F.when(F.rand(seed=self.seed - 10) < self.out_of_bounds_values_probability, -F.col(ColNames.range))
+            .otherwise(F.col(ColNames.range))
+            .cast(FloatType()),
+        )
+
         # frequency: non positive vallue
         df = df.withColumn(
             ColNames.frequency,
-            F.when(F.rand(seed=self.seed - 9) < self.out_of_bounds_values_probability, -F.col(ColNames.frequency))
+            F.when(F.rand(seed=self.seed - 11) < self.out_of_bounds_values_probability, -F.col(ColNames.frequency))
             .otherwise(F.col(ColNames.frequency))
             .cast(IntegerType()),
         )

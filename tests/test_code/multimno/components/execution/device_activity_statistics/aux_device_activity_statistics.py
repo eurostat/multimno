@@ -6,9 +6,15 @@ from datetime import datetime, date
 from hashlib import sha256
 
 from multimno.core.constants.columns import ColNames
-from multimno.core.data_objects.silver.silver_event_data_object import SilverEventDataObject
-from multimno.core.data_objects.silver.silver_network_data_object import SilverNetworkDataObject
-from multimno.core.data_objects.silver.silver_device_activity_statistics import SilverDeviceActivityStatistics
+from multimno.core.data_objects.silver.silver_event_data_object import (
+    SilverEventDataObject,
+)
+from multimno.core.data_objects.silver.silver_network_data_object import (
+    SilverNetworkDataObject,
+)
+from multimno.core.data_objects.silver.silver_device_activity_statistics import (
+    SilverDeviceActivityStatistics,
+)
 
 
 from tests.test_code.fixtures import spark_session as spark
@@ -35,13 +41,15 @@ def write_input_data(spark: SparkSession, config: ConfigParser):
     """
 
     date_format = "%Y-%m-%d %H:%M:%S"
-    test_events_path = config["Paths.Silver"]["event_data_silver_deduplicated"]
+    test_events_path = config["Paths.Silver"]["event_data_silver"]
     test_topology_path = config["Paths.Silver"]["network_data_silver"]
     event_data = [
         [
             sha256(b"1").digest(),
             datetime.strptime("2023-01-01 13:00:00", date_format),
             123,
+            "01",
+            None,
             "0",
             None,
             None,
@@ -55,7 +63,7 @@ def write_input_data(spark: SparkSession, config: ConfigParser):
 
     topology_data = [["0", 0.0, 0.0, 2023, 1, 1]]
     # Add null columns for optional values
-    topology_data = [t[:3] + [None] * 13 + t[-3:] for t in topology_data]
+    topology_data = [t[:3] + [1.0, 1.0, 1] + [None] * 11 + t[-3:] for t in topology_data]
 
     events_data_df = spark.createDataFrame(data=event_data, schema=SilverEventDataObject.SCHEMA)
     topology_data_df = spark.createDataFrame(data=topology_data, schema=SilverNetworkDataObject.SCHEMA)

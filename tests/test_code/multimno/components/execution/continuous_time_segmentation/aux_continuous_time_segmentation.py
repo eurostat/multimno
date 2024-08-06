@@ -5,11 +5,15 @@ from multimno.core.constants.columns import ColNames
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.types import Row
 
-from multimno.core.data_objects.silver.silver_event_flagged_data_object import SilverEventFlaggedDataObject
+from multimno.core.data_objects.silver.silver_event_flagged_data_object import (
+    SilverEventFlaggedDataObject,
+)
 from multimno.core.data_objects.silver.silver_cell_intersection_groups_data_object import (
     SilverCellIntersectionGroupsDataObject,
 )
-from multimno.core.data_objects.silver.silver_time_segments_data_object import SilverTimeSegmentsDataObject
+from multimno.core.data_objects.silver.silver_time_segments_data_object import (
+    SilverTimeSegmentsDataObject,
+)
 
 from tests.test_code.fixtures import spark_session as spark
 
@@ -36,7 +40,10 @@ def get_expected_output_df(spark: SparkSession, expected_time_segments_data: lis
 
 
 def set_input_data(
-    spark: SparkSession, config: ConfigParser, event_data: list[Row], cell_intersection_groups_data: list[Row]
+    spark: SparkSession,
+    config: ConfigParser,
+    event_data: list[Row],
+    cell_intersection_groups_data: list[Row],
 ):
     """
     Function to write test-specific provided dataframes to input directories.
@@ -52,7 +59,9 @@ def set_input_data(
     ### Write input event data to test resources dir
     event_data_path = config["Paths.Silver"]["event_data_silver_flagged"]
     input_events_do = SilverEventFlaggedDataObject(spark, event_data_path)
-    input_events_do.df = spark.createDataFrame(event_data, schema=SilverEventFlaggedDataObject.SCHEMA)
+    input_events_do.df = spark.createDataFrame(event_data, schema=SilverEventFlaggedDataObject.SCHEMA).orderBy(
+        ColNames.user_id, ColNames.timestamp
+    )
     input_events_do.write(partition_columns=partition_columns)
 
     ### Write input cell intersection groups data to test resources dir
@@ -61,7 +70,8 @@ def set_input_data(
         spark, cell_intersection_groups_data_path
     )
     input_cell_intersection_groups_do.df = spark.createDataFrame(
-        cell_intersection_groups_data, schema=SilverCellIntersectionGroupsDataObject.SCHEMA
+        cell_intersection_groups_data,
+        schema=SilverCellIntersectionGroupsDataObject.SCHEMA,
     )
     input_cell_intersection_groups_do.write(partition_columns=partition_columns)
 
@@ -74,6 +84,8 @@ def data_test_0001() -> dict:
     cell_id_b2 = "b0002"
     user_id = "1000".encode("ascii")
     mcc = 100
+    mnc = "01"
+    plmn = None
     year = 2023
     month = 1
     day = 3
@@ -84,6 +96,8 @@ def data_test_0001() -> dict:
             user_id=user_id,
             timestamp=datetime.strptime("2023-01-03T01:00:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cell_id=cell_id_a,
             latitude=None,
             longitude=None,
@@ -98,6 +112,8 @@ def data_test_0001() -> dict:
             user_id=user_id,
             timestamp=datetime.strptime("2023-01-03T01:01:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cell_id=cell_id_a,
             latitude=None,
             longitude=None,
@@ -112,6 +128,8 @@ def data_test_0001() -> dict:
             user_id=user_id,
             timestamp=datetime.strptime("2023-01-03T02:02:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cell_id=cell_id_a,
             latitude=None,
             longitude=None,
@@ -126,6 +144,8 @@ def data_test_0001() -> dict:
             user_id=user_id,
             timestamp=datetime.strptime("2023-01-03T03:03:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cell_id=cell_id_a,
             latitude=None,
             longitude=None,
@@ -140,6 +160,8 @@ def data_test_0001() -> dict:
             user_id=user_id,
             timestamp=datetime.strptime("2023-01-03T03:44:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cell_id=cell_id_b1,
             latitude=None,
             longitude=None,
@@ -154,6 +176,8 @@ def data_test_0001() -> dict:
             user_id=user_id,
             timestamp=datetime.strptime("2023-01-03T03:55:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cell_id=cell_id_b2,
             latitude=None,
             longitude=None,
@@ -168,6 +192,8 @@ def data_test_0001() -> dict:
             user_id=user_id,
             timestamp=datetime.strptime("2023-01-03T04:40:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cell_id=cell_id_b1,
             latitude=None,
             longitude=None,
@@ -182,6 +208,8 @@ def data_test_0001() -> dict:
             user_id=user_id,
             timestamp=datetime.strptime("2023-01-03T07:17:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cell_id=cell_id_a,
             latitude=None,
             longitude=None,
@@ -196,6 +224,8 @@ def data_test_0001() -> dict:
             user_id=user_id,
             timestamp=datetime.strptime("2023-01-03T07:18:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cell_id=cell_id_a,
             latitude=None,
             longitude=None,
@@ -210,6 +240,8 @@ def data_test_0001() -> dict:
             user_id=user_id,
             timestamp=datetime.strptime("2023-01-03T07:20:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cell_id=cell_id_b1,
             latitude=None,
             longitude=None,
@@ -224,6 +256,8 @@ def data_test_0001() -> dict:
             user_id=user_id,
             timestamp=datetime.strptime("2023-01-04T00:20:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cell_id=cell_id_b1,
             latitude=None,
             longitude=None,
@@ -238,6 +272,8 @@ def data_test_0001() -> dict:
             user_id=user_id,
             timestamp=datetime.strptime("2023-01-04T00:25:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cell_id=cell_id_a,
             latitude=None,
             longitude=None,
@@ -252,6 +288,8 @@ def data_test_0001() -> dict:
             user_id=user_id,
             timestamp=datetime.strptime("2023-01-04T00:27:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cell_id=cell_id_b1,
             latitude=None,
             longitude=None,
@@ -266,10 +304,22 @@ def data_test_0001() -> dict:
     # Input: cell intersection groups data.
     # Case: single cell in one group. Cell id and day matches event data.
     cell_intersection_groups_data = [
-        Row(group_id=None, cells=[cell_id_a], group_size=1, year=year, month=month, day=day),
-        Row(group_id=None, cells=[cell_id_b1, cell_id_b2], group_size=2, year=year, month=month, day=day),
-        Row(group_id=None, cells=[cell_id_a], group_size=1, year=year, month=month, day=4),
-        Row(group_id=None, cells=[cell_id_b1, cell_id_b2], group_size=2, year=year, month=month, day=4),
+        Row(
+            group_id=None,
+            cells=[cell_id_b1, cell_id_b2],
+            group_size=2,
+            year=year,
+            month=month,
+            day=day,
+        ),
+        Row(
+            group_id=None,
+            cells=[cell_id_b1, cell_id_b2],
+            group_size=2,
+            year=year,
+            month=month,
+            day=4,
+        ),
     ]
     # Expected output: time segments.
     # One time segment of type stay on the day data was present.

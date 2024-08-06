@@ -17,7 +17,11 @@ from multimno.core.data_objects.silver.silver_event_data_syntactic_quality_metri
 from multimno.core.data_objects.silver.silver_event_data_syntactic_quality_metrics_frequency_distribution import (
     SilverEventDataSyntacticQualityMetricsFrequencyDistribution,
 )
-from multimno.core.spark_session import check_if_data_path_exists, check_or_create_data_path, delete_file_or_folder
+from multimno.core.spark_session import (
+    check_if_data_path_exists,
+    check_or_create_data_path,
+    delete_file_or_folder,
+)
 from multimno.core.settings import CONFIG_SILVER_PATHS_KEY
 
 from multimno.core.constants.columns import ColNames
@@ -40,94 +44,139 @@ class EventQualityWarnings(Component):
     # second element - naming constants for coresponding measure definitions, conditions, and warning texts
     dict_error_type_info = {
         "missing_value": [ErrorTypes.missing_value, "Missing value rate"],
-        "not_right_syntactic_format": [ErrorTypes.not_right_syntactic_format, "Wrong type/format rate"],
-        "out_of_admissible_values": [ErrorTypes.out_of_admissible_values, "Out of range rate"],
-        "no_location": [ErrorTypes.no_location, "No location error rate"],
-        "out_of_bounding_box": [ErrorTypes.out_of_bounding_box, "Out of bounding box error rate"],
-        "deduplication_diff_location": [
-            ErrorTypes.different_location_duplicate,
-            "Deduplication different locations rate",
+        "not_right_syntactic_format": [
+            ErrorTypes.not_right_syntactic_format,
+            "Wrong type/format rate",
         ],
-        "deduplication_same_location": [ErrorTypes.same_location_duplicate, "Deduplication same locations rate"],
+        "out_of_admissible_values": [
+            ErrorTypes.out_of_admissible_values,
+            "Out of range rate",
+        ],
+        "no_location": [ErrorTypes.no_location, "No location error rate"],
+        "no_domain": [ErrorTypes.no_location, "No domain error rate"],
+        "out_of_bounding_box": [
+            ErrorTypes.out_of_bounding_box,
+            "Out of bounding box error rate",
+        ],
+        "same_location_duplicate": [
+            ErrorTypes.same_location_duplicate,
+            "Deduplication same locations rate",
+        ],
     }
 
     def __init__(self, general_config_path: str, component_config_path: str) -> None:
         super().__init__(general_config_path, component_config_path)
 
-        self.lookback_period = self.config.get(self.SUB_COMPONENT_ID, "lookback_period")
+        print(self.config)
+        self.lookback_period = self.config.get(EventQualityWarnings.COMPONENT_ID, "lookback_period")
         self.lookback_period_in_days = self.dict_convert_to_num_days[self.lookback_period]
 
-        self.data_period_start = self.config.get(self.SUB_COMPONENT_ID, "data_period_start")
-        self.data_period_end = self.config.get(self.SUB_COMPONENT_ID, "data_period_end")
+        self.data_period_start = self.config.get(EventQualityWarnings.COMPONENT_ID, "data_period_start")
+        self.data_period_end = self.config.get(EventQualityWarnings.COMPONENT_ID, "data_period_end")
 
         self.qw_dfs_log = []
         self.qw_dfs_plots = []
 
         # FOR SYNTACTIC QUALITY WARNINGS
-        self.do_size_raw_data_qw = self.config.getboolean(self.SUB_COMPONENT_ID, "do_size_raw_data_qw", fallback=False)
+        self.do_size_raw_data_qw = self.config.getboolean(
+            EventQualityWarnings.COMPONENT_ID, "do_size_raw_data_qw", fallback=False
+        )
         self.do_size_clean_data_qw = self.config.getboolean(
-            self.SUB_COMPONENT_ID, "do_size_clean_data_qw", fallback=False
+            EventQualityWarnings.COMPONENT_ID, "do_size_clean_data_qw", fallback=False
         )
 
-        self.data_size_tresholds = self.config.geteval(self.SUB_COMPONENT_ID, "data_size_tresholds", fallback=None)
+        self.data_size_tresholds = self.config.geteval(
+            EventQualityWarnings.COMPONENT_ID, "data_size_tresholds", fallback=None
+        )
 
         self.do_error_rate_by_date_qw = self.config.getboolean(
-            self.SUB_COMPONENT_ID, "do_error_rate_by_date_qw", fallback=False
+            EventQualityWarnings.COMPONENT_ID,
+            "do_error_rate_by_date_qw",
+            fallback=False,
         )
 
         self.do_error_rate_by_date_and_cell_qw = self.config.getboolean(
-            self.SUB_COMPONENT_ID, "do_error_rate_by_date_and_cell_qw", fallback=False
+            EventQualityWarnings.COMPONENT_ID,
+            "do_error_rate_by_date_and_cell_qw",
+            fallback=False,
         )
 
         self.do_error_rate_by_date_and_user_qw = self.config.getboolean(
-            self.SUB_COMPONENT_ID, "do_error_rate_by_date_and_user_qw", fallback=False
+            EventQualityWarnings.COMPONENT_ID,
+            "do_error_rate_by_date_and_user_qw",
+            fallback=False,
         )
 
         self.do_error_rate_by_date_and_cell_user_qw = self.config.getboolean(
-            self.SUB_COMPONENT_ID, "do_error_rate_by_date_and_cell_user_qw", fallback=False
+            EventQualityWarnings.COMPONENT_ID,
+            "do_error_rate_by_date_and_cell_user_qw",
+            fallback=False,
         )
 
-        self.error_rate_tresholds = self.config.geteval(self.SUB_COMPONENT_ID, "error_rate_tresholds", fallback=None)
+        self.error_rate_tresholds = self.config.geteval(
+            EventQualityWarnings.COMPONENT_ID, "error_rate_tresholds", fallback=None
+        )
 
-        self.error_type_qw_checks = self.config.geteval(self.SUB_COMPONENT_ID, "error_type_qw_checks", fallback=None)
+        self.error_type_qw_checks = self.config.geteval(
+            EventQualityWarnings.COMPONENT_ID, "error_type_qw_checks", fallback=None
+        )
 
         self.missing_value_thresholds = self.config.geteval(
-            self.SUB_COMPONENT_ID, "missing_value_thresholds", fallback=None
+            EventQualityWarnings.COMPONENT_ID, "missing_value_thresholds", fallback=None
         )
 
         self.out_of_admissible_values_thresholds = self.config.geteval(
-            self.SUB_COMPONENT_ID, "out_of_admissible_values_thresholds", fallback=None
+            EventQualityWarnings.COMPONENT_ID,
+            "out_of_admissible_values_thresholds",
+            fallback=None,
         )
 
         self.not_right_syntactic_format_thresholds = self.config.geteval(
-            self.SUB_COMPONENT_ID, "not_right_syntactic_format_thresholds", fallback=None
+            EventQualityWarnings.COMPONENT_ID,
+            "not_right_syntactic_format_thresholds",
+            fallback=None,
         )
 
         self.no_location_thresholds = self.config.geteval(
-            self.SUB_COMPONENT_ID, "no_location_thresholds", fallback=None
+            EventQualityWarnings.COMPONENT_ID, "no_location_thresholds", fallback=None
+        )
+
+        self.no_domain_thresholds = self.config.geteval(
+            EventQualityWarnings.COMPONENT_ID, "no_domain_thresholds", fallback=None
         )
 
         self.out_of_bounding_box_thresholds = self.config.geteval(
-            self.SUB_COMPONENT_ID, "out_of_bounding_box_thresholds", fallback=None
+            EventQualityWarnings.COMPONENT_ID,
+            "out_of_bounding_box_thresholds",
+            fallback=None,
         )
         # FOR DEDUPLICATION QUALITY WARNINGS
-        self.deduplication_diff_location_thresholds = self.config.geteval(
-            self.SUB_COMPONENT_ID, "deduplication_diff_location_thresholds", fallback=None
-        )
         self.deduplication_same_location_thresholds = self.config.geteval(
-            self.SUB_COMPONENT_ID, "deduplication_same_location_thresholds", fallback=None
+            EventQualityWarnings.COMPONENT_ID,
+            "deduplication_same_location_thresholds",
+            fallback=None,
         )
 
     def initalize_data_objects(self):
         self.input_qm_data_objects = {}
         self.output_qw_data_objects = {}
-        self.clear_destination_directory = self.config.getboolean(self.SUB_COMPONENT_ID, "clear_destination_directory")
+        self.clear_destination_directory = self.config.getboolean(
+            EventQualityWarnings.COMPONENT_ID, "clear_destination_directory"
+        )
 
-        self.input_qm_by_column_path_key = self.config.get(self.SUB_COMPONENT_ID, "input_qm_by_column_path_key")
-        self.input_qm_freq_distr_path_key = self.config.get(self.SUB_COMPONENT_ID, "input_qm_freq_distr_path_key")
-        self.output_qw_log_table_path_key = self.config.get(self.SUB_COMPONENT_ID, "output_qw_log_table_path_key")
+        self.input_qm_by_column_path_key = self.config.get(
+            EventQualityWarnings.COMPONENT_ID, "input_qm_by_column_path_key"
+        )
+        self.input_qm_freq_distr_path_key = self.config.get(
+            EventQualityWarnings.COMPONENT_ID, "input_qm_freq_distr_path_key"
+        )
+        self.output_qw_log_table_path_key = self.config.get(
+            EventQualityWarnings.COMPONENT_ID, "output_qw_log_table_path_key"
+        )
         self.output_qw_for_plots_path_key = self.config.get(
-            self.SUB_COMPONENT_ID, "output_qw_for_plots_path_key", fallback=None
+            EventQualityWarnings.COMPONENT_ID,
+            "output_qw_for_plots_path_key",
+            fallback=None,
         )
 
         self.input_qm_by_column_path = self.config.get(CONFIG_SILVER_PATHS_KEY, self.input_qm_by_column_path_key)
@@ -177,14 +226,14 @@ class EventQualityWarnings(Component):
             self.save_quality_warnings_for_plots(self.qw_dfs_plots)
 
     def execute(self):
-        self.logger.info(f"Starting {self.COMPONENT_ID}...")
+        self.logger.info(f"Starting {EventQualityWarnings.COMPONENT_ID}...")
         self.read()
         self.transform()  # Transforms the input_df
         self.write()
-        self.logger.info(f"Finished {self.COMPONENT_ID}")
+        self.logger.info(f"Finished {EventQualityWarnings.COMPONENT_ID}")
 
     def transform(self):
-        self.logger.info(f"Transform method {self.COMPONENT_ID}")
+        self.logger.info(f"Transform method {EventQualityWarnings.COMPONENT_ID}")
         # Read QA Metrics of EventCleaning Component, the period of intrest is
         #  [data_period_start-lookback_period_in_days, data_period_end]
         # Since QualityWarnings are calculated based on prior data
@@ -308,11 +357,11 @@ class EventQualityWarnings(Component):
                     error_type_thresholds = self.not_right_syntactic_format_thresholds
                 elif error_type == "no_location":
                     error_type_thresholds = self.no_location_thresholds
+                elif error_type == "no_domain":
+                    error_type_thresholds = self.no_domain_thresholds
                 elif error_type == "out_of_bounding_box":
                     error_type_thresholds = self.out_of_bounding_box_thresholds
-                elif error_type == "deduplication_diff_location":
-                    error_type_thresholds = self.deduplication_diff_location_thresholds
-                elif error_type == "deduplication_same_location":
+                elif error_type == "same_location_duplicate":
                     error_type_thresholds = self.deduplication_same_location_thresholds
                 else:
                     self.logger.warning(
@@ -431,7 +480,10 @@ class EventQualityWarnings(Component):
                     (psf.col(ColNames.daily_value) < psf.col(ColNames.LCL)),
                     psf.array_append(
                         psf.col("cond_warn_condition_value"),
-                        psf.concat(psf.lit(f"{cond_warn_variability}-"), psf.col(ColNames.LCL).cast("string")),
+                        psf.concat(
+                            psf.lit(f"{cond_warn_variability}-"),
+                            psf.col(ColNames.LCL).cast("string"),
+                        ),
                     ),
                 ).otherwise(psf.col("cond_warn_condition_value")),
             )
@@ -441,7 +493,10 @@ class EventQualityWarnings(Component):
                     (psf.col(ColNames.daily_value) > psf.col(ColNames.UCL)),
                     psf.array_append(
                         psf.col("cond_warn_condition_value"),
-                        psf.concat(psf.lit(f"{cond_warn_variability}-"), psf.col(ColNames.UCL).cast("string")),
+                        psf.concat(
+                            psf.lit(f"{cond_warn_variability}-"),
+                            psf.col(ColNames.UCL).cast("string"),
+                        ),
                     ),
                 ).otherwise(psf.col("cond_warn_condition_value")),
             )
@@ -450,7 +505,8 @@ class EventQualityWarnings(Component):
                 psf.when(
                     (psf.col(ColNames.daily_value) < psf.lit(lower_limit)),
                     psf.array_append(
-                        psf.col("cond_warn_condition_value"), psf.lit(f"{cond_warn_upper_lower}-{str(lower_limit)}")
+                        psf.col("cond_warn_condition_value"),
+                        psf.lit(f"{cond_warn_upper_lower}-{str(lower_limit)}"),
                     ),
                 ).otherwise(psf.col("cond_warn_condition_value")),
             )
@@ -459,13 +515,17 @@ class EventQualityWarnings(Component):
                 psf.when(
                     (psf.col(ColNames.daily_value) > psf.lit(upper_limit)),
                     psf.array_append(
-                        psf.col("cond_warn_condition_value"), psf.lit(f"{cond_warn_upper_lower}-{str(upper_limit)}")
+                        psf.col("cond_warn_condition_value"),
+                        psf.lit(f"{cond_warn_upper_lower}-{str(upper_limit)}"),
                     ),
                 ).otherwise(psf.col("cond_warn_condition_value")),
             )
         )
         # explode array column 'cond_warn_condition_value'
-        df_qw = df_qw.withColumn("cond_warn_condition_value", psf.explode(psf.col("cond_warn_condition_value")))
+        df_qw = df_qw.withColumn(
+            "cond_warn_condition_value",
+            psf.explode(psf.col("cond_warn_condition_value")),
+        )
         # add some column constants
         # split "cond_warn_condition_value" column into three: condition, wanring_text, conditon_value to
         # match SilverEventDataSyntacticQualityWarningsLogTable.SCHEMA
@@ -641,13 +701,19 @@ class EventQualityWarnings(Component):
         )
 
         error_type_rate_cond_warn_over_average = error_type_rate_cond_warn_over_average_canva.format(
-            error_type_name=error_type_qw_name, field_name=str(field_name), X=error_type_rate_over_average
+            error_type_name=error_type_qw_name,
+            field_name=str(field_name),
+            X=error_type_rate_over_average,
         )
         error_type_rate_cond_warn_upper_variability = error_type_rate_cond_warn_upper_variability_canva.format(
-            error_type_name=error_type_qw_name, field_name=str(field_name), SD=error_type_rate_upper_variability
+            error_type_name=error_type_qw_name,
+            field_name=str(field_name),
+            SD=error_type_rate_upper_variability,
         )
         error_type_rate_cond_warn_upper_limit = error_type_rate_cond_warn_upper_limit_canva.format(
-            error_type_name=error_type_qw_name, field_name=str(field_name), X=error_type_rate_upper_limit
+            error_type_name=error_type_qw_name,
+            field_name=str(field_name),
+            X=error_type_rate_upper_limit,
         )
         # for error_type that have more then one or applicable columns
         # filter df_qa_by_column by field_name and error_type
@@ -671,7 +737,8 @@ class EventQualityWarnings(Component):
         df_combined = df_qa_by_column.join(df_freq_distribution, on=ColNames.date, how="inner")
         # for each date calculate error_type_rate, a.k.a daily_value
         df_temp = df_combined.withColumn(
-            ColNames.daily_value, (psf.col(ColNames.value) / psf.col("sum_init_freq")) * 100
+            ColNames.daily_value,
+            (psf.col(ColNames.value) / psf.col("sum_init_freq")) * 100,
         )
 
         # qws will be caluclated based on previous days
@@ -784,7 +851,10 @@ class EventQualityWarnings(Component):
                     psf.col(ColNames.daily_value) > psf.col(ColNames.UCL),
                     psf.array_append(
                         psf.col("cond_warn_condition_value"),
-                        psf.concat(psf.lit(f"{cond_warn_upper_variability}-"), psf.col(ColNames.UCL).cast("string")),
+                        psf.concat(
+                            psf.lit(f"{cond_warn_upper_variability}-"),
+                            psf.col(ColNames.UCL).cast("string"),
+                        ),
                     ),
                 ).otherwise(psf.col("cond_warn_condition_value")),
             )
@@ -810,7 +880,10 @@ class EventQualityWarnings(Component):
             )
         )
         # explode array column 'cond_warn_condition_value'
-        df_qw = df_qw.withColumn("cond_warn_condition_value", psf.explode(psf.col("cond_warn_condition_value")))
+        df_qw = df_qw.withColumn(
+            "cond_warn_condition_value",
+            psf.explode(psf.col("cond_warn_condition_value")),
+        )
         # add some column constants
         # split "cond_warn_condition_value" column into three: condition, wanring_text, conditon_value to match
         # SilverEventDataSyntacticQualityWarningsLogTable.SCHEMA
@@ -851,11 +924,13 @@ class EventQualityWarnings(Component):
     def save_quality_warnings_log_table(self, dfs_qw):
 
         self.save_quality_warnings_output(
-            dfs_qw, self.output_qw_data_objects[SilverEventDataSyntacticQualityWarningsLogTable.ID]
+            dfs_qw,
+            self.output_qw_data_objects[SilverEventDataSyntacticQualityWarningsLogTable.ID],
         )
 
     def save_quality_warnings_for_plots(self, dfs_qw):
 
         self.save_quality_warnings_output(
-            dfs_qw, self.output_qw_data_objects[SilverEventDataSyntacticQualityWarningsForPlots.ID]
+            dfs_qw,
+            self.output_qw_data_objects[SilverEventDataSyntacticQualityWarningsForPlots.ID],
         )

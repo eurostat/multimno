@@ -23,14 +23,11 @@ class SilverGridDataObject(PathDataObject):
         [
             StructField(ColNames.geometry, GeometryType(), nullable=False),
             StructField(ColNames.grid_id, StringType(), nullable=False),
-            StructField(ColNames.elevation, FloatType(), nullable=True),
-            StructField(ColNames.land_use, StringType(), nullable=True),
-            StructField(ColNames.prior_probability, FloatType(), nullable=True),
+            StructField(ColNames.quadkey, StringType(), nullable=True),
         ]
     )
 
     MANDATORY_COLUMNS = [ColNames.grid_id, ColNames.geometry]
-    OPTIONAL_COLUMNS = [ColNames.elevation, ColNames.land_use, ColNames.prior_probability]
 
     def __init__(
         self, spark: SparkSession, default_path: str, partition_columns: list[str] = None, default_crs: int = 3035

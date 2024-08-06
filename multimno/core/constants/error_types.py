@@ -14,16 +14,13 @@ class ErrorTypes:
     inconsistency_between_variables = 4
     no_location = 5
     out_of_bounding_box = 6
+    no_domain = 7
     no_error = 9
-    different_location_duplicate = 10
-    same_location_duplicate = 11
+    same_location_duplicate = 10
 
     # This shows the possible error types that can happen in syntactic event cleaning
     # This is used for creating the quality metrics data object
-    event_syntactic_cleaning_possible_errors = [1, 2, 3, 4, 5, 6, 9]
-
-    # This shows the possible error types that can happen in deduplication
-    event_deduplication_possible_types = [10, 11]
+    event_syntactic_cleaning_possible_errors = [1, 2, 3, 4, 5, 6, 9, 10]
 
 
 class NetworkErrorType:
@@ -50,3 +47,4 @@ class SemanticErrorType:
     CELL_ID_NOT_VALID = 2
     INCORRECT_EVENT_LOCATION = 3
     SUSPICIOUS_EVENT_LOCATION = 4
+    DIFFERENT_LOCATION_DUPLICATE = 5

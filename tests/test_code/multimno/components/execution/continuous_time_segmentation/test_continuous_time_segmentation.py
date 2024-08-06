@@ -2,8 +2,12 @@ import pytest
 from pyspark.testing.utils import assertDataFrameEqual
 
 from multimno.core.configuration import parse_configuration
-from multimno.core.data_objects.silver.silver_time_segments_data_object import SilverTimeSegmentsDataObject
-from multimno.components.execution.time_segments.continuous_time_segmentation import ContinuousTimeSegmentation
+from multimno.core.data_objects.silver.silver_time_segments_data_object import (
+    SilverTimeSegmentsDataObject,
+)
+from multimno.components.execution.time_segments.continuous_time_segmentation import (
+    ContinuousTimeSegmentation,
+)
 from multimno.core.constants.columns import ColNames
 
 from tests.test_code.fixtures import spark_session as spark
@@ -61,7 +65,12 @@ def test_continuous_time_segmentation(spark, get_test_data):
     config = parse_configuration(TEST_GENERAL_CONFIG_PATH, component_config_path)
 
     ## Create Input data
-    set_input_data(spark, config, test_data_dict[input_events_id], test_data_dict[input_cell_intersection_groups_id])
+    set_input_data(
+        spark,
+        config,
+        test_data_dict[input_events_id],
+        test_data_dict[input_cell_intersection_groups_id],
+    )
 
     ## Init component class
     continuous_time_segmentation = ContinuousTimeSegmentation(TEST_GENERAL_CONFIG_PATH, component_config_path)
@@ -73,9 +82,9 @@ def test_continuous_time_segmentation(spark, get_test_data):
     # read from test data output
     output_data_object = continuous_time_segmentation.output_data_objects[SilverTimeSegmentsDataObject.ID]
     output_data_object.read()
+
     output_df = output_data_object.df.orderBy([ColNames.user_id, ColNames.start_timestamp])
     # assert read data == expected
-    expected_time_segments = get_expected_output_df(spark, test_data_dict[expected_output_time_segments_id]).orderBy(
-        [ColNames.user_id, ColNames.start_timestamp]
-    )
-    assertDataFrameEqual(expected_time_segments, output_data_object.df)
+    expected_time_segments = get_expected_output_df(spark, test_data_dict[expected_output_time_segments_id])
+
+    assertDataFrameEqual(output_df, expected_time_segments)

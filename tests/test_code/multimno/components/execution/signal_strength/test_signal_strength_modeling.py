@@ -1,21 +1,32 @@
 from pyspark.testing.utils import assertDataFrameEqual
 
 from multimno.core.configuration import parse_configuration
-from multimno.core.data_objects.silver.silver_signal_strength_data_object import SilverSignalStrengthDataObject
-from multimno.components.execution.signal_strength.signal_stength_modeling import SignalStrengthModeling
-
+from multimno.core.data_objects.silver.silver_signal_strength_data_object import (
+    SilverSignalStrengthDataObject,
+)
+from multimno.components.execution.signal_strength.signal_stength_modeling import (
+    SignalStrengthModeling,
+)
+from multimno.core.data_objects.silver.silver_grid_data_object import (
+    SilverGridDataObject,
+)
 from tests.test_code.fixtures import spark_session as spark
 from tests.test_code.multimno.components.execution.signal_strength.aux_signal_strength_testing import (
-    expected_data,
     set_input_network_data,
-    set_input_grid_data,
 )
-from tests.test_code.test_common import TEST_RESOURCES_PATH, TEST_GENERAL_CONFIG_PATH
+from tests.test_code.test_common import (
+    TEST_RESOURCES_PATH,
+    TEST_GENERAL_CONFIG_PATH,
+    STATIC_TEST_DATA_PATH,
+)
+from multimno.core.settings import (
+    CONFIG_SILVER_PATHS_KEY,
+)
 from tests.test_code.test_utils import setup_test_data_dir, teardown_test_data_dir
 
 
 # Dummy to avoid linting errors using pytest
-fixtures = [spark, expected_data]
+fixtures = [spark]
 
 
 def setup_function():
@@ -26,7 +37,25 @@ def teardown_function():
     teardown_test_data_dir()
 
 
-def test_signal_strength_modeling(spark, expected_data):
+def prepare_test_data(spark):
+    """
+    DESCRIPTION:
+        Function to prepare the test data for the tests.
+    """
+    # Prepare test data
+    config = parse_configuration(TEST_GENERAL_CONFIG_PATH)
+
+    grid_do = SilverGridDataObject(spark, config.get(CONFIG_SILVER_PATHS_KEY, "grid_data_silver"), ["quadkey"])
+
+    grid_sdf = spark.read.format("geoparquet").load(f"{STATIC_TEST_DATA_PATH}/grid/expected_extent_grid")
+
+    grid_do.df = grid_sdf
+    grid_do.write()
+
+    set_input_network_data(spark, config)
+
+
+def test_signal_strength_modeling(spark):
     """
     DESCRIPTION:
         Test shall execute the SignalStrengthModeling component with a cell dataframe of two rows representing
@@ -61,13 +90,15 @@ def test_signal_strength_modeling(spark, expected_data):
     config = parse_configuration(TEST_GENERAL_CONFIG_PATH, component_config_path)
 
     ## Create Input data
-    set_input_network_data(spark, config)
-    set_input_grid_data(spark, config)
+    prepare_test_data(spark)
 
     ## Init component class
     signal_strength_modeling = SignalStrengthModeling(TEST_GENERAL_CONFIG_PATH, component_config_path)
 
-    # Expected (defined as fixture)
+    # Expected
+    expected_do = SilverSignalStrengthDataObject(spark, f"{STATIC_TEST_DATA_PATH}/network/expected_signal_strength")
+    expected_do.read()
+    expected_sdf = expected_do.df
 
     # Execution
     signal_strength_modeling.execute()
@@ -77,4 +108,4 @@ def test_signal_strength_modeling(spark, expected_data):
     output_data_object = signal_strength_modeling.output_data_objects[SilverSignalStrengthDataObject.ID]
     output_data_object.read()
     # assert read data == expected
-    assertDataFrameEqual(expected_data, output_data_object.df)
+    assertDataFrameEqual(expected_sdf, output_data_object.df)

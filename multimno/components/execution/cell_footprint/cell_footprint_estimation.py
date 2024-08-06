@@ -9,7 +9,7 @@ from functools import reduce
 from pyspark.sql import DataFrame, Window
 import pyspark.sql.functions as F
 from pyspark.sql.types import ArrayType, StringType
-
+from pyspark.storagelevel import StorageLevel
 
 from multimno.core.component import Component
 from multimno.core.data_objects.silver.silver_signal_strength_data_object import (
@@ -117,7 +117,9 @@ class CellFootprintEstimation(Component):
 
         # Calculate the cell signal dominance
         cell_footprint_sdf = self.signal_strength_to_signal_dominance(
-            current_signal_strength_sdf, self.logistic_function_steepness, self.logistic_function_midpoint
+            current_signal_strength_sdf,
+            self.logistic_function_steepness,
+            self.logistic_function_midpoint,
         )
 
         # Prune max cells per grid tile
@@ -145,6 +147,10 @@ class CellFootprintEstimation(Component):
         if self.do_do_cell_intersection_groups_calculation:
 
             cell_intersection_groups_sdf = self.calculate_intersection_groups(cell_footprint_sdf)
+
+            cell_intersection_groups_sdf = cell_intersection_groups_sdf.persist(StorageLevel.MEMORY_AND_DISK)
+            cell_intersection_groups_sdf.count()
+
             cell_intersection_groups_sdf = self.calculate_all_intersection_combinations(cell_intersection_groups_sdf)
 
             cell_intersection_groups_sdf = cell_intersection_groups_sdf.select(
@@ -159,7 +165,9 @@ class CellFootprintEstimation(Component):
 
     @staticmethod
     def signal_strength_to_signal_dominance(
-        sdf: DataFrame, logistic_function_steepness: float, logistic_function_midpoint: float
+        sdf: DataFrame,
+        logistic_function_steepness: float,
+        logistic_function_midpoint: float,
     ) -> DataFrame:
         """
         Converts signal strength to signal dominance using a logistic function.
@@ -178,7 +186,8 @@ class CellFootprintEstimation(Component):
         DataFrame: A Spark DataFrame with the signal dominance added as a new column.
         """
         sdf = sdf.withColumn(
-            "scale", (F.col(ColNames.signal_strength) - logistic_function_midpoint) * logistic_function_steepness
+            "scale",
+            (F.col(ColNames.signal_strength) - logistic_function_midpoint) * logistic_function_steepness,
         )
         sdf = sdf.withColumn(ColNames.signal_dominance, 1 / (1 + F.exp(-F.col("scale"))))
         sdf = sdf.drop("scale")
@@ -245,8 +254,8 @@ class CellFootprintEstimation(Component):
         )
 
         sdf = sdf.withColumn("row_number", F.row_number().over(window))
-        # TODO: Check: Could use F.first instead of F.max as the window is sorted?
-        sdf = sdf.withColumn("max_signal_dominance", F.max(ColNames.signal_dominance).over(window))
+
+        sdf = sdf.withColumn("max_signal_dominance", F.first(ColNames.signal_dominance).over(window))
         sdf = sdf.withColumn(
             "signal_dominance_diff_percentage",
             (sdf["max_signal_dominance"] - sdf[ColNames.signal_dominance]) / sdf["max_signal_dominance"] * 100,
@@ -272,10 +281,20 @@ class CellFootprintEstimation(Component):
         Returns:
         DataFrame: A DataFrame with the intersection groups.
         """
-        intersections_sdf = sdf.groupBy(
-            F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day), F.col(ColNames.grid_id)
-        ).agg(F.array_sort(F.collect_set(ColNames.cell_id)).alias(ColNames.cells))
+        intersections_sdf = (
+            sdf.groupBy(
+                F.col(ColNames.year),
+                F.col(ColNames.month),
+                F.col(ColNames.day),
+                F.col(ColNames.grid_id),
+            )
+            .agg(F.array_sort(F.collect_set(ColNames.cell_id)).alias(ColNames.cells))
+            .select(ColNames.cells, ColNames.year, ColNames.month, ColNames.day)
+        )
 
+        intersections_sdf = intersections_sdf.drop_duplicates(
+            [ColNames.year, ColNames.month, ColNames.day, ColNames.cells]
+        )
         intersections_sdf = intersections_sdf.withColumn(ColNames.group_size, F.size(F.col(ColNames.cells)))
         intersections_sdf = intersections_sdf.filter(F.col(ColNames.group_size) > 1)
 
@@ -299,19 +318,18 @@ class CellFootprintEstimation(Component):
         max_level = sdf.agg(F.max(ColNames.group_size).alias("max")).collect()[0]["max"]
 
         for level in range(2, max_level + 1):
-
             combinations_udf = CellFootprintEstimation.generate_combinations(level)
 
-            combinations_sdf_level = (
-                sdf.filter(F.col(ColNames.group_size) >= level)
-                .withColumn(ColNames.cells, F.explode(combinations_udf(F.col(ColNames.cells))))
-                .select(ColNames.cells, ColNames.year, ColNames.month, ColNames.day)
+            combinations_sdf_level = sdf.filter(F.col(ColNames.group_size) >= level).withColumn(
+                ColNames.cells, F.explode(combinations_udf(F.col(ColNames.cells)))
             )
 
             combinations_sdf_level = combinations_sdf_level.withColumn(
                 ColNames.cells, F.array_sort(F.col(ColNames.cells))
             )
-            combinations_sdf_level = combinations_sdf_level.drop_duplicates([ColNames.cells])
+            combinations_sdf_level = combinations_sdf_level.drop_duplicates(
+                [ColNames.year, ColNames.month, ColNames.day, ColNames.cells]
+            )
 
             combinations_sdf_level = combinations_sdf_level.withColumn(ColNames.group_size, F.lit(level))
 
@@ -320,7 +338,8 @@ class CellFootprintEstimation(Component):
             )
 
             combinations_sdf_level = combinations_sdf_level.withColumn(
-                ColNames.group_id, F.concat(F.col(ColNames.group_size), F.lit("_"), F.row_number().over(window))
+                ColNames.group_id,
+                F.concat(F.col(ColNames.group_size), F.lit("_"), F.row_number().over(window)),
             )
 
             combinations_sdf.append(combinations_sdf_level)

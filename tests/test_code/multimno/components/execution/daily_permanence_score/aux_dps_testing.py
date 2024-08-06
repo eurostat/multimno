@@ -54,12 +54,13 @@ DPS_AUX_SCHEMA = StructType(
         StructField(ColNames.user_id, StringType(), nullable=False),
         StructField(ColNames.grid_id, StringType(), nullable=False),
         StructField(ColNames.time_slot_initial_time, StringType(), nullable=False),
-        StructField(ColNames.time_slot_duration, IntegerType(), nullable=False),
+        StructField(ColNames.time_slot_end_time, StringType(), nullable=False),
         StructField(ColNames.dps, IntegerType(), nullable=False),
         StructField(ColNames.year, ShortType(), nullable=False),
         StructField(ColNames.month, ByteType(), nullable=False),
         StructField(ColNames.day, ByteType(), nullable=False),
         StructField(ColNames.user_id_modulo, IntegerType(), nullable=False),
+        StructField(ColNames.id_type, StringType(), nullable=False),
     ]
 )
 
@@ -107,7 +108,9 @@ def expected_data(spark):
         spark (SparkSession): spark session.
     """
     expected_df = spark.createDataFrame([Row(**el) for el in DPS], DPS_AUX_SCHEMA)
-    expected_df = cast_timestamp_field(cast_user_id_to_binary(expected_df), ColNames.time_slot_initial_time)
+    expected_df = cast_user_id_to_binary(expected_df)
+    expected_df = cast_timestamp_field(expected_df, ColNames.time_slot_initial_time)
+    expected_df = cast_timestamp_field(expected_df, ColNames.time_slot_end_time)
     expected_df = spark.createDataFrame(expected_df.rdd, SilverDailyPermanenceScoreDataObject.SCHEMA)
     return expected_df
 

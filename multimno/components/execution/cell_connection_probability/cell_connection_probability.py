@@ -13,7 +13,9 @@ from multimno.core.data_objects.silver.silver_cell_footprint_data_object import 
     SilverCellFootprintDataObject,
 )
 
-from multimno.core.data_objects.silver.silver_grid_data_object import SilverGridDataObject
+from multimno.core.data_objects.silver.silver_enriched_grid_data_object import (
+    SilverEnrichedGridDataObject,
+)
 
 from multimno.core.spark_session import check_if_data_path_exists
 from multimno.core.settings import CONFIG_SILVER_PATHS_KEY
@@ -61,7 +63,7 @@ class CellConnectionProbabilityEstimation(Component):
         }
 
         if self.use_land_use_prior:
-            inputs["grid_data_silver"] = SilverGridDataObject
+            inputs["enriched_grid_data_silver"] = SilverEnrichedGridDataObject
 
         for key, value in inputs.items():
             path = self.config.get(CONFIG_SILVER_PATHS_KEY, key)
@@ -119,20 +121,21 @@ class CellConnectionProbabilityEstimation(Component):
         )
 
         cell_conn_probs_df = cell_footprint_df.withColumn(
-            ColNames.cell_connection_probability, F.col(ColNames.signal_dominance) / F.col("total_grid_footprint")
+            ColNames.cell_connection_probability,
+            F.col(ColNames.signal_dominance) / F.col("total_grid_footprint"),
         ).drop("total_grid_footprint")
 
         # Calculate the posterior probabilities
 
         if self.use_land_use_prior:
-            grid_model_df = self.input_data_objects[SilverGridDataObject.ID].df
+            grid_model_df = self.input_data_objects[SilverEnrichedGridDataObject.ID].df.select(
+                ColNames.grid_id, ColNames.prior_probability
+            )
 
             # TODO should default value be configurable? 1 would keep cell connection probability value
             # Assign 0 to any missing prior values
-            grid_model_df = grid_model_df.fillna(1, subset=[ColNames.prior_probability])
-
-            cell_conn_probs_df = cell_conn_probs_df.join(grid_model_df, on=ColNames.grid_id, how="left")
-
+            grid_model_df = grid_model_df.fillna(0, subset=[ColNames.prior_probability])
+            cell_conn_probs_df = cell_conn_probs_df.join(grid_model_df, on=ColNames.grid_id)
             cell_conn_probs_df = cell_conn_probs_df.withColumn(
                 ColNames.posterior_probability,
                 F.col(ColNames.cell_connection_probability) * F.col(ColNames.prior_probability),
@@ -140,17 +143,21 @@ class CellConnectionProbabilityEstimation(Component):
 
         elif not self.use_land_use_prior:
             cell_conn_probs_df = cell_conn_probs_df.withColumn(
-                ColNames.posterior_probability, F.col(ColNames.cell_connection_probability)
+                ColNames.posterior_probability,
+                F.col(ColNames.cell_connection_probability),
             )
 
         # Normalize the posterior probabilities
 
-        total_posterior_df = cell_conn_probs_df.groupBy(ColNames.cell_id).agg(
-            F.sum(ColNames.posterior_probability).alias("total_posterior_probability")
-        )
+        total_posterior_df = cell_conn_probs_df.groupBy(
+            ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id
+        ).agg(F.sum(ColNames.posterior_probability).alias("total_posterior_probability"))
 
         cell_conn_probs_df = (
-            cell_conn_probs_df.join(total_posterior_df, on=ColNames.cell_id, how="left")
+            cell_conn_probs_df.join(
+                total_posterior_df,
+                on=[ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id],
+            )
             .withColumn(
                 ColNames.posterior_probability,
                 F.col(ColNames.posterior_probability) / F.col("total_posterior_probability"),

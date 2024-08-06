@@ -13,10 +13,18 @@ import sedona.sql.st_constructors as STC
 from multimno.core.component import Component
 from multimno.core.constants.columns import ColNames
 from multimno.core.constants.error_types import SemanticErrorType
-from multimno.core.data_objects.silver.silver_network_data_object import SilverNetworkDataObject
-from multimno.core.data_objects.silver.silver_event_data_object import SilverEventDataObject
-from multimno.core.data_objects.silver.silver_event_flagged_data_object import SilverEventFlaggedDataObject
-from multimno.core.data_objects.silver.silver_semantic_quality_metrics import SilverEventSemanticQualityMetrics
+from multimno.core.data_objects.silver.silver_network_data_object import (
+    SilverNetworkDataObject,
+)
+from multimno.core.data_objects.silver.silver_event_data_object import (
+    SilverEventDataObject,
+)
+from multimno.core.data_objects.silver.silver_event_flagged_data_object import (
+    SilverEventFlaggedDataObject,
+)
+from multimno.core.data_objects.silver.silver_semantic_quality_metrics import (
+    SilverEventSemanticQualityMetrics,
+)
 from multimno.core.settings import CONFIG_SILVER_PATHS_KEY
 
 
@@ -36,6 +44,10 @@ class SemanticCleaning(Component):
         data_period_start = self.config.get(self.COMPONENT_ID, "data_period_start")
         data_period_end = self.config.get(self.COMPONENT_ID, "data_period_end")
         self.date_of_study: datetime.date = None
+
+        self.do_different_location_deduplication = self.config.getboolean(
+            self.COMPONENT_ID, "do_different_location_deduplication"
+        )
 
         try:
             self.data_period_start = datetime.datetime.strptime(data_period_start, self.date_format).date()
@@ -61,7 +73,7 @@ class SemanticCleaning(Component):
         self.semantic_min_speed = self.config.getfloat(self.COMPONENT_ID, "semantic_min_speed_m_s")
 
     def initalize_data_objects(self):
-        input_silver_event_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "event_data_silver_deduplicated")
+        input_silver_event_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "event_data_silver")
         input_silver_network_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "network_data_silver")
         output_silver_event_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "event_data_silver_flagged")
         output_silver_semantic_metrics_path = self.config.get(
@@ -69,7 +81,9 @@ class SemanticCleaning(Component):
         )
 
         input_silver_network = SilverNetworkDataObject(
-            self.spark, input_silver_network_path, partition_columns=[ColNames.year, ColNames.month, ColNames.day]
+            self.spark,
+            input_silver_network_path,
+            partition_columns=[ColNames.year, ColNames.month, ColNames.day],
         )
         input_silver_event = SilverEventDataObject(self.spark, input_silver_event_path)
         output_silver_event = SilverEventFlaggedDataObject(self.spark, output_silver_event_path)
@@ -103,7 +117,10 @@ class SemanticCleaning(Component):
                 == F.lit(self.date_of_study)
             )
             # Point geometry auxiliar column
-            .withColumn("geometry", STC.ST_Point(F.col(ColNames.latitude), F.col(ColNames.latitude))).select(
+            .withColumn(
+                "geometry",
+                STC.ST_Point(F.col(ColNames.latitude), F.col(ColNames.latitude)),
+            ).select(
                 [
                     F.col(ColNames.cell_id),
                     F.col(ColNames.latitude).alias("cell_lat"),
@@ -121,6 +138,10 @@ class SemanticCleaning(Component):
 
         # Create error flag column alongside the first error flag: non existent column
         df = self._flag_non_existent_cell_ids(df)
+
+        # Optional flagging of duplicates with different location info
+        if self.do_different_location_deduplication:
+            df = self._flag_different_location_duplicates(df)
 
         # Error flag: Check rows which have valid date start and/or valid date end, and flag when timestamp is incompatible
         df = self._flag_invalid_cell_ids(df)
@@ -152,7 +173,11 @@ class SemanticCleaning(Component):
                 flags for the events with a non existent cell ID
         """
         df = df.withColumn(
-            ColNames.error_flag, F.when(F.col("geometry").isNull(), F.lit(SemanticErrorType.CELL_ID_NON_EXISTENT))
+            ColNames.error_flag,
+            F.when(
+                F.col("geometry").isNull(),
+                F.lit(SemanticErrorType.CELL_ID_NON_EXISTENT),
+            ),
         )
         return df
 
@@ -191,7 +216,8 @@ class SemanticCleaning(Component):
         )
 
         df = df.withColumn(
-            "geometry", F.when(F.col(ColNames.error_flag).isNotNull(), F.lit(None)).otherwise(F.col("geometry"))
+            "geometry",
+            F.when(F.col(ColNames.error_flag).isNotNull(), F.lit(None)).otherwise(F.col("geometry")),
         )
         return df
 
@@ -212,12 +238,28 @@ class SemanticCleaning(Component):
         # Partition pruning
         # These windows have to be used, as all records have to be kept, and we skip them
         forward_window = (
-            Window.partitionBy([ColNames.year, ColNames.month, ColNames.day, ColNames.user_id_modulo, ColNames.user_id])
+            Window.partitionBy(
+                [
+                    ColNames.year,
+                    ColNames.month,
+                    ColNames.day,
+                    ColNames.user_id_modulo,
+                    ColNames.user_id,
+                ]
+            )
             .orderBy(ColNames.timestamp)
             .rowsBetween(Window.currentRow + 1, Window.unboundedFollowing)
         )
         backward_window = (
-            Window.partitionBy([ColNames.year, ColNames.month, ColNames.day, ColNames.user_id_modulo, ColNames.user_id])
+            Window.partitionBy(
+                [
+                    ColNames.year,
+                    ColNames.month,
+                    ColNames.day,
+                    ColNames.user_id_modulo,
+                    ColNames.user_id,
+                ]
+            )
             .orderBy(ColNames.timestamp)
             .rowsBetween(Window.unboundedPreceding, Window.currentRow - 1)
         )
@@ -229,7 +271,8 @@ class SemanticCleaning(Component):
             df
             # auxiliar column containing timestamps of non-flagged events, and null for flagged events
             .withColumn(
-                "filtered_ts", F.when(F.col(ColNames.error_flag).isNull(), F.col(ColNames.timestamp)).otherwise(None)
+                "filtered_ts",
+                F.when(F.col(ColNames.error_flag).isNull(), F.col(ColNames.timestamp)).otherwise(None),
             )
             .withColumn(
                 "next_timediff",  # time b/w curr event and first following non-flagged event timestamp
@@ -256,7 +299,8 @@ class SemanticCleaning(Component):
                 F.when(
                     F.col(ColNames.error_flag).isNull(),  # rows not flagged (yet)
                     STF.ST_DistanceSpheroid(
-                        F.col("geometry"), F.first(F.col("geometry"), ignorenulls=True).over(forward_window)
+                        F.col("geometry"),
+                        F.first(F.col("geometry"), ignorenulls=True).over(forward_window),
                     ),
                 ).otherwise(F.lit(None)),
             )
@@ -265,7 +309,8 @@ class SemanticCleaning(Component):
                 F.when(
                     F.col(ColNames.error_flag).isNull(),  # rows not flagged (yet)
                     STF.ST_DistanceSpheroid(
-                        F.col("geometry"), F.last(F.col("geometry"), ignorenulls=True).over(backward_window)
+                        F.col("geometry"),
+                        F.last(F.col("geometry"), ignorenulls=True).over(backward_window),
                     ),
                 ).otherwise(F.lit(None)),
             )
@@ -300,11 +345,43 @@ class SemanticCleaning(Component):
             ColNames.error_flag,
             F.when(
                 F.col(ColNames.error_flag).isNull(),  # for non-flagged events
-                F.when(incorrect_location_cond, F.lit(SemanticErrorType.INCORRECT_EVENT_LOCATION)).otherwise(
-                    F.when(suspicious_location_cond, F.lit(SemanticErrorType.SUSPICIOUS_EVENT_LOCATION)).otherwise(
-                        F.lit(SemanticErrorType.NO_ERROR)
-                    )
+                F.when(
+                    incorrect_location_cond,
+                    F.lit(SemanticErrorType.INCORRECT_EVENT_LOCATION),
+                ).otherwise(
+                    F.when(
+                        suspicious_location_cond,
+                        F.lit(SemanticErrorType.SUSPICIOUS_EVENT_LOCATION),
+                    ).otherwise(F.lit(SemanticErrorType.NO_ERROR))
                 ),
+            ).otherwise(F.col(ColNames.error_flag)),
+        )
+
+        return df
+
+    def _flag_different_location_duplicates(self, df: DataFrame) -> DataFrame:
+        """
+        Method that checkes for duplicates of a different location type and flags these rows with the corresponding error flag.
+        A different location duplicate is such where user_id and timestamp columns are identical,
+        but any of the cell_id, latitude or longitude columns are different.
+        In the current implementation, all column rows are counted for a given partition of user_id_modulo, user_id and timestamp.
+
+        Args:
+            df (DataFrame): PySpark DataFrame resulting from the left join of events and cells
+
+        Returns:
+            DataFrame: same DataFrame as the input with a new error flag column, containing
+                flags for the events with identical timestamps, but different cell_id or latitude or longitude column values
+        """
+
+        window_dedupl = Window.partitionBy(*[ColNames.user_id_modulo, ColNames.user_id, ColNames.timestamp])
+        # The n
+
+        df = df.withColumn(
+            ColNames.error_flag,
+            F.when(
+                F.count("*").over(window_dedupl) > 1,
+                F.lit(SemanticErrorType.DIFFERENT_LOCATION_DUPLICATE),
             ).otherwise(F.col(ColNames.error_flag)),
         )
 
@@ -345,7 +422,8 @@ class SemanticCleaning(Component):
         ]
 
         all_errors_df = self.spark.createDataFrame(
-            all_error_codes, schema=StructType([SilverEventSemanticQualityMetrics.SCHEMA[ColNames.type_of_error]])
+            all_error_codes,
+            schema=StructType([SilverEventSemanticQualityMetrics.SCHEMA[ColNames.type_of_error]]),
         )
 
         metrics_df = (

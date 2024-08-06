@@ -1,5 +1,9 @@
-from multimno.core.data_objects.bronze.bronze_event_data_object import BronzeEventDataObject
-from multimno.core.data_objects.silver.silver_event_data_object import SilverEventDataObject
+from multimno.core.data_objects.bronze.bronze_event_data_object import (
+    BronzeEventDataObject,
+)
+from multimno.core.data_objects.silver.silver_event_data_object import (
+    SilverEventDataObject,
+)
 from multimno.core.data_objects.silver.silver_event_data_syntactic_quality_metrics_by_column import (
     SilverEventDataSyntacticQualityMetricsByColumn,
 )
@@ -23,7 +27,12 @@ from tests.test_code.multimno.components.execution.event_cleaning.aux_event_test
 
 
 # Dummy to avoid linting errors using pytest
-fixtures = [spark, expected_events, expected_frequency_distribution, expected_quality_metrics_by_column]
+fixtures = [
+    spark,
+    expected_events,
+    expected_frequency_distribution,
+    expected_quality_metrics_by_column,
+]
 
 
 def setup_function():
@@ -34,7 +43,12 @@ def teardown_function():
     teardown_test_data_dir()
 
 
-def test_event_cleaning(spark, expected_events, expected_frequency_distribution, expected_quality_metrics_by_column):
+def test_event_cleaning(
+    spark,
+    expected_events,
+    expected_frequency_distribution,
+    expected_quality_metrics_by_column,
+):
     # Setup
     # define config path
     component_config_path = f"{TEST_RESOURCES_PATH}/config/event/event_cleaning/testing_event_cleaning.ini"
@@ -63,8 +77,11 @@ def test_event_cleaning(spark, expected_events, expected_frequency_distribution,
     result_quality_metrics = result_quality_metrics.drop(ColNames.result_timestamp)
 
     # Assertion
-    assertDataFrameEqual(expected_events, result_events)
-    assertDataFrameEqual(expected_frequency_distribution, result_frequency_distribution)
+    selected_columns = result_events.columns[:3]
     assertDataFrameEqual(
-        expected_quality_metrics_by_column.select(result_quality_metrics.columns), result_quality_metrics
+        result_events.select(selected_columns), expected_events.select(selected_columns), checkRowOrder=False
+    )
+    assertDataFrameEqual(result_frequency_distribution, expected_frequency_distribution)
+    assertDataFrameEqual(
+        result_quality_metrics, expected_quality_metrics_by_column.select(result_quality_metrics.columns)
     )

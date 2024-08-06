@@ -24,11 +24,15 @@ class Component(metaclass=ABCMeta):
     def __init__(self, general_config_path: str, component_config_path: str) -> None:
         self.input_data_objects: Dict[str, DataObject] = None
         self.output_data_objects: Dict[str, DataObject] = None
+
+        # Initialize variables
         self.config: ConfigParser = parse_configuration(general_config_path, component_config_path)
-        self.SUB_COMPONENT_ID: str | None = self.config.get(self.COMPONENT_ID, "SUB_COMPONENT_ID", fallback=None)
-        self.logger: Logger = generate_logger(self.config)
+        self.logger: Logger = generate_logger(self.config, self.COMPONENT_ID)
         self.spark: SparkSession = generate_spark_session(self.config)
         self.initalize_data_objects()
+
+        # Log configuration
+        self.log_config()
 
     @abstractmethod
     def initalize_data_objects(self):
@@ -66,3 +70,19 @@ class Component(metaclass=ABCMeta):
         self.transform()
         self.write()
         self.logger.info(f"Finished {self.COMPONENT_ID}")
+
+    def log_config(self):
+        """
+        Method that logs all sections and key-value pairs of a ConfigParser object.
+        """
+        # Validation
+        if self.config is None or self.logger is None:
+            return
+
+        # Log each section in order
+        for section in self.config.sections():
+            self.logger.info(f"[{section}]")
+            for key, value in self.config.items(section):
+                self.logger.info(f"{key}: {value}")
+            # Break line for each section
+            self.logger.info("")

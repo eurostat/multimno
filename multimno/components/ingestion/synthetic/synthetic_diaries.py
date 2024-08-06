@@ -75,7 +75,7 @@ class SyntheticDiaries(Component):
             output_synthetic_diaries_data_path,
             partition_columns=[ColNames.year, ColNames.month, ColNames.day],
         )
-        self.output_data_objects = {"SyntheticDiaries": bronze_synthetic_diaries}
+        self.output_data_objects = {BronzeSyntheticDiariesDataObject.ID: bronze_synthetic_diaries}
 
     def read(self):
         pass  # No input datasets are used in this component
@@ -89,7 +89,7 @@ class SyntheticDiaries(Component):
             for field in BronzeSyntheticDiariesDataObject.SCHEMA.fields
         }
         activities_df = activities_df.withColumns(columns)
-        self.output_data_objects["SyntheticDiaries"].df = activities_df
+        self.output_data_objects[BronzeSyntheticDiariesDataObject.ID].df = activities_df
 
     def haversine(self, lon1: float, lat1: float, lon2: float, lat2: float) -> float:
         """

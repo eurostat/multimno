@@ -41,6 +41,8 @@ class DailyPermanenceScore(Component):
         ).date()
 
         self.time_slot_number = self.config.getint(self.COMPONENT_ID, "time_slot_number")
+        if self.time_slot_number not in [24, 48, 96]:
+            raise ValueError("Only allowed values of time_slot_number are 24, 48, 98 -- found", self.time_slot_number)
 
         self.max_time_thresh = timedelta(seconds=self.config.getint(self.COMPONENT_ID, "max_time_thresh"))
         self.max_time_thresh_day = timedelta(seconds=self.config.getint(self.COMPONENT_ID, "max_time_thresh_day"))
@@ -48,6 +50,9 @@ class DailyPermanenceScore(Component):
         self.max_speed_thresh = self.config.getfloat(self.COMPONENT_ID, "max_speed_thresh")
 
         self.score_interval = self.config.getint(self.COMPONENT_ID, "score_interval")
+        if self.score_interval != 2:
+            raise NotImplementedError("Only allowed value of score_interval in current version is `2`")
+
         self.event_error_flags_to_include = self.config.geteval(self.COMPONENT_ID, "event_error_flags_to_include")
 
         self.data_period_dates = [
@@ -566,34 +571,62 @@ class DailyPermanenceScore(Component):
                 F.when(
                     F.col("int_init_time") < F.col("int_end_time"),
                     F.unix_timestamp(F.col("int_end_time")) - F.unix_timestamp(F.col("int_init_time")),
-                ).otherwise(0.0),
+                ).otherwise(0),
             )
             .drop("int_init_time", "int_end_time", "init_time", "end_time")
+        )
+
+        unknown_dps = (
+            dps.groupby(
+                ColNames.user_id, ColNames.user_id_modulo, ColNames.time_slot_initial_time, ColNames.time_slot_end_time
+            )
+            .agg(
+                (
+                    F.lit((timedelta(days=1) / self.time_slot_number).total_seconds()).cast(IntegerType())
+                    - F.sum("int_duration")
+                ).alias("int_duration")
+            )
             .filter(F.col("int_duration") > 0.0)
+            .select(
+                ColNames.user_id,
+                ColNames.user_id_modulo,
+                F.lit("unknown").alias("grid_id"),
+                ColNames.time_slot_initial_time,
+                ColNames.time_slot_end_time,
+                "int_duration",
+                F.lit("unknown").alias(ColNames.id_type),
+            )
+        )
+
+        known_dps = (
+            dps.filter(F.col("int_duration") > 0.0)
             .withColumn(ColNames.grid_id, F.explode("grid_ids"))
             .drop("grid_ids")
             .groupby(
                 ColNames.user_id,
-                ColNames.year,
-                ColNames.month,
-                ColNames.day,
                 ColNames.user_id_modulo,
                 ColNames.grid_id,
                 ColNames.time_slot_initial_time,
-                "time_slot_end_time",
+                ColNames.time_slot_end_time,
             )
             .agg(F.sum("int_duration").alias("int_duration"))
+            .withColumn(ColNames.id_type, F.lit("grid"))
+        )
+
+        dps = (
+            known_dps.union(unknown_dps)
             .withColumn(
-                ColNames.time_slot_duration,
+                "time_slot_duration",
                 F.lit((timedelta(days=1) / self.time_slot_number).total_seconds()).cast(IntegerType()),
             )
             .withColumn(
                 "dps",
-                F.ceil(F.lit(self.score_interval) * F.col("int_duration") / F.col(ColNames.time_slot_duration)).cast(
-                    IntegerType()
+                F.lit(-1)
+                + F.ceil(F.lit(self.score_interval) * F.col("int_duration") / F.col("time_slot_duration")).cast(
+                    ByteType()
                 ),
             )
-            .drop("int_duration", "time_slot_end_time")
+            .drop("int_duration", "time_slot_duration")
             # since some stays may be from events in previous date, fix and always set current date:
             .withColumn(ColNames.year, F.lit(self.current_date.year).cast(ShortType()))
             .withColumn(ColNames.month, F.lit(self.current_date.month).cast(ByteType()))

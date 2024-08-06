@@ -18,7 +18,7 @@ fixtures = [spark]
 def expected_net(spark):
     date_format = "%Y-%m-%dT%H:%M:%S"
     v_start = datetime.strptime("2022-12-28T01:54:45", date_format)
-    v_end = datetime.strptime("2022-12-30T06:58:50", date_format)
+    v_end = datetime.strptime("2024-12-30T06:58:50", date_format)
 
     # expected_data = data[:1]
     expected_data = [
@@ -34,6 +34,7 @@ def expected_net(spark):
             horizontal_beam_width=39.793006896972656,
             vertical_beam_width=100.03053283691406,
             power=357.10943603515625,
+            range=10_000.0,
             frequency=1281,
             technology="LTE",
             valid_date_start=v_start,
@@ -73,10 +74,11 @@ def set_input_network_data(spark: SparkSession, config: ConfigParser):
             horizontal_beam_width=39.793006896972656,
             vertical_beam_width=100.03053283691406,
             power=357.10943603515625,
+            range=10000.0,
             frequency=1281,
             technology="LTE",
             valid_date_start="2022-12-28T01:54:45",
-            valid_date_end="2022-12-30T06:58:50",
+            valid_date_end="2024-12-30T06:58:50",
             cell_type="microcell",
             year=2023,
             month=1,
@@ -94,9 +96,10 @@ def set_input_network_data(spark: SparkSession, config: ConfigParser):
             horizontal_beam_width=65.6939926147461,
             vertical_beam_width=323.4800109863281,
             power=130.9789581298828,
+            range=5_000.0,
             frequency=252,
             technology="5G",
-            valid_date_start="2022-12-21T09:27:57",
+            valid_date_start="2023-12-21T09:27:57",
             valid_date_end=None,
             cell_type="picocell",
             year=2023,

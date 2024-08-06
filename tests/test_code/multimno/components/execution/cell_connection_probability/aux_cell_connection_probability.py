@@ -3,18 +3,20 @@ from configparser import ConfigParser
 from datetime import datetime
 from pyspark.sql import SparkSession
 from pyspark.sql.types import Row
-from pyspark.sql.functions import expr, col
+import pyspark.sql.functions as F
 
 from multimno.core.constants.columns import ColNames
-from multimno.core.data_objects.silver.silver_network_data_object import SilverNetworkDataObject
-from multimno.core.data_objects.silver.silver_cell_footprint_data_object import SilverCellFootprintDataObject
-from multimno.core.data_objects.silver.silver_grid_data_object import SilverGridDataObject
+from multimno.core.data_objects.silver.silver_cell_footprint_data_object import (
+    SilverCellFootprintDataObject,
+)
+from multimno.core.data_objects.silver.silver_enriched_grid_data_object import (
+    SilverEnrichedGridDataObject,
+)
 from multimno.core.data_objects.silver.silver_cell_connection_probabilities_data_object import (
     SilverCellConnectionProbabilitiesDataObject,
 )
+import multimno.core.utils as utils
 
-# For testing of geometry column schema for grid
-from pyspark.testing import assertSchemaEqual
 from tests.test_code.fixtures import spark_session as spark
 
 # Dummy to avoid linting errors using pytest
@@ -137,46 +139,35 @@ def set_input_grid_data(spark: SparkSession, config: ConfigParser):
 
     # Currently no grid partitioning columns
     # partition_columns = [ColNames.year, ColNames.month, ColNames.day]
-    test_data_path = config["Paths.Silver"]["grid_data_silver"]
+    test_data_path = config["Paths.Silver"]["enriched_grid_data_silver"]
 
     # Prior is defined for two grids
 
     data = [
         Row(
-            geometry="POINT (-12.6298 33.8781)",
+            geometry="SRID=3035;POINT (3159450 2030350)",
             grid_id="123231342131342",
             elevation=129.12,
-            land_use="urban",
             prior_probability=0.2,
+            environment_ple_coefficient=1,
+            quadkey="1244312",
         ),
         Row(
-            geometry="POINT (-12.6292 33.8783)",
+            geometry="SRID=3035;POINT (3159550 2030350)",
             grid_id="123231342131341",
             elevation=125.12,
-            land_use="urban",
             prior_probability=0.9,
+            environment_ple_coefficient=1,
+            quadkey="1244312",
         ),
     ]
-    input_data_df_starting = spark.createDataFrame(data)
-    input_data_df_starting = input_data_df_starting.withColumn("geometry_col", expr("ST_GeomFromWKT(geometry)"))
-    input_data_df_starting = input_data_df_starting.withColumn("geometry", col("geometry_col")).drop("geometry_col")
-    input_data_df_starting = input_data_df_starting.withColumn("elevation", col("elevation").cast("float"))
-    input_data_df_starting = input_data_df_starting.withColumn(
-        "prior_probability", col("prior_probability").cast("float")
-    )
+    input_data_df = spark.createDataFrame(data)
+    input_data_df = input_data_df.withColumn("geometry", F.expr("ST_GeomFromEWKT(geometry)"))
 
-    input_data_df = input_data_df_starting[
-        "geometry",
-        "grid_id",
-        "elevation",
-        "land_use",
-        "prior_probability",
-    ]
-
-    assertSchemaEqual(input_data_df.schema, SilverGridDataObject.SCHEMA)
+    input_data_df = utils.apply_schema_casting(input_data_df, SilverEnrichedGridDataObject.SCHEMA)
 
     ### Write input data in test resources dir
 
-    input_data = SilverGridDataObject(spark, test_data_path)
+    input_data = SilverEnrichedGridDataObject(spark, test_data_path)
     input_data.df = input_data_df
     input_data.write()

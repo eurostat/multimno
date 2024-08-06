@@ -1,11 +1,15 @@
 from pyspark.testing.utils import assertDataFrameEqual
 
 from multimno.core.configuration import parse_configuration
-from multimno.core.data_objects.silver.silver_cell_footprint_data_object import SilverCellFootprintDataObject
+from multimno.core.data_objects.silver.silver_cell_footprint_data_object import (
+    SilverCellFootprintDataObject,
+)
 from multimno.core.data_objects.silver.silver_cell_intersection_groups_data_object import (
     SilverCellIntersectionGroupsDataObject,
 )
-from multimno.components.execution.cell_footprint.cell_footprint_estimation import CellFootprintEstimation
+from multimno.components.execution.cell_footprint.cell_footprint_estimation import (
+    CellFootprintEstimation,
+)
 
 from tests.test_code.fixtures import spark_session as spark
 from tests.test_code.multimno.components.execution.cell_footprint.aux_cell_footprint_testing import (
@@ -90,5 +94,5 @@ def test_cell_footprint_estimation(spark, expected_footprint, expected_intersect
     output_intersection_groups_data_object.read()
 
     # assert read data == expected
-    assertDataFrameEqual(expected_footprint, output_footprint_data_object.df)
-    assertDataFrameEqual(expected_intersection_groups, output_intersection_groups_data_object.df)
+    assertDataFrameEqual(output_footprint_data_object.df, expected_footprint)
+    assertDataFrameEqual(output_intersection_groups_data_object.df, expected_intersection_groups)

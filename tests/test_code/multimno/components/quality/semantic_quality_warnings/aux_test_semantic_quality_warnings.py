@@ -17,7 +17,9 @@ import pyspark.sql.functions as F
 
 from multimno.core.constants.columns import ColNames
 from multimno.core.constants.error_types import SemanticErrorType
-from multimno.core.data_objects.silver.silver_semantic_quality_metrics import SilverEventSemanticQualityMetrics
+from multimno.core.data_objects.silver.silver_semantic_quality_metrics import (
+    SilverEventSemanticQualityMetrics,
+)
 from multimno.core.data_objects.silver.silver_semantic_quality_warnings_log_table import (
     SilverEventSemanticQualityWarningsLogTable,
 )
@@ -33,18 +35,21 @@ def expected_warnings(spark):
         Row(
             **{
                 ColNames.date: datetime.date(2024, 1, 5),
-                "Error 1": 5.128205299377441,
-                "Error 2": 10.256410598754883,
-                "Error 3": 15.384614944458008,
-                "Error 4": 20.512821197509766,
-                "Error 1 upper control limit": 5.176095485687256,
-                "Error 2 upper control limit": 10.132071495056152,
-                "Error 3 upper control limit": 15.088047981262207,
-                "Error 4 upper control limit": 20.044023513793945,
+                "Error 1": 4.081632614135742,
+                "Error 2": 8.163265228271484,
+                "Error 3": 12.244897842407227,
+                "Error 4": 16.32653045654297,
+                "Error 5": 20.40816307067871,
+                "Error 1 upper control limit": 4.140876293182373,
+                "Error 2 upper control limit": 8.105657577514648,
+                "Error 3 upper control limit": 12.070438385009766,
+                "Error 4 upper control limit": 16.035219192504883,
+                "Error 5 upper control limit": 20.0,
                 "Error 1 display warning": False,
                 "Error 2 display warning": True,
                 "Error 3 display warning": True,
                 "Error 4 display warning": True,
+                "Error 5 display warning": True,
                 "execution_id": datetime.datetime(2024, 1, 6, 14),
                 ColNames.year: 2024,
                 ColNames.month: 1,
@@ -77,6 +82,8 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
                 return 300 + day
             elif error_code == SemanticErrorType.SUSPICIOUS_EVENT_LOCATION:
                 return 400 + day
+            elif error_code == SemanticErrorType.DIFFERENT_LOCATION_DUPLICATE:
+                return 500 + day
         else:
             if error_code == SemanticErrorType.NO_ERROR:
                 return 950
@@ -88,6 +95,8 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
                 return 300
             elif error_code == SemanticErrorType.SUSPICIOUS_EVENT_LOCATION:
                 return 400
+            elif error_code == SemanticErrorType.DIFFERENT_LOCATION_DUPLICATE:
+                return 500
 
     error_codes = [
         SemanticErrorType.NO_ERROR,
@@ -95,6 +104,7 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
         SemanticErrorType.CELL_ID_NOT_VALID,
         SemanticErrorType.INCORRECT_EVENT_LOCATION,
         SemanticErrorType.SUSPICIOUS_EVENT_LOCATION,
+        SemanticErrorType.DIFFERENT_LOCATION_DUPLICATE,
     ]
     for day in range(1, 6):
         for error_code in error_codes:
@@ -114,8 +124,12 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
 
     metrics_df = spark.createDataFrame(metrics, schema=SilverEventSemanticQualityMetrics.SCHEMA)
 
+    metrics_df.show()
+
     metrics_data = SilverEventSemanticQualityMetrics(
-        spark, metrics_test_data_path, partition_columns=[ColNames.year, ColNames.month, ColNames.day]
+        spark,
+        metrics_test_data_path,
+        partition_columns=[ColNames.year, ColNames.month, ColNames.day],
     )
     metrics_data.df = metrics_df
     metrics_data.write()

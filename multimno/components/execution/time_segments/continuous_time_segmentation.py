@@ -110,7 +110,12 @@ class ContinuousTimeSegmentation(Component):
         self.output_data_objects[SilverTimeSegmentsDataObject.ID] = SilverTimeSegmentsDataObject(
             self.spark,
             self.silver_signal_strength_path,
-            partition_columns=[ColNames.year, ColNames.month, ColNames.day, ColNames.user_id_modulo],
+            partition_columns=[
+                ColNames.year,
+                ColNames.month,
+                ColNames.day,
+                ColNames.user_id_modulo,
+            ],
         )
 
     def execute(self):
@@ -160,7 +165,11 @@ class ContinuousTimeSegmentation(Component):
                 self.input_data_objects[SilverCellIntersectionGroupsDataObject.ID]
                 .df.filter(
                     (
-                        F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day))
+                        F.make_date(
+                            F.col(ColNames.year),
+                            F.col(ColNames.month),
+                            F.col(ColNames.day),
+                        )
                         == F.lit(current_date)
                     )
                 )
@@ -169,6 +178,7 @@ class ContinuousTimeSegmentation(Component):
 
             self.transform()
             self.write()
+            self.current_segments_sdf.unpersist()
 
         self.logger.info(f"Finished {self.COMPONENT_ID}")
 
@@ -187,9 +197,16 @@ class ContinuousTimeSegmentation(Component):
             ColNames.cells, F.concat_ws(",", F.col(ColNames.cells))
         )
 
+        # Initialize an empty set
+        intersections_set = set()
+
+        # Iterate over each Row object and add the 'cells' value to the set
+        for row in groups_sdf.collect():
+            intersections_set.add(row.cells)
+
         # Broadcast the intersection groups to all the workers
         # TODO: To test this approach with large datasets, might not be feasible
-        groups_sdf = self.spark.sparkContext.broadcast(groups_sdf.collect())
+        intersections_set = self.spark.sparkContext.broadcast(intersections_set)
 
         # Partial function to pass the current date and other parameters to the aggregation function
         aggregate_stays_partial = partial(
@@ -199,7 +216,7 @@ class ContinuousTimeSegmentation(Component):
             max_time_missing_stay=self.max_time_missing_stay,
             max_time_missing_move=self.max_time_missing_move,
             pad_time=self.pad_time,
-            groups_sdf=groups_sdf,
+            intersections_set=intersections_set,
         )
 
         groupby_cols = self.input_data_objects[SilverEventFlaggedDataObject.ID].partition_columns + [ColNames.user_id]
@@ -222,6 +239,9 @@ class ContinuousTimeSegmentation(Component):
             }
         )
 
+        self.current_segments_sdf = current_segments_sdf.cache()
+        self.current_segments_sdf.count()
+
         # Need to keep last segment for the next date iteration
         # Have to add one day to time columns to be able to cogroup with the next day
         last_segments = current_segments_sdf.filter(F.col(ColNames.is_last) == True)
@@ -236,7 +256,9 @@ class ContinuousTimeSegmentation(Component):
                 ColNames.day: F.dayofmonth(ColNames.start_timestamp).cast("tinyint"),
             }
         )
+        self.intital_time_segment.unpersist()
         self.intital_time_segment = last_segments.cache()
+        last_segments.count()
 
         # TODO: This conversion is needed to get back to binary after Pandas serialisation/deserialisation,
         # to remove it when user_id will be stored as string, not as binary
@@ -250,6 +272,10 @@ class ContinuousTimeSegmentation(Component):
         }
         current_segments_sdf = current_segments_sdf.withColumns(columns)
 
+        current_segments_sdf = current_segments_sdf.repartition(
+            ColNames.year, ColNames.month, ColNames.day, ColNames.user_id_modulo
+        ).sortWithinPartitions(ColNames.user_id, ColNames.start_timestamp)
+
         self.output_data_objects[SilverTimeSegmentsDataObject.ID].df = current_segments_sdf
 
     @staticmethod
@@ -261,7 +287,7 @@ class ContinuousTimeSegmentation(Component):
         max_time_missing_stay: timedelta,
         max_time_missing_move: timedelta,
         pad_time: timedelta,
-        groups_sdf: DataFrame,
+        intersections_set: set,
     ) -> DataFrame:
         """
         Aggregates events into Time Segments for a given user.
@@ -295,8 +321,7 @@ class ContinuousTimeSegmentation(Component):
         previous_date_start = current_date_start - timedelta(days=1)
         previous_date_end = current_date_end - timedelta(days=1)
 
-        intersection_pdf = pd.DataFrame(groups_sdf.value)
-        pdf = pdf.sort_values(by=[ColNames.timestamp])
+        # pdf = pdf.sort_values(by=[ColNames.timestamp])
 
         # Depending on the presence of events and last segments, initialize the user info and the last time segment
         # If there are no events, but last segment exists use the last time segment to derrive the user info
@@ -305,15 +330,20 @@ class ContinuousTimeSegmentation(Component):
         # if there are no last segments, assume last segment as 'unknown' for the whole previous date
         # if there are last segments, use the last segment
         user_id, user_mod, mcc, current_ts = ContinuousTimeSegmentation.initialize_user_and_ts(
-            pdf, last_segments_pdf, current_date_start, current_date_end, previous_date_start, previous_date_end
+            pdf,
+            last_segments_pdf,
+            current_date_start,
+            current_date_end,
+            previous_date_start,
+            previous_date_end,
         )
         # We process events only if there are any
         if not pdf.empty:
             for event in pdf.itertuples(index=False):
                 next_ts = {}
                 ts_to_add = []
-                event_timestamp = event[1]
-                event_cell = event[3]
+                event_timestamp = event.timestamp
+                event_cell = event.cell_id
 
                 # For the first time segment to start, look at the previous day's last segment
                 # and create a new time segment with the same state starting from the day start till the first event
@@ -332,7 +362,7 @@ class ContinuousTimeSegmentation(Component):
 
                 current_intersection = list(set(current_ts[ColNames.cells] + [event_cell]))
                 is_intersected = ContinuousTimeSegmentation.check_intersection(
-                    current_ts[ColNames.cells], current_intersection, intersection_pdf
+                    current_ts[ColNames.cells], current_intersection, intersections_set
                 )
 
                 if current_ts[ColNames.state] == "unknown":
@@ -391,7 +421,11 @@ class ContinuousTimeSegmentation(Component):
                     )
 
                     next_ts_2 = ContinuousTimeSegmentation.create_time_segment(
-                        mid_point, event_timestamp, [event_cell], "move", next_ts_1[ColNames.time_segment_id]
+                        mid_point,
+                        event_timestamp,
+                        [event_cell],
+                        "move",
+                        next_ts_1[ColNames.time_segment_id],
                     )
 
                     ts_to_add = [current_ts, next_ts_1]
@@ -450,7 +484,7 @@ class ContinuousTimeSegmentation(Component):
         segments_df[ColNames.mcc] = mcc
         segments_df[ColNames.user_id_modulo] = user_mod
 
-        return segments_df.sort_values(ColNames.start_timestamp)
+        return segments_df
 
     @staticmethod
     def handle_first_segment(
@@ -517,7 +551,11 @@ class ContinuousTimeSegmentation(Component):
         else:
             pad_time = timedelta(seconds=0) if event_timestamp - current_date_start < pad_time else pad_time
             next_ts = ContinuousTimeSegmentation.create_time_segment(
-                current_date_start, event_timestamp - pad_time, [], "unknown", current_ts[ColNames.time_segment_id]
+                current_date_start,
+                event_timestamp - pad_time,
+                [],
+                "unknown",
+                current_ts[ColNames.time_segment_id],
             )
 
         return next_ts
@@ -620,7 +658,9 @@ class ContinuousTimeSegmentation(Component):
 
     @staticmethod
     def check_intersection(
-        previous_ts_inersection: List[str], current_intersection: List[str], intersection_pd_df: pdDataFrame
+        previous_ts_inersection: List[str],
+        current_intersection: List[str],
+        intersections_set: set,
     ) -> bool:
         """
         Checks if there is an intersection between the current and previous time segments.
@@ -647,7 +687,7 @@ class ContinuousTimeSegmentation(Component):
             is_intersected = False
         else:
             is_intersected = (
-                ",".join(sorted(current_intersection)) in intersection_pd_df[0].values
+                ",".join(sorted(current_intersection)) in intersections_set.value
                 if len(current_intersection) > 1
                 else True
             )
