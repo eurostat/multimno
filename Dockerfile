@@ -24,9 +24,6 @@ RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
 # Install pip
 RUN curl https://bootstrap.pypa.io/get-pip.py | python
 
-# Install pip
-RUN curl https://bootstrap.pypa.io/get-pip.py | python
-
 ARG JDK_VERSION
 # ---------- INSTALL System Libraries ----------
 # Needed for Pyspark

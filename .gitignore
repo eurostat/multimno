@@ -169,9 +169,14 @@ sample_data/*
 sample_data/lakehouse/*
 !sample_data/lakehouse/bronze
 sample_data/lakehouse/bronze/*
+# Except input data
 !sample_data/lakehouse/bronze/mno_network
 !sample_data/lakehouse/bronze/mno_events
+!sample_data/lakehouse/bronze/holiday_calendar
 !sample_data/output/
 
 docs/autodoc
 docs/reference
+
+# VSCode local history plugin
+.history/

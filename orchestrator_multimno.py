@@ -30,8 +30,12 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Load pipeline
-    with open(pipeline_config_path, encoding="utf-8") as out:
-        pipeline_config = json.load(out)
+    try:
+        with open(pipeline_config_path, encoding="utf-8") as out:
+            pipeline_config = json.load(out)
+    except json.decoder.JSONDecodeError:
+        print(f"Pipeline JSON file could not be decoded.\nBad formatted file: {pipeline_config_path}.", file=sys.stderr)
+        sys.exit(1)
 
     # Load general config
     general_config_path = pipeline_config["general_config_path"]
