@@ -58,7 +58,7 @@ ENV SPARK_VERSION=${SPARK_VERSION}
 # ---------- SEDONA ----------
 # Args
 ARG SCALA_VERSION=2.12
-ARG SEDONA_VERSION=1.5.1
+ARG SEDONA_VERSION=1.6.0
 ARG GEOTOOLS_WRAPPER_VERSION=28.2
 
 ENV SCALA_VERSION=${SCALA_VERSION}
@@ -70,8 +70,6 @@ COPY resources/scripts/install_sedona_jars.sh ${install_dir}/scripts/install_sed
 RUN ${install_dir}/scripts/install_sedona_jars.sh ${SPARK_VERSION} ${SCALA_VERSION} ${SEDONA_VERSION} ${GEOTOOLS_WRAPPER_VERSION} 
 
 # ---------- PYTHON DEPENDENCIES ----------
-RUN pip3 install pip-tools
-
 # Install requirements
 ARG install_dir=/tmp/install
 
@@ -82,9 +80,9 @@ RUN pip install --upgrade pip
 RUN apt-get update && apt-get install -y python3-dev
 
 # Standard requirements
-COPY resources/requirements/requirements.in ${install_dir}/requirements/requirements.in
-RUN pip-compile ${install_dir}/requirements/requirements.in 
-RUN pip install -r ${install_dir}/requirements/requirements.txt
+RUN pip install uv
+COPY pyproject.toml ${install_dir}/requirements/pyproject.toml
+RUN uv pip install -r ${install_dir}/requirements/pyproject.toml --system --extra=spark
 
 # Set Path environment variable
 ENV PATH="${PATH}:$SPARK_HOME/bin:$SPARK_HOME/sbin"
@@ -111,9 +109,8 @@ RUN apt update && apt install -y git
 ARG install_dir=/tmp/install
 
 # Dev requirements
-COPY resources/requirements/dev_requirements.in ${install_dir}/requirements/dev_requirements.in
-RUN pip-compile ${install_dir}/requirements/dev_requirements.in
-RUN pip install -r ${install_dir}/requirements/dev_requirements.txt
+COPY pyproject.toml ${install_dir}/requirements/pyproject.toml
+RUN uv pip install -r ${install_dir}/requirements/pyproject.toml --extra=dev --system
 
 # # Add jupyterlab alias
 RUN echo "alias jl='jupyter lab --ip=0.0.0.0 --port=8888 --no-browser  \
@@ -122,6 +119,10 @@ RUN echo "alias jl='jupyter lab --ip=0.0.0.0 --port=8888 --no-browser  \
 # ----------- CLEANUP -----------
 RUN rm -r ${install_dir}
 RUN rm -rf /var/lib/apt/lists/*
+
+# Install pip & build for python3.10 environment
+RUN curl https://bootstrap.pypa.io/get-pip.py | python3.10
+RUN python3.10 -m pip install --upgrade build
 
 # ----------- RUNTIME -----------
 # Copy the default configurations into $SPARK_HOME/conf

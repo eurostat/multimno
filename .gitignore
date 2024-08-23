@@ -177,6 +177,8 @@ sample_data/lakehouse/bronze/*
 
 docs/autodoc
 docs/reference
+upload/
+*.lock
 
 # VSCode local history plugin
 .history/

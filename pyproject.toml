@@ -1,0 +1,88 @@
+# Build
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]           # list of folders that contain the packages (["."] by default)
+include = ["multimno*"]
+
+# Project metadata
+[project]
+name = "multimno"
+version = "0.3.1"
+description = "Big data pipeline software for mobility and sociodemographic analysis from MNO Data."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Juan Arranz", email = "juan.arranz@nommon.es" },
+    { name = "Oliver Bollverk", email = "oliver.bollverk@positium.com" },
+    { name = "Miguel Picornell", email = "miguel.micornell@nommon.es" },
+    { name = "Pablo Ruiz", email = "pablo.ruiz@nommon.es" },
+    { name = "Sergio Teso", email = "sergio.teso@nommon.es" },
+    { name = "Kaarel Tonisson", email = "kaarel.tonisson@positium.com" },
+    { name = "Villem Tonisson", email = "villem.tonisson@positium.com" },
+    { name = "Ivan Vasilyev", email = "ivan.vasilyev@positium.com" },
+]
+classifiers = ["Programming Language :: Python"]
+
+requires-python = ">= 3.9"
+dependencies = [
+    # ------ Project ------
+    "numpy~=1.26", # 1.X version due to pyspark.testing(v3.5.1) needing numpy < 2.X
+    "pandas>=2.0,<2.3",
+    "pyarrow~=17.0",
+    
+    "requests~=2.31",
+    "ujson~=5.9",
+    "toml~=0.10",
+
+    # ------ sedona ------
+    "apache-sedona==1.6.0",
+    "geopandas~=0.11",      # Due to numpy 1.X versioning
+    "shapely~=1.8",         # Due to numpy 1.X versioning
+]
+
+[project.scripts]
+multimno = "main_multimno:main"
+
+# Optional dependencies
+[project.optional-dependencies]
+spark = [
+    "pyspark==3.5.1",
+    "py4j>=0.10.9.7",
+    "grpcio>=1.48,<1.57",
+    "grpcio-status>=1.48,<1.57",
+    "googleapis-common-protos==1.56.4",
+]
+dev = [
+    # Build deps
+    "build~=1.2",
+    # Test
+    "pytest~=8.0",
+    "pytest-cov~=4.1",
+    "pytest-html~=4.1",
+    # Visualization
+    "keplergl~=0.3",
+    "jupyterlab>=3.6.3,<4.0.0",
+    "pydeck~=0.8",
+    "matplotlib~=3.8",
+    "folium~=0.16",
+    "mapclassify~=2.6",
+    # Security
+    "bandit==1.7.*",
+    # Docs
+    "black==24.2.*",
+    "mkdocs~=1.5",
+    "mkdocs-material~=9.5",
+    "mkdocs-gen-files~=0.5",
+    "mkdocs-literate-nav~=0.6",
+    "mkdocs-section-index~=0.3",
+    "mkdocs-nav-weight~=0.2",
+    "mkdocstrings-python~=1.8",
+    "mike~=2.0",
+]
+
+[project.urls]
+GitHub = "https://github.com/eurostat/multimno"
+Documentation = "https://eurostat.github.io/multimno/latest"
