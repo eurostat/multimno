@@ -5,6 +5,7 @@ Module that implements the Usual Environment Labeling functionality
 import datetime as dt
 import calendar as cal
 from functools import reduce
+from typing import Union, List, Dict, Tuple
 
 from pyspark.sql import DataFrame, Window
 import pyspark.sql.functions as F
@@ -24,7 +25,7 @@ from multimno.core.data_objects.silver.silver_usual_environment_labels_data_obje
 from multimno.core.data_objects.silver.silver_usual_environment_labeling_quality_metrics_data_object import (
     SilverUsualEnvironmentLabelingQualityMetricsDataObject,
 )
-
+from multimno.core.log import get_execution_stats
 
 class UsualEnvironmentLabeling(Component):
     """
@@ -119,6 +120,7 @@ class UsualEnvironmentLabeling(Component):
         self.input_data_objects = {silver_ltps.ID: silver_ltps}
         self.output_data_objects = {ue_labels.ID: ue_labels, ue_quality_metrics.ID: ue_quality_metrics}
 
+    @get_execution_stats
     def execute(self):
         self.logger.info(f"Starting {self.COMPONENT_ID}...")
         # read input data object:
@@ -169,7 +171,7 @@ class UsualEnvironmentLabeling(Component):
 
     @staticmethod
     def check_needed_day_and_interval_types(
-        ltps_df: DataFrame, day_and_interval_type_combinations: dict[str, list[tuple[str, str]]]
+        ltps_df: DataFrame, day_and_interval_type_combinations: Dict[str, List[Tuple[str, str]]]
     ):
         """
         Method that checks if the needed combinations of day type and interval type are available
@@ -177,7 +179,7 @@ class UsualEnvironmentLabeling(Component):
 
         Args:
             ltps_df (DataFrame): provided Long-Term Permanence Score dataset
-            day_and_interval_type_combinations (dict[str,list[tuple[str,str]]]): day type and interval type
+            day_and_interval_type_combinations (Dict[str,List[Tuple[str,str]]]): day type and interval type
                 combinations that are needed for the execution of the method.
 
         Raises:
@@ -310,7 +312,7 @@ class UsualEnvironmentLabeling(Component):
 
     @staticmethod
     def add_abs_ps_threshold(
-        ltps_df: DataFrame, window: Window, gap_ps_threshold: int | float, threshold_is_absolute: bool
+        ltps_df: DataFrame, window: Window, gap_ps_threshold: Union[int, float], threshold_is_absolute: bool
     ) -> DataFrame:
         """
         Add "abs_ps_threshold" field to the ltps dataset.
@@ -414,7 +416,7 @@ class UsualEnvironmentLabeling(Component):
         return target_rows_ltps_df
 
     @staticmethod
-    def filter_by_ps(ltps_df: DataFrame) -> tuple[DataFrame, DataFrame]:
+    def filter_by_ps(ltps_df: DataFrame) -> Tuple[DataFrame, DataFrame]:
         """
         Apply the long-term permanence score filter (ps) to a Long-Term Permanence Metrics dataset. Filter rows for
         which 'lps' > abs_ps_threshold.
@@ -474,7 +476,7 @@ class UsualEnvironmentLabeling(Component):
         return target_rows_ltps_df
 
     @staticmethod
-    def filter_by_ndays(ltps_df: DataFrame) -> tuple[DataFrame, DataFrame]:
+    def filter_by_ndays(ltps_df: DataFrame) -> Tuple[DataFrame, DataFrame]:
         """
         Apply the frequency filter (number of days) to a Long-Term Permanence Metrics dataset. Filter rows
         for which 'total_frequency' > abs_ndays_threshold.
@@ -568,7 +570,7 @@ class UsualEnvironmentLabeling(Component):
         Args:
             label_type (str): label type to compute: 'ue', 'home' or 'work'.
             apply_ndays_filter (bool): Indicates if the final ndays frequency filter shall be applied in the computation
-            of the specified label type.
+                of the specified label type.
 
         Returns:
             DataFrame: labeled tiles dataset for the specified label type.
@@ -734,13 +736,13 @@ class UsualEnvironmentLabeling(Component):
         return labels_df
 
     @staticmethod
-    def get_rule_count(df: DataFrame, col_to_value: dict[str, str]) -> int:
+    def get_rule_count(df: DataFrame, col_to_value: Dict[str, str]) -> int:
         """
         Sums the count column values of the given dataframe for the corresponding filter (col_to_value).
 
         Args:
             df (DataFrame): input dataframe.
-            col_to_value (dict[str, str]): filter to apply.
+            col_to_value (Dict[str, str]): filter to apply.
 
         Returns:
             int: count column sum.

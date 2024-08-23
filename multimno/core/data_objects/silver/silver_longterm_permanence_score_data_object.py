@@ -1,3 +1,4 @@
+from typing import List
 """
 Silver Mid Term Permanence Score data object module
 """
@@ -58,7 +59,7 @@ class SilverLongtermPermanenceScoreDataObject(PathDataObject):
             ColNames.user_id_modulo,
         ]
 
-    def write(self, path: str = None, partition_columns: list[str] = None):
+    def write(self, path: str = None, partition_columns: List[str] = None):
         if path is None:
             path = self.default_path
         if partition_columns is None:

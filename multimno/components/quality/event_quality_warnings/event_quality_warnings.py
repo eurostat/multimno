@@ -1,4 +1,5 @@
 from functools import reduce
+from typing import Union, List, Tuple
 import pandas as pd
 import pyspark.sql.functions as psf
 from pyspark.sql import DataFrame
@@ -43,23 +44,23 @@ class EventQualityWarnings(Component):
     # first element - corresponding encoding of ErrorTypes class
     # second element - naming constants for coresponding measure definitions, conditions, and warning texts
     dict_error_type_info = {
-        "missing_value": [ErrorTypes.missing_value, "Missing value rate"],
+        "missing_value": [ErrorTypes.NULL_VALUE, "Missing value rate"],
         "not_right_syntactic_format": [
-            ErrorTypes.not_right_syntactic_format,
+            ErrorTypes.CANNOT_PARSE,
             "Wrong type/format rate",
         ],
         "out_of_admissible_values": [
-            ErrorTypes.out_of_admissible_values,
+            ErrorTypes.OUT_OF_RANGE,
             "Out of range rate",
         ],
-        "no_location": [ErrorTypes.no_location, "No location error rate"],
-        "no_domain": [ErrorTypes.no_location, "No domain error rate"],
+        "no_location": [ErrorTypes.NO_LOCATION_INFO, "No location error rate"],
+        "no_domain": [ErrorTypes.NO_MNO_INFO, "No domain error rate"],
         "out_of_bounding_box": [
-            ErrorTypes.out_of_bounding_box,
+            ErrorTypes.OUT_OF_RANGE,
             "Out of bounding box error rate",
         ],
         "same_location_duplicate": [
-            ErrorTypes.same_location_duplicate,
+            ErrorTypes.DUPLICATED,
             "Deduplication same locations rate",
         ],
     }
@@ -392,14 +393,14 @@ class EventQualityWarnings(Component):
         self,
         df_freq_distribution: DataFrame,
         lookback_period_in_days: int,
-        variablility: int | float,
-        lower_limit: int | float,
-        upper_limit: int | float,
+        variablility: Union[int, float],
+        lower_limit: Union[int, float],
+        upper_limit: Union[int, float],
         type_of_data: str,
         measure_definition_canva: str = f"{MeasureDefinitions.size_data}",
         cond_warn_variability_canva: str = f"{Conditions.size_data_variability}-{Warnings.size_data_variability}",
         cond_warn_upper_lower_canva: str = f"{Conditions.size_data_upper_lower}-{Warnings.size_data_upper_lower}",
-    ) -> tuple[DataFrame]:
+    ) -> Tuple[DataFrame]:
         """
         A unified function to check both raw and clean data sizes, calculates four types of QWs:
         LOWER_VARIABILITY - for each row using calculated mean and std compute lower variability limit
@@ -418,10 +419,10 @@ class EventQualityWarnings(Component):
         Args:
             df_freq_distribution (DataFrame): df with frequency data
             lookback_period_in_days (int): lenght of lookback period in days
-            variablility (int | float): config param, the number of SD to define the upper and lower varibaility
+            variablility (Union[int, float]): config param, the number of SD to define the upper and lower varibaility
                 limits: mean_size ± SD*variability, which daily_value should not exceed/be lower
-            lower_limit (int | float): absolute number which daily_value should not be lower
-            upper_limit (int | float): absolute number which daily_value can not exceed
+            lower_limit (Union[int, float]): absolute number which daily_value should not be lower
+            upper_limit (Union[int, float]): absolute number which daily_value can not exceed
             type_of_data (str): which type of data raw or clean to check for QWs
             measure_definition_canva (str): canva text to use for measure_definition column (see measure_definition.py)
             cond_warn_variability_canva (str): canva text to use for lower_upper_variability cases
@@ -555,16 +556,16 @@ class EventQualityWarnings(Component):
         self,
         df_freq_distribution: DataFrame,
         lookback_period_in_days: int,
-        variables: list[str],
-        error_rate_over_average: int | float,
-        error_rate_upper_variability: int | float,
-        error_rate_upper_limit: int | float,
+        variables: List[str],
+        error_rate_over_average: Union[int, float],
+        error_rate_upper_variability: Union[int, float],
+        error_rate_upper_limit: Union[int, float],
         error_rate_measure_definition_canva: str = f"{MeasureDefinitions.error_rate}",
         error_rate_cond_warn_over_average_canva: str = f"{Conditions.error_rate_over_average}-{Warnings.error_rate_over_average}",
         error_rate_cond_warn_upper_variability_canva: str = f"{Conditions.error_rate_upper_variability}-{Warnings.error_rate_upper_variability}",
         error_rate_cond_warn_upper_limit_canva: str = f"{Conditions.error_rate_upper_limit}-{Warnings.error_rate_upper_limit}",
         save_data_for_plots: bool = False,
-    ) -> tuple[DataFrame | None]:
+    ) -> Tuple[Union[DataFrame, None]]:
         """
         Prepare data for error rate calculation. First fill in different string canvas,
             then define window of aggregation, and calculate error_rate over the window on follwoing formula:
@@ -575,12 +576,12 @@ class EventQualityWarnings(Component):
         Args:
             df_freq_distribution (DataFrame): df with frequency data.
             lookback_period_in_days (int): number of days prior to date of interest.
-            variables (list[str]): list of column names by which error rate is calculated, kind of granularity level
-            error_rate_over_average (int | float): config param, specifies the upper limit which a daily value
+            variables (List[str]): list of column names by which error rate is calculated, kind of granularity level
+            error_rate_over_average (Union[int, float]): config param, specifies the upper limit which a daily value
                 can not exceed its corresponding mean error rate
-            error_rate_upper_variability (int | float): config param, the number of SD to define the upper
+            error_rate_upper_variability (Union[int, float]): config param, the number of SD to define the upper
                 varibaility limit: mean_rate + SD*error_rate_upper_variability, which error rate can't exceed
-            error_rate_upper_limit (int | float): absolute number which error rate can not exceed
+            error_rate_upper_limit (Union[int, float]): absolute number which error rate can not exceed
             error_rate_measure_definition_canva (str): canva text to use for measure_definition
                 column (see measure_definition.py)
             error_rate_cond_warn_over_average_canva (str): canva text to use for over_average cases of
@@ -592,7 +593,7 @@ class EventQualityWarnings(Component):
             save_data_for_plots (bool): boolean, decide whether to store error rate and its corresponding average
                 and upper variability limit for plots, default False
         Returns:
-            tuple(DataFrame | None): a tuple, where first df is used for warning log table,
+            tuple(Union[DataFrame, None]): a tuple, where first df is used for warning log table,
                 and the second df - for plots (could be also None)
         """
         # fill in all string comnstants with relevant information
@@ -648,17 +649,17 @@ class EventQualityWarnings(Component):
         self,
         df_qa_by_column: DataFrame,
         df_freq_distribution: DataFrame,
-        field_name: str | None,
+        field_name: Union[str, None],
         error_type: str,
         lookback_period_in_days: int,
-        error_type_rate_over_average: int | float,
-        error_type_rate_upper_variability: int | float,
-        error_type_rate_upper_limit: int | float,
+        error_type_rate_over_average: Union[int, float],
+        error_type_rate_upper_variability: Union[int, float],
+        error_type_rate_upper_limit: Union[int, float],
         error_type_rate_measure_definition_canva: str = f"{MeasureDefinitions.error_type_rate}",
         error_type_rate_cond_warn_over_average_canva: str = f"{Conditions.error_type_rate_over_average}-{Warnings.error_type_rate_over_average}",
         error_type_rate_cond_warn_upper_variability_canva: str = f"{Conditions.error_type_rate_upper_variability}-{Warnings.error_type_rate_upper_variability}",
         error_type_rate_cond_warn_upper_limit_canva: str = f"{Conditions.error_type_rate_upper_limit}-{Warnings.error_type_rate_upper_limit}",
-    ) -> tuple[DataFrame | None]:
+    ) -> Tuple[Union[DataFrame, None]]:
         """
         Prepare data for error type rate calculation. First fill in different string canvas, then based
             on field name and error type calculate their corresponding error rate using formula:
@@ -674,11 +675,11 @@ class EventQualityWarnings(Component):
             field_name (str | None): config param, the name of column of which to check error_type.
             error_type (str): config param, the name of error type.
             lookback_period_in_days (int): number of days prior to date of intrest.
-            error_type_rate_over_average (int | float): config param, specifies the upper limit over which daily
+            error_type_rate_over_average (Union[int, float]): config param, specifies the upper limit over which daily
                 value can not exceed its corresponding mean error rate.
-            error_type_rate_upper_variability (int | float): config param, the number of SD to define the upper
+            error_type_rate_upper_variability (Union[int, float]): config param, the number of SD to define the upper
                 varibaility limit: mean_rate + SD*error_type_rate_upper_variability, which daily value can not exceed
-            error_type_rate_upper_limit (int | float): absolute number which daily value can not exceed
+            error_type_rate_upper_limit (Union[int, float]): absolute number which daily value can not exceed
             error_type_rate_measure_definition_canva (str): canva text to use for measure_definition
                 column (see measure_definition.py)
             error_type_rate_cond_warn_over_average_canva (str): canva text to use for over_average cases of
@@ -688,7 +689,7 @@ class EventQualityWarnings(Component):
             error_type_rate_cond_warn_upper_limit_canva (str): canva text to use for upper_limit cases of
                 error_type_rate QWs (see conditions.py and warnings.py)
         Returns:
-            tuple(DataFrame | None): a tuple, where first df is used for warning log table,
+            tuple(Union[DataFrame, None]): a tuple, where first df is used for warning log table,
                 and the second df - for plots, but since save_data_for_plots always False, output=None
         """
         # based on error_type, error_type_rate_over_average, error_type_rate_upper_variability,
@@ -763,15 +764,15 @@ class EventQualityWarnings(Component):
         self,
         df_temp: DataFrame,
         window: Window,
-        rate_upper_variability: int | float,
-        rate_over_average: int | float,
-        rate_upper_limit: int | float,
+        rate_upper_variability: Union[int, float],
+        rate_over_average: Union[int, float],
+        rate_upper_limit: Union[int, float],
         measure_definition: str,
         cond_warn_upper_variability: str,
         cond_warn_over_average: str,
         cond_warn_upper_limit: str,
         save_data_for_plots: bool = False,
-    ) -> tuple[DataFrame | None]:
+    ) -> Tuple[Union[DataFrame, None]]:
         """
         Take input df with "daily_value" column, and calculates three types of QWs:
         OVER_AVERAGE - for each row first based on specified window take mean of values, and then check if
@@ -803,7 +804,7 @@ class EventQualityWarnings(Component):
             save_data_for_plots (bool): boolean, decide whether to store daily_value and its corresponding average
                 and upper variability limit for plots. Defaults to False.
         Returns:
-             tuple(DataFrame | None): a tuple, where first df is used for
+             tuple(Union[DataFrame, None]): a tuple, where first df is used for
                 warning log table, and the second df - for plots
         """
         # prepare data
@@ -902,8 +903,10 @@ class EventQualityWarnings(Component):
 
     def save_quality_warnings_output(
         self,
-        dfs_qw: list[DataFrame | None],
-        output_do: SilverEventDataSyntacticQualityWarningsLogTable | SilverEventDataSyntacticQualityWarningsForPlots,
+        dfs_qw: List[Union[DataFrame, None]],
+        output_do: Union[
+            SilverEventDataSyntacticQualityWarningsLogTable, SilverEventDataSyntacticQualityWarningsForPlots
+        ],
     ):
         """
         Concatenates all elements in dfs_qw list, adjustes to schema of output_do, and using write

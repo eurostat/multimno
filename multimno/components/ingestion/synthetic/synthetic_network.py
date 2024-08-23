@@ -8,6 +8,7 @@ from abc import abstractmethod, ABCMeta
 import pyspark.sql.functions as F
 from pyspark.sql import DataFrame
 from pyspark.sql.types import FloatType, IntegerType, StringType, LongType
+from typing import Union, List
 
 from multimno.core.settings import CONFIG_BRONZE_PATHS_KEY
 from multimno.core.component import Component
@@ -20,11 +21,11 @@ class CellIDGenerator(metaclass=ABCMeta):
     Abstract class for cell ID generation.
     """
 
-    def __init__(self, rng: int | Random) -> None:
+    def __init__(self, rng: Union[int, Random]) -> None:
         """Cell ID Generator constructor
 
         Args:
-            rng (int | Random): either an integer to act as a seed for RNG, or an instantiated Random object.
+            rng (Union[int, Random]): either an integer to act as a seed for RNG, or an instantiated Random object.
         """
         if isinstance(rng, int):
             self.rng = Random(rng)
@@ -32,14 +33,14 @@ class CellIDGenerator(metaclass=ABCMeta):
             self.rng = rng
 
     @abstractmethod
-    def generate_cell_ids(self, n_cells: int) -> list[str]:
+    def generate_cell_ids(self, n_cells: int) -> List[str]:
         """Method that generates random cell IDs.
 
         Args:
             n_cells (int): number of cell IDs to generate.
 
         Returns:
-            list[str]: list of cell IDs.
+            List[str]: list of cell IDs.
         """
         return None
 
@@ -49,7 +50,7 @@ class RandomCellIDGenerator(CellIDGenerator):
     Class that generates completely random cell IDs. Inherits from the AbstractCellIDGenerator class.
     """
 
-    def generate_cell_ids(self, n_cells: int) -> list[str]:
+    def generate_cell_ids(self, n_cells: int) -> List[str]:
         """Generate UNIQUE random cell IDs with no logic behind it, i.e. not following CGI/eCGI standards.
         The resuling cell IDs are 14- or 15-digit strings.
 
@@ -57,7 +58,7 @@ class RandomCellIDGenerator(CellIDGenerator):
             n_cells (int): number of cell IDs to generate.
 
         Returns:
-            list[str]: list of cell IDs.
+            List[str]: list of cell IDs.
         """
         return list(map(str, self.rng.sample(range(10_000_000_000_000, 999_999_999_999_999), n_cells)))
 
@@ -72,13 +73,13 @@ class CellIDGeneratorBuilder:
     CONSTRUCTORS = {RANDOM_CELL_ID: RandomCellIDGenerator}
 
     @staticmethod
-    def build(constructor_key: str, rng: int | Random) -> CellIDGenerator:
+    def build(constructor_key: str, rng: Union[int, Random]) -> CellIDGenerator:
         """
         Method that builds a CellIDGenerator.
 
         Args:
             constructor_key (str): Key of the constructor
-            rng (int | Random): either an integer to act as a seed for RNG, or an instantiated Random object.
+            rng (Union[int, Random]): either an integer to act as a seed for RNG, or an instantiated Random object.
 
         Raises:
             ValueError: If the given constructor_key is not supported

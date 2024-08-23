@@ -367,7 +367,7 @@ class OvertureDataIngestion(Component):
         Args:
             sdf (DataFrame): A DataFrame containing the building polygons.
             crs (int): The coordinate reference system of the input geometries.
-            qadkey_level (int, optional): The zoom level to use when assigning quadkeys. Defaults to 16.
+            quadkey_level (int, optional): The zoom level to use when assigning quadkeys. Defaults to 16.
 
         Returns:
             DataFrame: A DataFrame containing the merged building polygons.
@@ -468,7 +468,7 @@ class OvertureDataIngestion(Component):
 
         Returns:
             DataFrame: A new DataFrame that includes the same rows as the input DataFrame,
-            but with the columns cast to the types specified in the schema.
+                but with the columns cast to the types specified in the schema.
         """
 
         sdf = sdf.select(*[F.col(field.name) for field in schema.fields])

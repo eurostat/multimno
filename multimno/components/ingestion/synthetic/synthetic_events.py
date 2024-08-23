@@ -4,8 +4,9 @@ This module contains the SyntheticEvents class, which is responsible for generat
 
 import random
 import string
-import pandas as pd
+from datetime import datetime, timedelta
 
+import pandas as pd
 import pyspark.sql.functions as F
 from pyspark.sql import DataFrame
 from pyspark.sql.window import Window
@@ -27,7 +28,7 @@ from multimno.core.data_objects.bronze.bronze_synthetic_diaries_data_object impo
     BronzeSyntheticDiariesDataObject,
 )
 from multimno.core.settings import CONFIG_BRONZE_PATHS_KEY
-
+from multimno.core.log import get_execution_stats
 
 class SyntheticEvents(Component):
     """
@@ -81,6 +82,18 @@ class SyntheticEvents(Component):
         )
 
         self.order_output_by_timestamp = self.config.getboolean(self.COMPONENT_ID, "order_output_by_timestamp")
+        
+        self.data_period_start = datetime.strptime(
+            self.config.get(self.COMPONENT_ID, "data_period_start"), "%Y-%m-%d"
+        ).date()
+        self.data_period_end = datetime.strptime(
+            self.config.get(self.COMPONENT_ID, "data_period_end"), "%Y-%m-%d"
+        ).date()
+
+        self.data_period_dates = [
+            self.data_period_start + timedelta(days=i)
+            for i in range((self.data_period_end - self.data_period_start).days + 1)
+        ]
 
     def initalize_data_objects(self):
 
@@ -114,17 +127,40 @@ class SyntheticEvents(Component):
 
         self.output_data_objects = {BronzeEventDataObject.ID: bronze_event}
 
+    @get_execution_stats
+    def execute(self):
+        self.logger.info(f"Starting {self.COMPONENT_ID}...")
+        self.read()
+
+        for current_date in self.data_period_dates:
+
+            self.logger.info(f"Processing diaries for {current_date.strftime('%Y-%m-%d')}")
+
+            self.current_diaries = self.input_data_objects[BronzeSyntheticDiariesDataObject.ID].df.filter(
+                (F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day)) == F.lit(current_date))
+            )
+
+            self.current_cells = self.input_data_objects[BronzeNetworkDataObject.ID].df.filter(
+                (F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day)) == F.lit(current_date))
+            ).select(
+                ColNames.cell_id,
+                ColNames.latitude,
+                ColNames.longitude,
+                ColNames.year,
+                ColNames.month,
+                ColNames.day,
+            )
+
+            self.transform()
+            self.write()
+
+        self.logger.info(f"Finished {self.COMPONENT_ID}")
+
+
     def transform(self):
 
-        pop_diaries_df = self.input_data_objects[BronzeSyntheticDiariesDataObject.ID].df
-        cells_df = self.input_data_objects[BronzeNetworkDataObject.ID].df.select(
-            ColNames.cell_id,
-            ColNames.latitude,
-            ColNames.longitude,
-            ColNames.year,
-            ColNames.month,
-            ColNames.day,
-        )
+        pop_diaries_df = self.current_diaries
+        cells_df = self.current_cells
 
         # Filtering stays to get the lat and lon of movement starting and end point
         stays_df = pop_diaries_df.filter(F.col(ColNames.activity_type) == "stay")

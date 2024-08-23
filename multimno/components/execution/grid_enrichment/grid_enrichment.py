@@ -327,7 +327,7 @@ class GridEnrichment(Component):
 
         Args:
             grid_tiles (pyspark.sql.DataFrame): The DataFrame of grid tiles with landuse ratios.
-            weights_dict (dict): A dictionary where the keys are the names of the land use ratios
+            weights_dict (Dict[str, float]): A dictionary where the keys are the names of the land use ratios
             and the values are the corresponding weights.
             sum_column_name (str): The name of the new column that will contain the weighted sums.
 

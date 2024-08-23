@@ -2,6 +2,7 @@
 Module that implements classes for reading data from different data sources into a Spark DataFrames.
 """
 
+from typing import List
 from io import StringIO
 import requests
 from requests.adapters import HTTPAdapter
@@ -19,8 +20,8 @@ class IOInterface(metaclass=ABCMeta):
     @classmethod
     def __subclasshook__(cls, subclass: type) -> bool:
         if cls is IOInterface:
-            attrs: list[str] = []
-            callables: list[str] = ["read_from_interface", "write_from_interface"]
+            attrs: List[str] = []
+            callables: List[str] = ["read_from_interface", "write_from_interface"]
             ret: bool = True
             for attr in attrs:
                 ret = ret and (hasattr(subclass, attr) and isinstance(getattr(subclass, attr), property))
@@ -62,13 +63,15 @@ class PathInterface(IOInterface, metaclass=ABCMeta):
                 spark.read.schema(schema).format(self.FILE_FORMAT).load(path)
             )  # Read schema  # File format  # Load path
 
-    def write_from_interface(self, df: DataFrame, path: str, partition_columns: list[str] = None):
+    def write_from_interface(
+        self, df: DataFrame, path: str, partition_columns: List[str] = None, mode: str = "overwrite"
+    ):
         """Method that writes data from a Spark DataFrame to a file type data source.
 
         Args:
             df (DataFrame): Spark DataFrame.
             path (str): Path to the data.
-            partition_columns (list[str], optional): columns used for a partition write.
+            partition_columns (List[str], optional): columns used for a partition write.
         """
         # Args check
         if partition_columns is None:
@@ -77,7 +80,7 @@ class PathInterface(IOInterface, metaclass=ABCMeta):
         df.write.format(
             self.FILE_FORMAT,  # File format
         ).partitionBy(partition_columns).mode(
-            "overwrite"
+            mode
         ).save(path)
 
 
@@ -116,7 +119,7 @@ class ShapefileInterface(PathInterface):
         Args:
             df (DataFrame): Spark DataFrame.
             path (str): Path to the data.
-            partition_columns (list[str], optional): columns used for a partition write.
+            partition_columns (List[str], optional): columns used for a partition write.
         Raises:
             NotImplementedError: ShapeFile files should not be written in this architecture.
         """
@@ -152,7 +155,7 @@ class CsvInterface(PathInterface):
         self,
         df: DataFrame,
         path: str,
-        partition_columns: list[str] = None,
+        partition_columns: List[str] = None,
         header: bool = True,
         sep: str = ",",
     ):
@@ -161,7 +164,7 @@ class CsvInterface(PathInterface):
         Args:
             df (DataFrame): Spark DataFrame.
             path (str): Path to the data.
-            partition_columns (list[str], optional): columns used for a partition write.
+            partition_columns (List[str], optional): columns used for a partition write.
         Raises:
             NotImplementedError: csv files should not be written in this architecture.
         """

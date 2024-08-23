@@ -2,6 +2,7 @@
 Module that computes the Long-term Permanence Score
 """
 
+from typing import List
 import datetime as dt
 import calendar as cal
 from functools import reduce
@@ -20,7 +21,7 @@ from multimno.core.data_objects.silver.silver_longterm_permanence_score_data_obj
 from multimno.core.settings import CONFIG_SILVER_PATHS_KEY
 from multimno.core.constants.columns import ColNames
 from multimno.core.constants.period_names import TIME_INTERVALS, DAY_TYPES, SEASONS
-
+from multimno.core.log import get_execution_stats
 
 class LongtermPermanenceScore(Component):
     """
@@ -122,7 +123,7 @@ class LongtermPermanenceScore(Component):
         self.current_lt_analysis = None
         self.longterm_analyses = None
 
-    def _get_month_list(self, months_input: str, context: str) -> list[int]:
+    def _get_month_list(self, months_input: str, context: str) -> List[int]:
         """Read and parse a comma-separated list of months that will be assigned to a particular season. Months are
         represented by an integer from 1 to 12 and must not be repeated within the list
 
@@ -137,7 +138,7 @@ class LongtermPermanenceScore(Component):
             ValueError: repeated integers
 
         Returns:
-            list[int]: list of integers representing the months of the year that will constitute a season
+            List[int]: list of integers representing the months of the year that will constitute a season
         """
         months_input = months_input.replace(" ", "").replace("\t", "")
         if months_input == "":
@@ -176,7 +177,7 @@ class LongtermPermanenceScore(Component):
 
         self.output_data_objects = {longterm_ps.ID: longterm_ps}
 
-    def _check_midterm_data_exist(self) -> list[dict]:
+    def _check_midterm_data_exist(self) -> List[dict]:
         """Checks that the mid-term permanence score data necessary for carrying out all long-term analyses exist,
         based on the day_types and time_intervals requested for each analysis. Returns a list of dictionaries
         containing the information necessary to filter the required mid-term analysis data of each analysis.
@@ -186,7 +187,7 @@ class LongtermPermanenceScore(Component):
                 data of a particular month, required to compute some long-term analysis.
 
         Returns:
-            list[dict]: information of each long-term analysis to be performed
+            List[dict]: information of each long-term analysis to be performed
         """
         midterm_df = self.input_data_objects[SilverMidtermPermanenceScoreDataObject.ID].df
         longterm_analyses = []
@@ -355,6 +356,7 @@ class LongtermPermanenceScore(Component):
 
         self.output_data_objects[SilverLongtermPermanenceScoreDataObject.ID].df = longterm_df
 
+    @get_execution_stats
     def execute(self):
         self.logger.info("Reading data objects...")
         self.read()

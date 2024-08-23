@@ -33,7 +33,7 @@ from multimno.core.data_objects.silver.silver_network_data_top_frequent_errors_d
 )
 from multimno.core.data_objects.silver.silver_network_row_error_metrics import SilverNetworkRowErrorMetrics
 from multimno.core.settings import CONFIG_BRONZE_PATHS_KEY, CONFIG_SILVER_PATHS_KEY
-
+from multimno.core.log import get_execution_stats
 
 class NetworkCleaning(Component):
     """
@@ -665,6 +665,7 @@ class NetworkCleaning(Component):
 
         self.output_data_objects[SilverNetworkDataTopFrequentErrors.ID].df = self.accdf
 
+    @get_execution_stats
     def execute(self):
         self.read()
         for date in self.data_period_dates:

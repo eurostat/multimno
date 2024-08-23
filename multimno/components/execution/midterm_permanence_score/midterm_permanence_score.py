@@ -5,6 +5,7 @@ Module that computes the Mid-term Permanence Score.
 import datetime as dt
 import calendar as cal
 import logging
+from typing import List
 
 from pyspark.sql import DataFrame
 from pyspark.sql.types import DateType, ArrayType, FloatType, IntegerType, ShortType, ByteType
@@ -21,12 +22,12 @@ from multimno.core.data_objects.silver.silver_midterm_permanence_score_data_obje
 from multimno.core.settings import CONFIG_BRONZE_PATHS_KEY, CONFIG_SILVER_PATHS_KEY
 from multimno.core.constants.columns import ColNames
 from multimno.core.constants.period_names import TIME_INTERVALS, DAY_TYPES
-
+from multimno.core.log import get_execution_stats
 
 @F.udf(returnType=ArrayType(FloatType()))
 def frequency_and_regularity(
     arr, month_start: dt.date, extended_start: dt.date, month_end: dt.date, extended_end: dt.date
-):
+) -> List[float]:
     """PySpark UDF that calculates the mid-term frequency and regularity metrics of a device and grid tile/unknown
     location
 
@@ -44,7 +45,7 @@ def frequency_and_regularity(
         ValueError: Whenever a record reaches this function with an empty list of dates, which is unexpected behaviour
 
     Returns:
-        list: returns a list with the frequency, regularity mean and regularity sample standard deviation
+        List[float]: returns a list with the frequency, regularity mean and regularity sample standard deviation
     """
     if len(arr) == 0:
         raise ValueError("Found empty array of dates during regularity mean calculation. which should not be possible")
@@ -244,12 +245,12 @@ class MidtermPermanenceScore(Component):
         self.current_mt_period = None
         self.current_dps_data = None
 
-    def _get_midterm_periods(self) -> list[dict]:
+    def _get_midterm_periods(self) -> List[dict]:
         """Computes the date limits of each mid-term period, together with the limits of the regularity metrics' extra
         dates
 
         Returns:
-            list[dict]: list of dictionaries with the information of dates of each mid-term period
+            List[dict]: list of dictionaries with the information of dates of each mid-term period
         """
         midterm_periods = []
         start_of_the_month = self.start_date
@@ -720,7 +721,8 @@ class MidtermPermanenceScore(Component):
         )
 
         self.output_data_objects["SilverMidtermPermanenceScoreDO"].df = mps
-
+    
+    @get_execution_stats
     def execute(self):
         self.logger.info("Reading data objects...")
         self.read()

@@ -1,3 +1,4 @@
+from typing import List
 """
 Silver Device Activity Statistics module
 """
@@ -45,7 +46,7 @@ class SilverDeviceActivityStatistics(PathDataObject):
         self.interface: ParquetInterface = ParquetInterface()
         self.partition_columns = [ColNames.year, ColNames.month, ColNames.day]
 
-    def write(self, path: str = None, partition_columns: list[str] = None):
+    def write(self, path: str = None, partition_columns: List[str] = None):
         # If it is the first writing of this data object, clear the input directory, otherwise add
         if partition_columns is None:
             partition_columns = self.partition_columns

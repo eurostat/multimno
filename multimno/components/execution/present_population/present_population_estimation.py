@@ -2,7 +2,7 @@
 """
 
 import sys
-from typing import List
+from typing import List, Tuple
 from datetime import datetime, timedelta
 
 from pyspark.sql.types import (
@@ -468,7 +468,7 @@ def select_where_dates_include_time_point_window(
 
 def generate_slice_bounds(
     nr_of_partitions: int, partitions_per_slice: int, starting_id: int = 0
-) -> List[tuple[int, int]]:
+) -> List[Tuple[int, int]]:
     """
     Generates list of (lower_bound, upper_bound) pairs to be used for selecting equal-sized slices of partitioned data.
     The last slice may be smaller than others if the number of partitions is not a multiple of slice size.
@@ -479,7 +479,7 @@ def generate_slice_bounds(
         starting_id (int, optional): Number to start first slice from. Defaults to 0.
 
     Returns:
-        List[tuple[int,int]]: list of (lower_bound, upper_bound) pairs
+        List[Tuple[int,int]]: list of (lower_bound, upper_bound) pairs
     """
     # TODO this might be reusable across components.
     lower_bound = starting_id

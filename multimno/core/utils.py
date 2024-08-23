@@ -11,16 +11,15 @@ from sedona.sql import st_functions as STF
 from sedona.sql import st_predicates as STP
 from sedona.sql import st_aggregates as STA
 from sedona.sql import st_functions as STF
-from sedona.sql.types import GeometryType
 
 import pyspark.sql.functions as F
 from pyspark.sql.window import Window
 from pyspark.sql import DataFrame
-from pyspark.sql.types import StringType, StructType, BooleanType
+from pyspark.sql.types import StringType, StructType
 from multimno.core.constants.columns import ColNames
 
 
-def quadkey_to_extent(quadkey: str):
+def quadkey_to_extent(quadkey: str) -> Tuple[float, float, float, float]:
     """
     Converts a quadkey to a geographic extent (bounding box).
 
@@ -33,7 +32,7 @@ def quadkey_to_extent(quadkey: str):
 
     Returns:
         tuple: A tuple representing the geographic extent of the quadkey. The tuple contains four
-        elements: (longitude_min, latitude_min, longitude_max, latitude_max).
+            elements: (longitude_min, latitude_min, longitude_max, latitude_max).
     """
     tile_x, tile_y, zoom_level = quadkey_to_tile(quadkey)
     n = 2.0**zoom_level

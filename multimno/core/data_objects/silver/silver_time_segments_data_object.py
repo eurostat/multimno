@@ -1,3 +1,4 @@
+from typing import List
 """
 
 """
@@ -44,7 +45,7 @@ class SilverTimeSegmentsDataObject(PathDataObject):
         ]
     )
 
-    def __init__(self, spark: SparkSession, default_path: str, partition_columns: list[str] = None) -> None:
+    def __init__(self, spark: SparkSession, default_path: str, partition_columns: List[str] = None) -> None:
         super().__init__(spark, default_path)
         self.interface: ParquetInterface = ParquetInterface()
         self.partition_columns = partition_columns
@@ -52,7 +53,7 @@ class SilverTimeSegmentsDataObject(PathDataObject):
         # Clear path
         self.first_write = True
 
-    def write(self, path: str = None, partition_columns: list[str] = None):
+    def write(self, path: str = None, partition_columns: List[str] = None):
         # If it is the first writing of this data object, clear the input directory, otherwise add
         if partition_columns is None:
             partition_columns = self.partition_columns

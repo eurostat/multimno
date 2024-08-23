@@ -1,3 +1,4 @@
+from typing import List
 """
 Silver Daily Permanence Score data module
 """
@@ -54,7 +55,7 @@ class SilverDailyPermanenceScoreDataObject(PathDataObject):
         # Clear path
         self.first_write = True
 
-    def write(self, path: str = None, partition_columns: list[str] = None):
+    def write(self, path: str = None, partition_columns: List[str] = None):
         # If it is the first writing of this data object, clear the input directory, otherwise add
         if partition_columns is None:
             partition_columns = self.partition_columns

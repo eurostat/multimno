@@ -2,6 +2,7 @@
 
 """
 
+from typing import List
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType
 
@@ -17,7 +18,7 @@ class LandingGeoParquetDataObject(PathDataObject):
 
     ID = "LandingGeoParquetDO"
 
-    def __init__(self, spark: SparkSession, default_path: str, partition_columns: list[str] = None) -> None:
+    def __init__(self, spark: SparkSession, default_path: str, partition_columns: List[str] = None) -> None:
 
         super().__init__(spark, default_path)
         self.interface: GeoParquetInterface = GeoParquetInterface()
@@ -27,7 +28,7 @@ class LandingGeoParquetDataObject(PathDataObject):
 
         self.df = self.interface.read_from_interface(self.spark, self.default_path, self.SCHEMA)
 
-    def write(self, path: str = None, partition_columns: list[str] = None):
+    def write(self, path: str = None, partition_columns: List[str] = None):
 
         if partition_columns is None:
             partition_columns = self.partition_columns

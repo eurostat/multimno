@@ -29,7 +29,7 @@ from multimno.core.data_objects.silver.silver_device_activity_statistics import 
 from multimno.core.spark_session import check_if_data_path_exists, delete_file_or_folder
 from multimno.core.settings import CONFIG_SILVER_PATHS_KEY, TIMEZONE_CONFIG_KEY
 from multimno.core.constants.columns import ColNames
-
+from multimno.core.log import get_execution_stats
 
 class DeviceActivityStatistics(Component):
     """
@@ -98,6 +98,7 @@ class DeviceActivityStatistics(Component):
         self.local_tz = pytz.timezone(self.local_timezone_str)
         self.utc_tz = pytz.timezone("UTC")
 
+    @get_execution_stats
     def execute(self):
         self.logger.info(f"Starting {self.COMPONENT_ID}...")
 

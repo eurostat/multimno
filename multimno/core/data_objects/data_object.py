@@ -55,3 +55,35 @@ class PathDataObject(DataObject, metaclass=ABCMeta):
             path = self.default_path
 
         self.interface.write_from_interface(self.df, path, partition_columns)
+
+    def get_size(self) -> int:
+        """
+        Returns the size of the data object in bytes.
+        """
+        files = self.df.inputFiles()
+        
+        if len(files) == 0:
+            return 0
+        
+        conf = self.spark._jsc.hadoopConfiguration()
+        # need to get proper URI prefix for the file system
+        uri = self.spark._jvm.java.net.URI.create(files[0])
+        fs = self.spark._jvm.org.apache.hadoop.fs.FileSystem.get(uri, conf)
+        total_size = 0
+
+        for file in files:
+            total_size += fs.getFileStatus(self.spark._jvm.org.apache.hadoop.fs.Path(file)).getLen()
+        
+        return total_size
+    
+    def get_num_files(self) -> int:
+        """
+        Returns the number of files of the data object.
+        """
+        return len(self.df.inputFiles())
+    
+    def get_top_rows(self, n: int, truncate: int = 20) -> str:
+        """
+        Returns string with top n rows. Same as df.show.
+        """
+        return self.df._jdf.showString(n, truncate, False)

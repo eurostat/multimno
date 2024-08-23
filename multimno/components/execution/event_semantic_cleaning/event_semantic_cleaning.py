@@ -26,7 +26,11 @@ from multimno.core.data_objects.silver.silver_semantic_quality_metrics import (
     SilverEventSemanticQualityMetrics,
 )
 from multimno.core.settings import CONFIG_SILVER_PATHS_KEY
-
+from multimno.core.spark_session import (
+    check_if_data_path_exists,
+    delete_file_or_folder,
+)
+from multimno.core.log import get_execution_stats
 
 class SemanticCleaning(Component):
     """
@@ -73,6 +77,9 @@ class SemanticCleaning(Component):
         self.semantic_min_speed = self.config.getfloat(self.COMPONENT_ID, "semantic_min_speed_m_s")
 
     def initalize_data_objects(self):
+        self.clear_destination_directory = self.config.getboolean(
+            self.COMPONENT_ID, "clear_destination_directory"
+        )
         input_silver_event_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "event_data_silver")
         input_silver_network_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "network_data_silver")
         output_silver_event_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "event_data_silver_flagged")
@@ -86,7 +93,11 @@ class SemanticCleaning(Component):
             partition_columns=[ColNames.year, ColNames.month, ColNames.day],
         )
         input_silver_event = SilverEventDataObject(self.spark, input_silver_event_path)
-        output_silver_event = SilverEventFlaggedDataObject(self.spark, output_silver_event_path)
+
+        if self.clear_destination_directory:
+            delete_file_or_folder(self.spark, output_silver_event_path)
+
+        output_silver_event = SilverEventFlaggedDataObject(self.spark, output_silver_event_path, mode="append")
         output_silver_semantic_metrics = SilverEventSemanticQualityMetrics(
             self.spark,
             output_silver_semantic_metrics_path,
@@ -152,7 +163,9 @@ class SemanticCleaning(Component):
         # Keep only the necessary columns and remove auxiliar ones
         df = df.select(SilverEventFlaggedDataObject.SCHEMA.names)
 
-        df.cache()
+        df = df.repartition(ColNames.year, ColNames.month, ColNames.day, ColNames.user_id_modulo)
+
+        # df.cache()
 
         # Semantic metrics
         metrics_df = self._compute_semantic_metrics(df)
@@ -374,17 +387,31 @@ class SemanticCleaning(Component):
                 flags for the events with identical timestamps, but different cell_id or latitude or longitude column values
         """
 
-        window_dedupl = Window.partitionBy(*[ColNames.user_id_modulo, ColNames.user_id, ColNames.timestamp])
-        # The n
-
+        # Hash the columns that define a unique location
+        df = df.withColumn(
+            "location_hash",
+            F.hash(ColNames.cell_id, ColNames.latitude, ColNames.longitude, ColNames.plmn)
+        )
+        
+        # Define a window partitioned by user_id only
+        window = Window.partitionBy(ColNames.year,
+                                    ColNames.month,
+                                    ColNames.day,
+                                    ColNames.user_id_modulo,
+                                    ColNames.user_id).orderBy(ColNames.timestamp)
+        
+        # Mark rows with the same user_id and timestamp but different location hashes as duplicates
         df = df.withColumn(
             ColNames.error_flag,
             F.when(
-                F.count("*").over(window_dedupl) > 1,
-                F.lit(SemanticErrorType.DIFFERENT_LOCATION_DUPLICATE),
-            ).otherwise(F.col(ColNames.error_flag)),
+                ((F.lag("location_hash", 1).over(window) != F.col("location_hash")) &
+                (F.lag(ColNames.timestamp, 1).over(window) == F.col(ColNames.timestamp))) |
+                ((F.lead("location_hash", 1).over(window) != F.col("location_hash")) &
+                (F.lead(ColNames.timestamp, 1).over(window) == F.col(ColNames.timestamp))),
+                F.lit(SemanticErrorType.DIFFERENT_LOCATION_DUPLICATE)
+            ).otherwise(F.col(ColNames.error_flag))
         )
-
+        
         return df
 
     def _compute_semantic_metrics(self, df: DataFrame) -> DataFrame:
@@ -442,6 +469,7 @@ class SemanticCleaning(Component):
 
         return metrics_df
 
+    @get_execution_stats
     def execute(self):
         """
         Method that performs the read, transform and write methods of the component.

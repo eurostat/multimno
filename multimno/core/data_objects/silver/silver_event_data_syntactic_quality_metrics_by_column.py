@@ -1,3 +1,5 @@
+from typing import List
+
 """
 Silver Event Data quality metrics.
 """
@@ -16,6 +18,7 @@ from pyspark.sql.types import (
 
 from multimno.core.data_objects.data_object import PathDataObject
 from multimno.core.io_interface import ParquetInterface
+from multimno.core.constants.columns import ColNames
 
 
 class SilverEventDataSyntacticQualityMetricsByColumn(PathDataObject):
@@ -26,31 +29,26 @@ class SilverEventDataSyntacticQualityMetricsByColumn(PathDataObject):
     ID = "SilverEventDataSyntacticQualityMetricsByColumn"
     SCHEMA = StructType(
         [
-            StructField("result_timestamp", TimestampType(), nullable=False),
-            StructField("date", DateType(), nullable=False),
-            StructField("variable", StringType(), nullable=True),
-            StructField("type_of_error", ShortType(), nullable=True),
-            StructField("type_of_transformation", ShortType(), nullable=True),
-            StructField("value", IntegerType(), nullable=False),
+            StructField(ColNames.result_timestamp, TimestampType(), nullable=False),
+            StructField(ColNames.date, DateType(), nullable=False),
+            StructField(ColNames.variable, StringType(), nullable=True),
+            StructField(ColNames.type_of_error, ShortType(), nullable=True),
+            StructField(ColNames.value, IntegerType(), nullable=False),
         ]
     )
 
-    def __init__(self, spark: SparkSession, default_path: str) -> None:
+    def __init__(self, spark: SparkSession, default_path: str, mode="overwrite") -> None:
         super().__init__(spark, default_path)
-        self.interface: ParquetInterface = ParquetInterface()
-        self.partition_columns = ["date"]
+        self.interface = ParquetInterface()
+        self.partition_columns = [ColNames.date]
+        self.mode = mode
 
-        # (variable, type_of_error, type_of_transformation) : value
-        self.error_and_transformation_counts = defaultdict(int)
-
-    def write(self, path: str = None, partition_columns: list[str] = None):
+    def write(self, path: str = None, partition_columns: List[str] = None, mode=None):
         if path is None:
             path = self.default_path
         if partition_columns is None:
             partition_columns = self.partition_columns
+        if mode is None:
+            mode = self.mode
 
-        self.df.write.format(
-            self.interface.FILE_FORMAT,  # File format
-        ).partitionBy(partition_columns).mode(
-            "append"
-        ).save(path)
+        self.interface.write_from_interface(self.df, path, partition_columns, mode)

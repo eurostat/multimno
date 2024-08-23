@@ -1,3 +1,4 @@
+from typing import List
 """
 Silver present population estimatation per zone data object
 """
@@ -36,12 +37,12 @@ class SilverPresentPopulationZoneDataObject(PathDataObject):
         ]
     )
 
-    def __init__(self, spark: SparkSession, default_path: str, partition_columns: list[str] = None) -> None:
+    def __init__(self, spark: SparkSession, default_path: str, partition_columns: List[str] = None) -> None:
         super().__init__(spark, default_path)
         self.interface = ParquetInterface()
         self.partition_columns = partition_columns
 
-    def write(self, path: str = None, partition_columns: list[str] = None):
+    def write(self, path: str = None, partition_columns: List[str] = None):
         if path is None:
             path = self.default_path
         if partition_columns is None:

@@ -18,11 +18,13 @@ class ColNames:
     latitude = "latitude"
     longitude = "longitude"
     error_flag = "error_flag"
+    transformation_flag = "transformation_flag"
+    affected_field = "affected_field"
     domain = "domain"
     # default values for domain col
-    domestic = "domestic"
-    inbound = "inbound"
-    outbound = "outbound"
+    domestic = 1
+    inbound = 2
+    outbound = 3
 
     altitude = "altitude"
     antenna_height = "antenna_height"

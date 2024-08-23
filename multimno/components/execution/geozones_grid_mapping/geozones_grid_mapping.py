@@ -29,7 +29,7 @@ from multimno.core.settings import (
 )
 from multimno.core.constants.columns import ColNames
 import multimno.core.utils as utils
-
+from multimno.core.log import get_execution_stats
 
 class GeozonesGridMapping(Component):
     """
@@ -91,6 +91,7 @@ class GeozonesGridMapping(Component):
             ],
         )
 
+    @get_execution_stats
     def execute(self):
 
         self.logger.info(f"Starting {self.COMPONENT_ID}...")

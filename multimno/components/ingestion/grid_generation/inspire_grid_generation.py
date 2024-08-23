@@ -21,7 +21,7 @@ from multimno.core.spark_session import delete_file_or_folder
 from multimno.core.settings import CONFIG_SILVER_PATHS_KEY, CONFIG_BRONZE_PATHS_KEY
 from multimno.core.constants.columns import ColNames
 import multimno.core.utils as utils
-
+from multimno.core.log import get_execution_stats
 
 class InspireGridGeneration(Component):
     """
@@ -87,6 +87,7 @@ class InspireGridGeneration(Component):
             self.spark, grid_do_path, [ColNames.quadkey]
         )
 
+    @get_execution_stats
     def execute(self):
 
         self.logger.info(f"Starting {self.COMPONENT_ID}...")

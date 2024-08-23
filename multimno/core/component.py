@@ -12,6 +12,7 @@ from multimno.core.configuration import parse_configuration
 from multimno.core.data_objects.data_object import DataObject
 from multimno.core.log import generate_logger
 from multimno.core.spark_session import generate_spark_session
+from multimno.core.log import get_execution_stats
 
 
 class Component(metaclass=ABCMeta):
@@ -61,6 +62,7 @@ class Component(metaclass=ABCMeta):
         for data_object in self.output_data_objects.values():
             data_object.write()
 
+    @get_execution_stats
     def execute(self):
         """
         Method that performs the read, transform and write methods of the component.

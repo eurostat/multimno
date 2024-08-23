@@ -4,7 +4,7 @@ Module that generates a MNO synthetic network.
 
 import datetime
 from math import sqrt, pi, cos, sin, asin, radians
-from typing import Any
+from typing import Any, List, Tuple, Set
 from random import Random
 from pyspark.sql import Row
 import pyspark.sql.functions as F
@@ -141,15 +141,15 @@ class SyntheticDiaries(Component):
             seed += i
         return seed
 
-    def calculate_trip_time(self, o_location: tuple[float, float], d_location: tuple[float, float]) -> float:
+    def calculate_trip_time(self, o_location: Tuple[float, float], d_location: Tuple[float, float]) -> float:
         """
         Calculate trip time given an origin location and a destination
         location, according to the specified trip speed.
 
         Args:
-            o_location (tuple[float,float]): lon, lat of 1st point,
+            o_location (Tuple[float,float]): lon, lat of 1st point,
                 in decimal degrees.
-            d_location (tuple[float,float]): lon, lat of 2nd point,
+            d_location (Tuple[float,float]): lon, lat of 2nd point,
                 in decimal degrees.
 
         Returns:
@@ -162,8 +162,8 @@ class SyntheticDiaries(Component):
 
     def calculate_trip_final_time(
         self,
-        origin_location: tuple[float, float],
-        destin_location: tuple[float, float],
+        origin_location: Tuple[float, float],
+        destin_location: Tuple[float, float],
         origin_timestamp: datetime.datetime,
     ) -> datetime.datetime:
         """
@@ -171,9 +171,9 @@ class SyntheticDiaries(Component):
         a destination location and a speed.
 
         Args:
-            origin_location (tuple[float,float]): lon, lat of 1st point,
+            origin_location (Tuple[float,float]): lon, lat of 1st point,
                 in decimal degrees.
-            destin_location (tuple[float,float]): lon, lat of 2nd point,
+            destin_location (Tuple[float,float]): lon, lat of 2nd point,
                 in decimal degrees.
             origin_timestamp (datetime.datetime): start time of trip.
 
@@ -187,29 +187,29 @@ class SyntheticDiaries(Component):
     def generate_stay_location(
         self,
         stay_type: str,
-        home_location: tuple[float, float],
-        work_location: tuple[float, float],
-        previous_location: tuple[float, float],
+        home_location: Tuple[float, float],
+        work_location: Tuple[float, float],
+        previous_location: Tuple[float, float],
         user_id: int,
         date: datetime.date,
         i: int,
-    ) -> tuple[float, float]:
+    ) -> Tuple[float, float]:
         """
         Generate a random activity location within the bounding box limits based
         on the activity type and previous activity locations.
 
         Args:
             stay_type (str): type of stay ("home", "work" or "other").
-            home_location (tuple[float,float]): coordinates of home location.
-            work_location (tuple[float,float]): coordinates of work location.
-            previous_location (tuple[float,float]): coordinates of previous
+            home_location (Tuple[float,float]): coordinates of home location.
+            work_location (Tuple[float,float]): coordinates of work location.
+            previous_location (Tuple[float,float]): coordinates of previous
                 activity location.
             user_id (int): agent identifier, used for random seed generation.
             date (datetime.date): date, used for random seed generation.
             i (int): activity position, used for random seed generation.
 
         Returns:
-            tuple[float,float]: randomly generated activity location coordinates.
+            Tuple[float,float]: randomly generated activity location coordinates.
         """
         if stay_type == "home":
             location = home_location
@@ -222,30 +222,30 @@ class SyntheticDiaries(Component):
     def create_agent_activities_min_duration(
         self,
         user_id: int,
-        agent_stay_type_sequence: list[str],
-        home_location: tuple[float, float],
-        work_location: tuple[float, float],
+        agent_stay_type_sequence: List[str],
+        home_location: Tuple[float, float],
+        work_location: Tuple[float, float],
         date: datetime.date,
         start_of_date: datetime.datetime,
         end_of_date: datetime.datetime,
-    ) -> list[Row]:
+    ) -> List[Row]:
         """
         Generate activities of the minimum duration following the specified agent
         activity sequence for this agent and date.
 
         Args:
             user_id (int): agent identifier.
-            agent_stay_type_sequence (list[str]): list of generated stay types,
+            agent_stay_type_sequence (List[str]): list of generated stay types,
                 each represented by a string indicating the stay type.
-            home_location (tuple[float,float]): coordinates of home location.
-            work_location (tuple[float,float]): coordinates of work location.
+            home_location (Tuple[float,float]): coordinates of home location.
+            work_location (Tuple[float,float]): coordinates of work location.
             date (datetime.date): date for activity sequence generation, used for
                 timestamps and random seed generation.
             start_of_date (datetime.datetime): timestamp of current date at 00:00:00.
             end_of_date (datetime.datetime): timestamp of current date at 23:59:59.
 
         Returns:
-            list[Row]: list of generated activities and trips, each represented by a
+            List[Row]: list of generated activities and trips, each represented by a
                 spark row object with all its information.
         """
         date_activities = []
@@ -342,7 +342,7 @@ class SyntheticDiaries(Component):
 
     def adjust_activity_times(
         self,
-        date_activities: list[Row],
+        date_activities: List[Row],
         remaining_time: float,
         user_id: int,
         date: datetime.date,
@@ -356,7 +356,7 @@ class SyntheticDiaries(Component):
         durations of the activities to the 24h of the day.
 
         Args:
-            date_activities (list[Row]): list of generated activities (stays and
+            date_activities (List[Row]): list of generated activities (stays and
                 moves) of the agent for the specified date. Each activity/trip is a
                 spark row object.
             user_id (int): agent identifier.
@@ -394,11 +394,11 @@ class SyntheticDiaries(Component):
 
     def add_agent_date_activities(
         self,
-        activities: list[Row],
+        activities: List[Row],
         user_id: int,
-        agent_stay_type_sequence: list[str],
-        home_location: tuple[float, float],
-        work_location: tuple[float, float],
+        agent_stay_type_sequence: List[str],
+        home_location: Tuple[float, float],
+        work_location: Tuple[float, float],
         date: datetime.date,
         start_of_date: datetime.datetime,
         end_of_date: datetime.datetime,
@@ -419,14 +419,14 @@ class SyntheticDiaries(Component):
         and this remaining time, making the diary end at exactly 23:59:59.
 
         Args:
-            activities (list[Row]): list of generated activities (stays and moves) for
+            activities (List[Row]): list of generated activities (stays and moves) for
                 the agent for all of the specified dates. Each activity is a spark
                 row object.
             user_id (int): agent identifier.
-            agent_stay_type_sequence (list[str]): list of generated stay types,
+            agent_stay_type_sequence (List[str]): list of generated stay types,
                 each represented by a string indicating the stay type.
-            home_location (tuple[float,float]): coordinates of home location.
-            work_location (tuple[float,float]): coordinates of work location.
+            home_location (Tuple[float,float]): coordinates of home location.
+            work_location (Tuple[float,float]): coordinates of work location.
             date (datetime.date): date for activity sequence generation, used for
                 timestamps and random seed generation.
             start_of_date (datetime.datetime): timestamp of current date at 00:00:00.
@@ -448,7 +448,7 @@ class SyntheticDiaries(Component):
             )
         activities += date_activities
 
-    def add_date_activities(self, date: datetime.date, activities: list[Row]):
+    def add_date_activities(self, date: datetime.date, activities: List[Row]):
         """
         Generate activity (stays and moves) rows for a specific date according to
         parameters.
@@ -456,7 +456,7 @@ class SyntheticDiaries(Component):
         Args:
             date (datetime.date): date for activity sequence generation, used for
                 timestamps and random seed generation.
-            activities (list[Row]): list of generated activities (stays and moves) for
+            activities (List[Row]): list of generated activities (stays and moves) for
                 the agent for all of the specified dates. Each activity is a spark
                 row object.
         """
@@ -479,12 +479,12 @@ class SyntheticDiaries(Component):
                 end_of_date,
             )
 
-    def generate_activities(self) -> list[Row]:
+    def generate_activities(self) -> List[Row]:
         """
         Generate activity and trip rows according to parameters.
 
         Returns:
-            list[Row]: list of generated activities and trips for the agent for all
+            List[Row]: list of generated activities and trips for the agent for all
                 of the specified dates. Each activity/trip is a spark row object.
         """
         activities = []
@@ -492,7 +492,7 @@ class SyntheticDiaries(Component):
             self.add_date_activities(date, activities)
         return activities
 
-    def generate_lonlat_at_distance(self, lon1: float, lat1: float, d: float, seed: int) -> tuple[float, float]:
+    def generate_lonlat_at_distance(self, lon1: float, lat1: float, d: float, seed: int) -> Tuple[float, float]:
         """
         Given a point (lon, lat) and a distance, in meters, calculate a new random
         point that is exactly at the specified distance of the provided lon, lat.
@@ -504,7 +504,7 @@ class SyntheticDiaries(Component):
             seed (int): random seed integer.
 
         Returns:
-            tuple[float, float]: coordinates of randomly generated point.
+            Tuple[float, float]: coordinates of randomly generated point.
         """
         r = 6_371_000  # Radius of earth in meters.
 
@@ -531,7 +531,7 @@ class SyntheticDiaries(Component):
 
         return (final_lon, final_lat)
 
-    def generate_home_location(self, agent_id: int) -> tuple[float, float]:
+    def generate_home_location(self, agent_id: int) -> Tuple[float, float]:
         """
         Generate random home location based on bounding box limits.
 
@@ -539,7 +539,7 @@ class SyntheticDiaries(Component):
             agent_id (int): identifier of agent, used for random seed generation.
 
         Returns:
-            tuple[float,float]: coordinates of generated home location.
+            Tuple[float,float]: coordinates of generated home location.
         """
         seed_lon = self.random_seed_number_generator(1, agent_id)
         seed_lat = self.random_seed_number_generator(2, agent_id)
@@ -548,19 +548,19 @@ class SyntheticDiaries(Component):
         return (hlon, hlat)
 
     def generate_work_location(
-        self, agent_id: int, home_location: tuple[float, float], seed: int = 4
-    ) -> tuple[float, float]:
+        self, agent_id: int, home_location: Tuple[float, float], seed: int = 4
+    ) -> Tuple[float, float]:
         """
         Generate random work location based on home location and maximum distance to
         home. If the work location falls outside of bounding box limits, try again.
 
         Args:
             agent_id (int): identifier of agent, used for random seed generation.
-            home_location (tuple[float,float]): coordinates of home location.
+            home_location (Tuple[float,float]): coordinates of home location.
             seed (int, optional): random seed integer. Defaults to 4.
 
         Returns:
-            tuple[float,float]: coordinates of generated work location.
+            Tuple[float,float]: coordinates of generated work location.
         """
         seed_distance = self.random_seed_number_generator(seed - 1, agent_id)
         random_distance = Random(seed_distance).uniform(self.home_work_distance_min, self.home_work_distance_max)
@@ -581,10 +581,10 @@ class SyntheticDiaries(Component):
         agent_id: int,
         date: datetime.date,
         activity_number: int,
-        home_location: tuple[float, float],
-        previous_location: tuple[float, float],
+        home_location: Tuple[float, float],
+        previous_location: Tuple[float, float],
         seed: int = 6,
-    ) -> tuple[float, float]:
+    ) -> Tuple[float, float]:
         """
         Generate other activity location based on previous location and maximum distance
         to previous location. If there is no previous location (this is the first
@@ -595,12 +595,12 @@ class SyntheticDiaries(Component):
             agent_id (int): identifier of agent, used for random seed generation.
             date (datetime.date): date, used for random seed generation.
             activity_number (int): act position, used for random seed generation.
-            home_location (tuple[float,float]): coordinates of home location.
-            previous_location (tuple[float,float]): coordinates of previous location.
+            home_location (Tuple[float,float]): coordinates of home location.
+            previous_location (Tuple[float,float]): coordinates of previous location.
             seed (int, optional): random seed integer. Defaults to 6.
 
         Returns:
-            tuple[float,float]: coordinates of generated location.
+            Tuple[float,float]: coordinates of generated location.
         """
         seed_distance = self.random_seed_number_generator(seed - 1, agent_id)
         random_distance = Random(seed_distance).uniform(self.other_distance_min, self.other_distance_max)
@@ -672,18 +672,18 @@ class SyntheticDiaries(Component):
         else:
             raise ValueError
 
-    def remove_consecutive_stay_types(self, stay_sequence_list: list[str], stay_types_to_group: set[str]) -> list[str]:
+    def remove_consecutive_stay_types(self, stay_sequence_list: List[str], stay_types_to_group: Set[str]) -> List[str]:
         """
         Generate new list replacing consecutive stays of the same type by
         a unique stay as long as the stay type is contained in the
         "stay_types_to_group" list.
 
         Args:
-            stay_sequence_list (list[str]): input stay type list.
-            stay_types_to_group (set[str]): stay types to group.
+            stay_sequence_list (List[str]): input stay type list.
+            stay_types_to_group (Set[str]): stay types to group.
 
         Returns:
-            list[str]: output stay sequence list.
+            List[str]: output stay sequence list.
         """
         new_stay_sequence_list = []
         previous_stay = None
@@ -695,7 +695,7 @@ class SyntheticDiaries(Component):
             previous_stay = stay
         return new_stay_sequence_list
 
-    def generate_stay_type_sequence(self, agent_id: int, date: datetime.date) -> list[str]:
+    def generate_stay_type_sequence(self, agent_id: int, date: datetime.date) -> List[str]:
         """
         Generate the sequence of stay types for an agent for a specific date
         probabilistically based on the superset sequence and specified
@@ -709,7 +709,7 @@ class SyntheticDiaries(Component):
                 random seed generation.
 
         Returns:
-            list[str]: list of generated stay types, each represented by a string
+            List[str]: list of generated stay types, each represented by a string
                 indicating the stay type (e.g. "home", "work", "other").
         """
         stay_type_sequence = []

@@ -4,6 +4,8 @@ Module that manages the logging functionality.
 
 import os
 import logging
+from time import perf_counter
+from functools import wraps
 
 from configparser import ConfigParser
 from datetime import datetime
@@ -81,3 +83,47 @@ def generate_logger(config: ConfigParser, component_id: str):
     logger.setLevel(logging.DEBUG)
     # Return logger
     return logger
+
+
+def get_execution_stats(fn):
+    @wraps(fn)
+    def inner(*args, **kwargs):
+        logger = args[0].logger
+        start_time = perf_counter()
+        to_execute = fn(*args, **kwargs)
+        end_time = perf_counter()
+        execution_time = end_time - start_time
+        logger.info(f"Execution time: {execution_time:.3f}s")
+        is_debug_level = any(handler.level == logging.DEBUG for handler in logger.handlers)
+        if is_debug_level:
+            logger.info(f"Getting output data objects stats...")
+            data_objects = args[0].output_data_objects
+            for data_object in data_objects.values():
+                data_object_id = data_object.ID
+                data_object.read()
+                data_object_size = data_object.get_size()
+                num_files = data_object.get_num_files()
+                logger.info(f"Output data object: {data_object_id}")
+                logger.info(data_object.get_top_rows(2))
+                logger.info(f"Size: {_convert_size_bytes(data_object_size)}")
+                logger.info(f"Number of files: {num_files}")
+        return to_execute
+
+    return inner
+
+
+def _convert_size_bytes(size_bytes):
+    """
+    Converts a size in bytes to a human readable string using SI units.
+    """
+    import math
+    import sys
+
+    if size_bytes == 0:
+        return "0B"
+
+    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+    return "%s %s" % (s, size_name[i])

@@ -1,3 +1,4 @@
+from typing import List
 """
 Silver Usual Environment Labeling Quality Metrics data object module
 """
@@ -42,7 +43,7 @@ class SilverUsualEnvironmentLabelingQualityMetricsDataObject(PathDataObject):
             ColNames.end_date,
         ]
 
-    def write(self, path: str = None, partition_columns: list[str] = None):
+    def write(self, path: str = None, partition_columns: List[str] = None):
         if path is None:
             path = self.default_path
         if partition_columns is None:

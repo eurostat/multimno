@@ -2,6 +2,7 @@
 Module that manages the spark session.
 """
 
+from typing import List
 from configparser import ConfigParser
 
 import py4j
@@ -100,7 +101,7 @@ def delete_file_or_folder(spark: SparkSession, data_path: str):
     fs.delete(path, True)
 
 
-def list_all_files_recursively(spark: SparkSession, data_path: str) -> list[str]:
+def list_all_files_recursively(spark: SparkSession, data_path: str) -> List[str]:
     """
     If path is a file, returns a singleton list with this path.
     If path is a folder, return a list of all files in this folder and any of its subfolders
@@ -110,7 +111,7 @@ def list_all_files_recursively(spark: SparkSession, data_path: str) -> list[str]
         data_path (str): Path to list the files of
 
     Returns:
-        list[str]: A list of all files in that folder and its subfolders
+        List[str]: A list of all files in that folder and its subfolders
     """
     conf = spark._jsc.hadoopConfiguration()
     uri = spark._jvm.java.net.URI.create(data_path)
@@ -121,7 +122,7 @@ def list_all_files_recursively(spark: SparkSession, data_path: str) -> list[str]
 
 def list_all_files_helper(
     path: py4j.java_gateway.JavaObject, fs: py4j.java_gateway.JavaClass, conf: py4j.java_gateway.JavaObject
-) -> list[str]:
+) -> List[str]:
     """
     This function is used by list_all_files_recursively. This should not be called elsewhere
     Recursively traverses the file tree from given spot saving all files to a list and returns it.
@@ -145,7 +146,7 @@ def list_all_files_helper(
     return files_list
 
 
-def list_parquet_partition_col_values(spark: SparkSession, data_path: str) -> list[str]:
+def list_parquet_partition_col_values(spark: SparkSession, data_path: str) -> List[str]:
     """
     Lists all partition column values given a partition parquet folder
 
@@ -154,7 +155,7 @@ def list_parquet_partition_col_values(spark: SparkSession, data_path: str) -> li
         data_path (str): Path of parquet
 
     Returns:
-        str, list[str]: Name of partition column, List of partition col values
+        str, List[str]: Name of partition column, List of partition col values
     """
 
     hadoop = spark._jvm.org.apache.hadoop

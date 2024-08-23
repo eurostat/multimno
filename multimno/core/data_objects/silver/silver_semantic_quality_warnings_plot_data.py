@@ -1,3 +1,4 @@
+from typing import List
 """
 Silver MNO Network Topology Quality Warnings Log Table Data Object
 """
@@ -45,7 +46,7 @@ class SilverEventSemanticQualityWarningsBarPlotData(PathDataObject):
         self.interface = ParquetInterface()
         self.partition_columns = [ColNames.variable, ColNames.year, ColNames.month, ColNames.day, ColNames.timestamp]
 
-    def write(self, path: str = None, partition_columns: list[str] = None):
+    def write(self, path: str = None, partition_columns: List[str] = None):
         if path is None:
             path = self.default_path
         if partition_columns is None:

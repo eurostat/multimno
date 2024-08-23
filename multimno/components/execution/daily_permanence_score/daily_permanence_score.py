@@ -4,11 +4,13 @@ Module that implements the Daily Permanence Score functionality
 
 import re
 import itertools
+from typing import List, Tuple, Set
 
 from datetime import datetime, timedelta, date
 from pyspark.sql import DataFrame, Window
 
 import pyspark.sql.functions as F
+from sedona.sql import st_functions as STF
 from pyspark.sql.types import StructType, StructField, TimestampType, FloatType, IntegerType, ShortType, ByteType
 from multimno.core.component import Component
 
@@ -21,7 +23,8 @@ from multimno.core.data_objects.silver.silver_daily_permanence_score_data_object
 )
 from multimno.core.settings import CONFIG_SILVER_PATHS_KEY
 from multimno.core.constants.columns import ColNames
-
+from multimno.core.grid import InspireGridGenerator
+from multimno.core.log import get_execution_stats
 
 class DailyPermanenceScore(Component):
     """
@@ -41,8 +44,6 @@ class DailyPermanenceScore(Component):
         ).date()
 
         self.time_slot_number = self.config.getint(self.COMPONENT_ID, "time_slot_number")
-        if self.time_slot_number not in [24, 48, 96]:
-            raise ValueError("Only allowed values of time_slot_number are 24, 48, 98 -- found", self.time_slot_number)
 
         self.max_time_thresh = timedelta(seconds=self.config.getint(self.COMPONENT_ID, "max_time_thresh"))
         self.max_time_thresh_day = timedelta(seconds=self.config.getint(self.COMPONENT_ID, "max_time_thresh_day"))
@@ -60,6 +61,7 @@ class DailyPermanenceScore(Component):
             for i in range((self.data_period_end - self.data_period_start).days + 1)
         ]
 
+        self.grid_gen = InspireGridGenerator(self.spark)
         self.current_date = None
         self.previous_date = None
         self.next_date = None
@@ -85,22 +87,19 @@ class DailyPermanenceScore(Component):
             partition_columns=[ColNames.year, ColNames.month, ColNames.day],
         )
 
-        silver_dps = SilverDailyPermanenceScoreDataObject(
-            self.spark,
-            output_dps_path,
-        )
+        silver_dps = SilverDailyPermanenceScoreDataObject(self.spark, output_dps_path)
 
         self.input_data_objects = {silver_events.ID: silver_events, silver_cell_footprint.ID: silver_cell_footprint}
 
         self.output_data_objects = {silver_dps.ID: silver_dps}
 
+    @get_execution_stats
     def execute(self):
         self.logger.info(f"Starting {self.COMPONENT_ID}...")
         self.read()
         self.check_needed_dates()
-
         for current_date in self.data_period_dates:
-
+            self.logger.info(current_date)
             self.logger.info(f"Processing events for {current_date.strftime('%Y-%m-%d')}")
 
             self.current_date = current_date
@@ -137,20 +136,20 @@ class DailyPermanenceScore(Component):
             | set(self.data_period_dates)
             | {d - timedelta(days=1) for d in self.data_period_dates}
         )
-
+        self.logger.info(needed_dates)
         # Assert needed dates in event data:
         self.assert_needed_dates_data_object(SilverEventFlaggedDataObject.ID, needed_dates)
 
         # Assert needed dates in cell footprint data:
         self.assert_needed_dates_data_object(SilverCellFootprintDataObject.ID, needed_dates)
 
-    def assert_needed_dates_data_object(self, data_object_id: str, needed_dates: list[datetime]):
+    def assert_needed_dates_data_object(self, data_object_id: str, needed_dates: List[datetime]):
         """
         Method that checks if data for a set of dates exists for a data object.
 
         Args:
             data_object_id (str): name of the data object to check.
-            needed_dates (list[datetime]): list of the dates for which data shall be available.
+            needed_dates (List[datetime]): list of the dates for which data shall be available.
 
         Raises:
             ValueError: If there is no data for one or more of the needed dates.
@@ -223,7 +222,7 @@ class DailyPermanenceScore(Component):
         stays = self.determine_stay_durations(events)
 
         # Assign stay time slot, assign duration to time slots and map to calculate DPS:
-        dps = self.calculate_dps(stays, time_slots)
+        dps = self.calculate_dps(stays, time_slots, cell_footprint)
 
         self.output_data_objects[SilverDailyPermanenceScoreDataObject.ID].df = dps
 
@@ -267,11 +266,18 @@ class DailyPermanenceScore(Component):
         Returns:
             DataFrame: cell footprint dataframe.
         """
-        cell_footprint = (
-            self.previous_cell_footprint.union(self.current_cell_footprint)
-            .union(self.next_cell_footprint)
-            .groupBy([ColNames.cell_id, ColNames.year, ColNames.month, ColNames.day])
-            .agg(F.collect_list(ColNames.grid_id).alias("grid_ids"))
+        cell_footprint = self.previous_cell_footprint.union(self.current_cell_footprint).union(self.next_cell_footprint)
+
+        cell_footprint = self.grid_gen.grid_ids_to_centroids(cell_footprint)
+
+        cell_footprint = cell_footprint.groupBy([ColNames.cell_id, ColNames.year, ColNames.month, ColNames.day]).agg(
+            F.collect_list(ColNames.geometry).alias(ColNames.geometry),
+            F.collect_list(ColNames.grid_id).alias("grid_ids"),
+        )
+
+        cell_footprint = cell_footprint.withColumn(
+            ColNames.geometry,
+            STF.ST_ConcaveHull(STF.ST_Collect(F.col(ColNames.geometry)), 0.5),
         )
 
         return cell_footprint
@@ -325,7 +331,7 @@ class DailyPermanenceScore(Component):
         """
         # left join -> bring cell footprints to events data:
         events = events.join(
-            cell_footprint,
+            cell_footprint.select(ColNames.cell_id, ColNames.year, ColNames.month, ColNames.day, ColNames.geometry),
             (events[ColNames.cell_id] == cell_footprint[ColNames.cell_id])
             & (events[ColNames.year] == cell_footprint[ColNames.year])
             & (events[ColNames.month] == cell_footprint[ColNames.month])
@@ -340,7 +346,7 @@ class DailyPermanenceScore(Component):
 
         # Add lags of timestamp, cell_id and grid_ids:
         window = Window.partitionBy(ColNames.user_id).orderBy(ColNames.timestamp)
-        lag_fields = [ColNames.timestamp, ColNames.cell_id, "grid_ids"]
+        lag_fields = [ColNames.timestamp, ColNames.cell_id, ColNames.geometry]
         for lf in lag_fields:
             events = events.withColumn(f"{lf}_+1", F.lag(lf, -1).over(window)).withColumn(
                 f"{lf}_-1", F.lag(lf, 1).over(window)
@@ -349,9 +355,22 @@ class DailyPermanenceScore(Component):
         # Calculate distance between grid tiles associated to events -1, 0 and +1:
         # Calculate speeds and determine which rows are moves:
         events = (
-            events.withColumn("dist_0_+1", self.grid_footprint_distance(F.col("grid_ids"), F.col("grid_ids_+1")))
-            .withColumn("dist_-1_0", self.grid_footprint_distance(F.col("grid_ids_-1"), F.col("grid_ids")))
-            .withColumn("dist_-1_+1", self.grid_footprint_distance(F.col("grid_ids_-1"), F.col("grid_ids_+1")))
+            events.withColumn(
+                "dist_0_+1",
+                STF.ST_Distance(F.col(ColNames.geometry), F.col(f"{ColNames.geometry}_+1")),
+            )
+            # .withColumn( 
+            #     "dist_-1_0",
+            #     STF.ST_Distance(F.col(f"{ColNames.geometry}_-1"), F.col(ColNames.geometry)),
+            # )
+            .withColumn(    # repeating the distance calculation is not necessary, a lagged column works:
+                "dist_-1_0",
+                F.lag("dist_0_+1", 1).over(window)
+            )
+            .withColumn(
+                "dist_-1_+1",
+                STF.ST_Distance(F.col(f"{ColNames.geometry}_-1"), F.col(f"{ColNames.geometry}_+1")),
+            )
             .withColumn(
                 "time_difference",
                 F.unix_timestamp(events[f"{ColNames.timestamp}_+1"])
@@ -364,8 +383,9 @@ class DailyPermanenceScore(Component):
                 "dist_0_+1",
                 "dist_-1_0",
                 "dist_-1_+1",
-                "grid_ids_+1",
-                "grid_ids_-1",
+                f"{ColNames.geometry}_-1",
+                f"{ColNames.geometry}_+1",
+                ColNames.geometry,
                 "time_difference",
                 "max_dist",
                 "speed",
@@ -393,7 +413,7 @@ class DailyPermanenceScore(Component):
         return size
 
     @staticmethod
-    def get_grid_id_vertices(grid_id: str) -> list[tuple[float]]:
+    def get_grid_id_vertices(grid_id: str) -> List[Tuple[float]]:
         """
         Obtain the coordinates of the vertices of a given grid tile.
 
@@ -401,7 +421,7 @@ class DailyPermanenceScore(Component):
             grid_id (str): ID of the corresponding grid tile.
 
         Returns:
-            list[tuple[float]]: list of tuples. Each tuple contains the x, y
+            List[Tuple[float]]: list of tuples. Each tuple contains the x, y
                 coordinates of a vertex of the corresponding grid tile.
         """
         size = DailyPermanenceScore.get_grid_id_size_meters(grid_id)
@@ -415,15 +435,15 @@ class DailyPermanenceScore(Component):
         return vertices
 
     @staticmethod
-    def calculate_min_distance_between_point_lists(points_i: set[tuple[float]], points_j: set[tuple[float]]) -> float:
+    def calculate_min_distance_between_point_lists(points_i: Set[Tuple[float]], points_j: Set[Tuple[float]]) -> float:
         """
         Calculate minimum distance between the points in one list and the points
         in another list.
 
         Args:
-            points_i (set[tuple[float]]): set of tuples. Each tuple contains
+            points_i (Set[Tuple[float]]): set of tuples. Each tuple contains
                 the x, y coordinates of a point.
-            points_j (set[tuple[float]]): set of tuples. Each tuple contains
+            points_j (Set[Tuple[float]]): set of tuples. Each tuple contains
                 the x, y coordinates of a point.
 
         Returns:
@@ -441,14 +461,14 @@ class DailyPermanenceScore(Component):
 
     @staticmethod
     @F.udf(returnType=FloatType())
-    def grid_footprint_distance(grid_ids_i: list[str], grid_ids_j: list[str]) -> float:
+    def grid_footprint_distance(grid_ids_i: List[str], grid_ids_j: List[str]) -> float:
         """
         Calculate minimum distance between the grid tiles in one list and the
         grid tiles in another list, provided as grid tile IDs.
 
         Args:
-            grid_ids_i (list[str]): IDs of the corresponding grid tiles.
-            grid_ids_j (list[str]): IDs of the corresponding grid tiles.
+            grid_ids_i (List[str]): IDs of the corresponding grid tiles.
+            grid_ids_j (List[str]): IDs of the corresponding grid tiles.
 
         Returns:
             float: minimum distance.
@@ -533,7 +553,6 @@ class DailyPermanenceScore(Component):
             # Filter out 'move' events (keep only stays), and also drop unneeded columns:
             .filter(F.col("is_move") == False)
             .drop(
-                ColNames.cell_id,
                 f"{ColNames.cell_id}_-1",
                 f"{ColNames.cell_id}_+1",
                 ColNames.timestamp,
@@ -548,7 +567,7 @@ class DailyPermanenceScore(Component):
 
         return stays
 
-    def calculate_dps(self, stays: DataFrame, time_slots: DataFrame) -> DataFrame:
+    def calculate_dps(self, stays: DataFrame, time_slots: DataFrame, cell_footprints: DataFrame) -> DataFrame:
         """
         Temporally intersect each stay interval with the specified time slots. Then
         calculate the number of seconds that each user stays at each grid tile within
@@ -600,7 +619,8 @@ class DailyPermanenceScore(Component):
 
         known_dps = (
             dps.filter(F.col("int_duration") > 0.0)
-            .withColumn(ColNames.grid_id, F.explode("grid_ids"))
+            .join(cell_footprints, [ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id], "left")
+            .withColumn("grid_id", F.explode("grid_ids"))
             .drop("grid_ids")
             .groupby(
                 ColNames.user_id,

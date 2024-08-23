@@ -1,3 +1,4 @@
+from typing import List
 """
 Silver MNO Event data module
 """
@@ -44,9 +45,9 @@ class SilverEventDataObject(PathDataObject):
         ]
     )
 
-    def __init__(self, spark: SparkSession, default_path: str) -> None:
+    def __init__(self, spark: SparkSession, default_path: str, mode="overwrite") -> None:
         super().__init__(spark, default_path)
-        self.interface: ParquetInterface = ParquetInterface()
+        self.interface = ParquetInterface()
         self.partition_columns = [
             ColNames.year,
             ColNames.month,
@@ -54,18 +55,15 @@ class SilverEventDataObject(PathDataObject):
             ColNames.user_id_modulo,
         ]
 
-        # Clear path
-        self.first_write = True
+        self.mode = mode
 
-    def write(self, path: str = None, partition_columns: list[str] = None):
+    def write(self, path: str = None, partition_columns: List[str] = None, mode: str = None):
         # If it is the first writing of this data object, clear the input directory, otherwise add
         if partition_columns is None:
             partition_columns = self.partition_columns
         if path is None:
             path = self.default_path
+        if mode is None:
+            mode = self.mode
 
-        self.df.write.format(
-            self.interface.FILE_FORMAT,  # File format
-        ).partitionBy(self.partition_columns).mode(
-            "append"
-        ).save(path)
+        self.interface.write_from_interface(self.df, path, partition_columns, mode)

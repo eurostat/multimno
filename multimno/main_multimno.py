@@ -12,7 +12,7 @@ python multimno/main.py <component_id> <general_config_path> <component_config_p
 - component_config_path: Path to a INI file with the specific configuration of the component.
 """
 
-import sys
+import argparse
 
 # Synthetic
 from multimno.components.ingestion.synthetic.synthetic_network import SyntheticNetwork
@@ -71,12 +71,6 @@ from multimno.components.execution.midterm_permanence_score.midterm_permanence_s
 # Execution - Longterm
 from multimno.components.execution.longterm_permanence_score.longterm_permanence_score import LongtermPermanenceScore
 from multimno.components.execution.usual_environment_labeling.usual_environment_labeling import UsualEnvironmentLabeling
-
-from multimno.components.execution.usual_environment_labeling.usual_environment_labeling import (
-    UsualEnvironmentLabeling,
-)
-
-# Aggregation
 from multimno.components.execution.usual_environment_aggregation.usual_environment_aggregation import (
     UsualEnvironmentAggregation,
 )
@@ -127,7 +121,6 @@ CONSTRUCTORS = {
     LongtermPermanenceScore.COMPONENT_ID: LongtermPermanenceScore,
     UsualEnvironmentLabeling.COMPONENT_ID: UsualEnvironmentLabeling,
     UsualEnvironmentAggregation.COMPONENT_ID: UsualEnvironmentAggregation,
-    PresentPopulationEstimation.COMPONENT_ID: PresentPopulationEstimation,
     # Quality
     EventQualityWarnings.COMPONENT_ID: EventQualityWarnings,
     SemanticQualityWarnings.COMPONENT_ID: SemanticQualityWarnings,
@@ -158,10 +151,25 @@ def build(component_id: str, general_config_path: str, component_config_path: st
     return constructor(general_config_path, component_config_path)
 
 
-if __name__ == "__main__":
-    component_id = sys.argv[1]
-    general_config_path = sys.argv[2]
-    component_config_path = sys.argv[3]
+def main():
+    # Create the parser
+    parser = argparse.ArgumentParser(
+        description="Entrypoint of multimno software to launch a single component."
+        + "Reference execution documentation: https://eurostat.github.io/multimno/latest/UserManual/execution"
+    )
 
-    component = CONSTRUCTORS[component_id](general_config_path, component_config_path)
+    # Add the arguments
+    parser.add_argument("component_id", help="The component ID")
+    parser.add_argument("general_config_path", help="The path to the general configuration file")
+    parser.add_argument("component_config_path", help="The path to the component configuration file")
+
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # Use the arguments
+    component = CONSTRUCTORS[args.component_id](args.general_config_path, args.component_config_path)
     component.execute()
+
+
+if __name__ == "__main__":
+    main()

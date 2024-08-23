@@ -47,7 +47,7 @@ class SilverEventFlaggedDataObject(PathDataObject):
         ]
     )
 
-    def __init__(self, spark: SparkSession, default_path: str) -> None:
+    def __init__(self, spark: SparkSession, default_path: str, mode: str = 'overwrite') -> None:
         super().__init__(spark, default_path)
         self.interface = ParquetInterface()
         self.partition_columns = [
@@ -56,11 +56,14 @@ class SilverEventFlaggedDataObject(PathDataObject):
             ColNames.day,
             ColNames.user_id_modulo,
         ]
+        self.mode = mode
 
-    def write(self, path: str = None, partition_columns: list[str] = None):
+    def write(self, path: str = None, partition_columns: list[str] = None, mode: str = None) -> None:
         if path is None:
             path = self.default_path
         if partition_columns is None:
             partition_columns = self.partition_columns
+        if mode is None:
+            mode = self.mode
 
-        self.interface.write_from_interface(self.df, path, partition_columns)
+        self.interface.write_from_interface(self.df, path, partition_columns, mode)

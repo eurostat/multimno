@@ -1,3 +1,4 @@
+from typing import List
 """
 Silver Event Data deduplication frequency quality metrics.
 """
@@ -33,19 +34,18 @@ class SilverEventDataSyntacticQualityMetricsFrequencyDistribution(PathDataObject
         ]
     )
 
-    def __init__(self, spark: SparkSession, default_path: str) -> None:
+    def __init__(self, spark: SparkSession, default_path: str, mode="overwrite") -> None:
         super().__init__(spark, default_path)
-        self.interface: ParquetInterface = ParquetInterface()
+        self.interface = ParquetInterface()
         self.partition_columns = ["date"]
+        self.mode = mode
 
-    def write(self, path: str = None, partition_columns: list[str] = None):
+    def write(self, path: str = None, partition_columns: List[str] = None, mode=None):
         if path is None:
             path = self.default_path
         if partition_columns is None:
             partition_columns = self.partition_columns
+        if mode is None:
+            mode = self.mode
 
-        self.df.write.format(
-            self.interface.FILE_FORMAT,  # File format
-        ).partitionBy(partition_columns).mode(
-            "append"
-        ).save(path)
+        self.interface.write_from_interface(self.df, path, partition_columns, mode)
