@@ -73,6 +73,9 @@ def test_event_cleaning(
     ].df
     result_quality_metrics = event_cleaning.output_data_objects[SilverEventDataSyntacticQualityMetricsByColumn.ID].df
 
+    result_events.show()
+    result_frequency_distribution.show()
+    result_quality_metrics.show()
     # No reason to compare this
     result_quality_metrics = result_quality_metrics.drop(ColNames.result_timestamp)
 

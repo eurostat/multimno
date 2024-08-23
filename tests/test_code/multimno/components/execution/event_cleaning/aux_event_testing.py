@@ -33,11 +33,8 @@ def expected_events(spark):
 
     expected_data = [
         [
-            bytearray(
-                b'\x00\xa1\x07\xa3I\x8f\xa2\xa8\x17h\x1c\xaf\xeejQ\xa1}\xe3w\x05\xbf\x97m\xbeL\x9f\x03\xf1"W|\xd3'
-            ),
-            datetime.strptime("2023-01-01 13:13:00", date_format),
-            # datetime(2023, 1, 1, 15, 23),
+            sha256(b"1").digest(),
+            datetime.strptime("2023-01-01 15:13:00", date_format),
             154,
             "01",
             None,
@@ -52,7 +49,7 @@ def expected_events(spark):
         ],  # deduplication result, one row is kept
         [
             sha256(b"1").digest(),
-            datetime.strptime("2023-01-01 13:00:00", date_format),
+            datetime.strptime("2023-01-01 15:00:00", date_format),
             123,
             "01",
             None,
@@ -67,7 +64,7 @@ def expected_events(spark):
         ],  # OK
         [
             sha256(b"1").digest(),
-            datetime.strptime("2023-01-01 13:08:00", date_format),
+            datetime.strptime("2023-01-01 15:08:00", date_format),
             123,
             "01",
             None,
@@ -82,9 +79,9 @@ def expected_events(spark):
         ],
         [
             sha256(b"1").digest(),
-            datetime.strptime("2023-01-01 14:00:00", date_format),
-            None,
-            None,
+            datetime.strptime("2023-01-01 16:00:00", date_format),
+            123,
+            "01",
             12301,
             None,
             None,
@@ -105,14 +102,12 @@ def expected_frequency_distribution(spark):
     expected_data = [
         [
             "341098809306858",
-            bytearray(
-                b'\x00\xa1\x07\xa3I\x8f\xa2\xa8\x17h\x1c\xaf\xeejQ\xa1}\xe3w\x05\xbf\x97m\xbeL\x9f\x03\xf1"W|\xd3'
-            ),
+            sha256(b"1").digest(),
             2,
             1,
             date(2023, 1, 1),
         ],
-        [None, sha256(b"1").digest(), 7, 2, date(2023, 1, 1)],
+        [None, sha256(b"1").digest(), 8, 2, date(2023, 1, 1)],
         [1, sha256(b"1").digest(), 1, 0, date(2023, 1, 1)],
         ["100000000000000", None, 1, 0, date(2023, 1, 1)],
         ["100000000000000", sha256(b"1").digest(), 2, 1, date(2023, 1, 1)],
@@ -131,25 +126,32 @@ def expected_quality_metrics_by_column(spark):
     correct_date = date(2023, 1, 1)
 
     expected_data = [
-        [now, correct_date, ColNames.timestamp, None, Transformations.converted_timestamp, 6],
-        [now, correct_date, ColNames.timestamp, ErrorTypes.missing_value, None, 0],
-        [now, correct_date, ColNames.timestamp, ErrorTypes.not_right_syntactic_format, None, 0],
-        [now, correct_date, ColNames.timestamp, ErrorTypes.out_of_admissible_values, None, 0],
-        [now, correct_date, ColNames.timestamp, ErrorTypes.no_error, None, 6],
-        [now, correct_date, ColNames.user_id, ErrorTypes.missing_value, None, 1],
-        [now, correct_date, ColNames.user_id, ErrorTypes.no_error, None, 12],
-        [now, correct_date, ColNames.cell_id, ErrorTypes.out_of_admissible_values, None, 1],
-        [now, correct_date, ColNames.cell_id, ErrorTypes.no_error, None, 6],
-        [now, correct_date, ColNames.mcc, 3, None, 1],
-        [now, correct_date, ColNames.mcc, 9, None, 8],
-        [now, correct_date, ColNames.mnc, 3, None, 1],
-        [now, correct_date, ColNames.mnc, 9, None, 7],
-        [now, correct_date, ColNames.plmn, 3, None, 1],
-        [now, correct_date, ColNames.plmn, 9, None, 1],
-        [now, correct_date, None, ErrorTypes.no_location, None, 1],
-        [now, correct_date, None, ErrorTypes.out_of_bounding_box, None, 1],
-        [now, correct_date, None, ErrorTypes.no_domain, None, 1],
-        [now, correct_date, None, ErrorTypes.same_location_duplicate, None, 1],
+        [now, correct_date, ColNames.cell_id, ErrorTypes.NO_ERROR, 13],
+        [now, correct_date, ColNames.cell_id, ErrorTypes.OUT_OF_RANGE, 1],
+        [now, correct_date, "duplicated", ErrorTypes.NO_ERROR, 12],
+        [now, correct_date, "duplicated", ErrorTypes.DUPLICATED, 2],
+        [now, correct_date, ColNames.latitude, ErrorTypes.NO_ERROR, 13],
+        [now, correct_date, ColNames.latitude, ErrorTypes.OUT_OF_RANGE, 1],
+        [now, correct_date, ColNames.longitude, ErrorTypes.NO_ERROR, 14],
+        [now, correct_date, ColNames.longitude, ErrorTypes.OUT_OF_RANGE, 0],
+        [now, correct_date, ColNames.mcc, ErrorTypes.NO_ERROR, 11],
+        [now, correct_date, ColNames.mcc, ErrorTypes.NULL_VALUE, 2],
+        [now, correct_date, ColNames.mcc, ErrorTypes.OUT_OF_RANGE, 1],
+        [now, correct_date, ColNames.mnc, ErrorTypes.NO_ERROR, 11],
+        [now, correct_date, ColNames.mnc, ErrorTypes.NULL_VALUE, 2],
+        [now, correct_date, ColNames.mnc, ErrorTypes.OUT_OF_RANGE, 1],
+        [now, correct_date, "no_location", ErrorTypes.NO_ERROR, 13],
+        [now, correct_date, "no_location", ErrorTypes.NO_LOCATION_INFO, 1],
+        [now, correct_date, "no_mno_info", ErrorTypes.NO_ERROR, 13],
+        [now, correct_date, "no_mno_info", ErrorTypes.NO_MNO_INFO, 1],
+        [now, correct_date, ColNames.plmn, ErrorTypes.NO_ERROR, 13],
+        [now, correct_date, ColNames.plmn, ErrorTypes.OUT_OF_RANGE, 1],
+        [now, correct_date, ColNames.timestamp, ErrorTypes.NO_ERROR, 14],
+        [now, correct_date, ColNames.timestamp, ErrorTypes.NULL_VALUE, 0],
+        [now, correct_date, ColNames.timestamp, ErrorTypes.OUT_OF_RANGE, 0],
+        [now, correct_date, ColNames.timestamp, ErrorTypes.CANNOT_PARSE, 0],
+        [now, correct_date, ColNames.user_id, ErrorTypes.NO_ERROR, 13],
+        [now, correct_date, ColNames.user_id, ErrorTypes.NULL_VALUE, 1],
     ]
 
     expected_data_df = spark.createDataFrame(
@@ -284,23 +286,6 @@ def write_input_event_data(spark: SparkSession, config: ConfigParser):
         ],  # No location
         [
             sha256(b"1").digest(),
-            "2023-01-01 15:08:00",
-            123,
-            "01",
-            None,
-            None,
-            0.0,
-            0.0,
-            100.0,
-            2023,
-            1,
-            1,
-        ],
-        # Duplicate of next row
-        [
-            bytearray(
-                b'\x00\xa1\x07\xa3I\x8f\xa2\xa8\x17h\x1c\xaf\xeejQ\xa1}\xe3w\x05\xbf\x97m\xbeL\x9f\x03\xf1"W|\xd3'
-            ),
             "2023-01-01 15:13:00",  # datetime.strptime("2023-01-01 15:23:00", date_format), #datetime(2023, 1, 1, 15, 23),
             154,
             "01",
@@ -314,9 +299,7 @@ def write_input_event_data(spark: SparkSession, config: ConfigParser):
             1,
         ],
         [
-            bytearray(
-                b'\x00\xa1\x07\xa3I\x8f\xa2\xa8\x17h\x1c\xaf\xeejQ\xa1}\xe3w\x05\xbf\x97m\xbeL\x9f\x03\xf1"W|\xd3'
-            ),
+            sha256(b"1").digest(),
             "2023-01-01 15:13:00",  # , date_format), datetime(2023, 1, 1, 15, 23),
             154,
             "01",
@@ -331,7 +314,7 @@ def write_input_event_data(spark: SparkSession, config: ConfigParser):
         ],
         [
             sha256(b"1").digest(),
-            "2023-01-01 15:08:00",
+            "2023-01-01 15:09:00",
             None,
             None,
             None,
@@ -347,7 +330,36 @@ def write_input_event_data(spark: SparkSession, config: ConfigParser):
             sha256(b"1").digest(),
             "2023-01-01 15:08:00",
             123,
-            "aa",
+            "01",
+            None,
+            None,
+            0.0,
+            0.0,
+            100.0,
+            2023,
+            1,
+            1,
+        ],
+        # Duplicate of next row
+        [
+            sha256(b"1").digest(),
+            "2023-01-01 15:08:00",
+            123,
+            "01",
+            None,
+            None,
+            0.0,
+            0.0,
+            100.0,
+            2023,
+            1,
+            1,
+        ],  # Duplicated
+        [
+            sha256(b"1").digest(),
+            "2023-01-01 15:10:00",
+            123,
+            "aaaa",
             None,
             None,
             0.0,
@@ -374,8 +386,8 @@ def write_input_event_data(spark: SparkSession, config: ConfigParser):
         [
             sha256(b"1").digest(),
             "2023-01-01 16:00:00",
-            None,
-            None,
+            123,
+            "01",
             12301,
             None,
             None,

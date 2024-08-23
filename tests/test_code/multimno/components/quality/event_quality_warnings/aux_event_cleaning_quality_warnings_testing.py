@@ -463,8 +463,7 @@ def set_input_event_cleaning_qm_by_column(spark: SparkSession, config: ConfigPar
     result_timestamp = [datetime.strptime("2024-01-15T10:00:00", "%Y-%m-%dT%H:%M:%S")] * num_records
     date = [start_date + timedelta(days=i) for i in range(num_records)]
     variable = [None] * num_records
-    type_of_error = [ErrorTypes.same_location_duplicate] * num_records
-    type_of_transformation = [None] * num_records
+    type_of_error = [ErrorTypes.DUPLICATED] * num_records
     value = [value] * (num_records - 1) + [last_value]
 
     data_by_column_deduplication = [
@@ -473,7 +472,6 @@ def set_input_event_cleaning_qm_by_column(spark: SparkSession, config: ConfigPar
             date=date[i],
             variable=variable[i],
             type_of_error=type_of_error[i],
-            type_of_transformation=type_of_transformation[i],
             value=value[i],
         )
         for i in range(num_records)
@@ -486,7 +484,6 @@ def set_input_event_cleaning_qm_by_column(spark: SparkSession, config: ConfigPar
             date=datetime(2024, 1, 1),
             variable="cell_id",
             type_of_error=2,
-            type_of_transformation=1,
             value=150,
         )
     ]
