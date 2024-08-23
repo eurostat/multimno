@@ -22,12 +22,14 @@ for path in sorted(src.rglob("*.py")):
     elif parts[-1] == "__main__":
         continue
 
-    nav[parts] = doc_path.as_posix()
+    # If parts is not empty
+    if len(parts) > 0:
+        nav[parts] = doc_path.as_posix()
 
-    with mkdocs_gen_files.open(full_doc_path, "w") as fd:
-        print("::: " + ".".join(parts), file=fd)
+        with mkdocs_gen_files.open(full_doc_path, "w") as fd:
+            print("::: " + ".".join(parts), file=fd)
 
-    mkdocs_gen_files.set_edit_path(full_doc_path, path)
+        mkdocs_gen_files.set_edit_path(full_doc_path, path)
 
 with mkdocs_gen_files.open("reference/SUMMARY.md", "w") as nav_file:
     nav_file.writelines(nav.build_literate_nav())
