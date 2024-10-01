@@ -144,4 +144,4 @@ COPY multimno /opt/app/multimno
 COPY pipe_configs /opt/app/pipe_configs
 COPY orchestrator_multimno.py /opt/app/orchestrator_multimno.py
 
-ENTRYPOINT ["python", "/opt/app/orchestrator_multimno.py"]
+# ENTRYPOINT ["python", "/opt/app/orchestrator_multimno.py"]
