@@ -4,6 +4,7 @@ Module that calculates cell connection probabilities and posterior probabilities
 
 import datetime
 import pyspark.sql.functions as F
+from pyspark.sql import Window
 
 from multimno.core.component import Component
 from multimno.core.data_objects.silver.silver_cell_connection_probabilities_data_object import (
@@ -17,9 +18,11 @@ from multimno.core.data_objects.silver.silver_enriched_grid_data_object import (
     SilverEnrichedGridDataObject,
 )
 
-from multimno.core.spark_session import check_if_data_path_exists
+from multimno.core.spark_session import check_if_data_path_exists, delete_file_or_folder
 from multimno.core.settings import CONFIG_SILVER_PATHS_KEY
 from multimno.core.constants.columns import ColNames
+import multimno.core.utils as utils
+from multimno.core.log import get_execution_stats
 
 
 class CellConnectionProbabilityEstimation(Component):
@@ -52,7 +55,12 @@ class CellConnectionProbabilityEstimation(Component):
             for i in range((self.data_period_end - self.data_period_start).days + 1)
         ]
 
+        self.current_date = None
+        self.current_cell_footprint = None
+
     def initalize_data_objects(self):
+
+        self.clear_destination_directory = self.config.getboolean(self.COMPONENT_ID, "clear_destination_directory")
 
         # Input
         self.input_data_objects = {}
@@ -75,66 +83,60 @@ class CellConnectionProbabilityEstimation(Component):
 
         # Output
         self.output_data_objects = {}
-        self.silver_cell_footprint_path = self.config.get(
+        silver_cell_probabilities_path = self.config.get(
             CONFIG_SILVER_PATHS_KEY, "cell_connection_probabilities_data_silver"
         )
+
+        if self.clear_destination_directory:
+            delete_file_or_folder(self.spark, silver_cell_probabilities_path)
+
         self.output_data_objects[SilverCellConnectionProbabilitiesDataObject.ID] = (
             SilverCellConnectionProbabilitiesDataObject(
                 self.spark,
-                self.silver_cell_footprint_path,
+                silver_cell_probabilities_path,
                 partition_columns=[ColNames.year, ColNames.month, ColNames.day],
+                mode="append",
             )
         )
+
+    @get_execution_stats
+    def execute(self):
+        self.logger.info(f"Starting {self.COMPONENT_ID}...")
+        self.read()
+        for current_date in self.data_period_dates:
+
+            self.logger.info(f"Processing cell footprint for {current_date.strftime('%Y-%m-%d')}")
+
+            self.current_date = current_date
+
+            self.current_cell_footprint = self.input_data_objects[SilverCellFootprintDataObject.ID].df.filter(
+                (F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day)) == F.lit(current_date))
+            )
+
+            self.transform()
+            self.write()
+            self.spark.catalog.clearCache()
+        self.logger.info(f"Finished {self.COMPONENT_ID}")
 
     def transform(self):
         self.logger.info(f"Transform method {self.COMPONENT_ID}")
 
-        # TODO: We might need to iterate over dates and process the data for each date separately
-        # have to do tests with larger datasets.
-
-        cell_footprint_df = self.input_data_objects[SilverCellFootprintDataObject.ID].df.filter(
-            F.make_date("year", "month", "day").isin(self.data_period_dates)
-        )
+        cell_footprint_df = self.current_cell_footprint
 
         # Calculate the cell connection probabilities
 
-        grid_footprint_sums = cell_footprint_df.groupBy(
-            ColNames.year,
-            ColNames.month,
-            ColNames.day,
-            ColNames.valid_date_start,
-            ColNames.valid_date_end,
-            ColNames.grid_id,
-        ).agg(F.sum(ColNames.signal_dominance).alias("total_grid_footprint"))
-
-        cell_footprint_df = cell_footprint_df.join(
-            grid_footprint_sums,
-            on=[
-                ColNames.year,
-                ColNames.month,
-                ColNames.day,
-                ColNames.valid_date_start,
-                ColNames.valid_date_end,
-                ColNames.grid_id,
-            ],
-            how="left",
-        )
+        window_spec = Window.partitionBy(ColNames.year, ColNames.month, ColNames.day, ColNames.grid_id)
 
         cell_conn_probs_df = cell_footprint_df.withColumn(
             ColNames.cell_connection_probability,
-            F.col(ColNames.signal_dominance) / F.col("total_grid_footprint"),
-        ).drop("total_grid_footprint")
-
+            F.col(ColNames.signal_dominance) / F.sum(ColNames.signal_dominance).over(window_spec),
+        )
         # Calculate the posterior probabilities
 
         if self.use_land_use_prior:
             grid_model_df = self.input_data_objects[SilverEnrichedGridDataObject.ID].df.select(
                 ColNames.grid_id, ColNames.prior_probability
             )
-
-            # TODO should default value be configurable? 1 would keep cell connection probability value
-            # Assign 0 to any missing prior values
-            grid_model_df = grid_model_df.fillna(0, subset=[ColNames.prior_probability])
             cell_conn_probs_df = cell_conn_probs_df.join(grid_model_df, on=ColNames.grid_id)
             cell_conn_probs_df = cell_conn_probs_df.withColumn(
                 ColNames.posterior_probability,
@@ -149,29 +151,15 @@ class CellConnectionProbabilityEstimation(Component):
 
         # Normalize the posterior probabilities
 
-        total_posterior_df = cell_conn_probs_df.groupBy(
-            ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id
-        ).agg(F.sum(ColNames.posterior_probability).alias("total_posterior_probability"))
+        window_spec = Window.partitionBy(ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id)
 
-        cell_conn_probs_df = (
-            cell_conn_probs_df.join(
-                total_posterior_df,
-                on=[ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id],
-            )
-            .withColumn(
-                ColNames.posterior_probability,
-                F.col(ColNames.posterior_probability) / F.col("total_posterior_probability"),
-            )
-            .drop("total_posterior_probability")
+        cell_conn_probs_df = cell_conn_probs_df.withColumn(
+            ColNames.posterior_probability,
+            F.col(ColNames.posterior_probability) / F.sum(ColNames.posterior_probability).over(window_spec),
         )
 
-        cell_conn_probs_df = cell_conn_probs_df.select(
-            *[field.name for field in SilverCellConnectionProbabilitiesDataObject.SCHEMA.fields]
+        cell_conn_probs_df = utils.apply_schema_casting(
+            cell_conn_probs_df, SilverCellConnectionProbabilitiesDataObject.SCHEMA
         )
-        columns = {
-            field.name: F.col(field.name).cast(field.dataType)
-            for field in SilverCellConnectionProbabilitiesDataObject.SCHEMA.fields
-        }
-        cell_conn_probs_df = cell_conn_probs_df.withColumns(columns)
 
         self.output_data_objects[SilverCellConnectionProbabilitiesDataObject.ID].df = cell_conn_probs_df

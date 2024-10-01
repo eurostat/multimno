@@ -1,4 +1,5 @@
 from typing import List
+
 """
 Silver present population estimatation per grid data object
 """
@@ -29,7 +30,6 @@ class SilverPresentPopulationDataObject(PathDataObject):
         [
             StructField(ColNames.grid_id, StringType(), nullable=False),
             StructField(ColNames.population, FloatType(), nullable=False),
-            # partition columns
             StructField(ColNames.year, ShortType(), nullable=False),
             StructField(ColNames.month, ByteType(), nullable=False),
             StructField(ColNames.day, ByteType(), nullable=False),
@@ -37,15 +37,20 @@ class SilverPresentPopulationDataObject(PathDataObject):
         ]
     )
 
-    def __init__(self, spark: SparkSession, default_path: str, partition_columns: List[str] = None) -> None:
+    def __init__(
+        self, spark: SparkSession, default_path: str, partition_columns: List[str] = None, mode: str = "overwrite"
+    ) -> None:
         super().__init__(spark, default_path)
         self.interface = ParquetInterface()
         self.partition_columns = partition_columns
+        self.mode = mode
 
-    def write(self, path: str = None, partition_columns: List[str] = None):
+    def write(self, path: str = None, partition_columns: list[str] = None, mode: str = None) -> None:
         if path is None:
             path = self.default_path
         if partition_columns is None:
             partition_columns = self.partition_columns
+        if mode is None:
+            mode = self.mode
 
-        self.interface.write_from_interface(self.df, path, partition_columns)
+        self.interface.write_from_interface(self.df, path, partition_columns, mode)

@@ -30,6 +30,8 @@ from multimno.components.ingestion.spatial_data_ingestion.gisco_data_ingestion i
     GiscoDataIngestion,
 )
 
+from multimno.components.ingestion.data_filtering.data_filtering import DataFiltering
+
 # Execution - Spatial
 from multimno.components.execution.grid_enrichment.grid_enrichment import GridEnrichment
 from multimno.components.execution.geozones_grid_mapping.geozones_grid_mapping import (
@@ -45,9 +47,6 @@ from multimno.components.execution.event_semantic_cleaning.event_semantic_cleani
 # Execution - Network
 from multimno.components.execution.network_cleaning.network_cleaning import (
     NetworkCleaning,
-)
-from multimno.components.execution.signal_strength.signal_stength_modeling import (
-    SignalStrengthModeling,
 )
 from multimno.components.execution.cell_footprint.cell_footprint_estimation import (
     CellFootprintEstimation,
@@ -74,6 +73,7 @@ from multimno.components.execution.usual_environment_labeling.usual_environment_
 from multimno.components.execution.usual_environment_aggregation.usual_environment_aggregation import (
     UsualEnvironmentAggregation,
 )
+from multimno.components.execution.spatial_aggregation.spatial_aggregation import SpatialAggregation
 
 # Quality
 from multimno.components.quality.event_quality_warnings.event_quality_warnings import (
@@ -99,6 +99,7 @@ CONSTRUCTORS = {
     InspireGridGeneration.COMPONENT_ID: InspireGridGeneration,
     OvertureDataIngestion.COMPONENT_ID: OvertureDataIngestion,
     GiscoDataIngestion.COMPONENT_ID: GiscoDataIngestion,
+    DataFiltering.COMPONENT_ID: DataFiltering,
     # Execution - Spatial
     GridEnrichment.COMPONENT_ID: GridEnrichment,
     GeozonesGridMapping.COMPONENT_ID: GeozonesGridMapping,
@@ -108,7 +109,6 @@ CONSTRUCTORS = {
     # Execution - Network
     NetworkCleaning.COMPONENT_ID: NetworkCleaning,
     DeviceActivityStatistics.COMPONENT_ID: DeviceActivityStatistics,
-    SignalStrengthModeling.COMPONENT_ID: SignalStrengthModeling,
     CellFootprintEstimation.COMPONENT_ID: CellFootprintEstimation,
     CellConnectionProbabilityEstimation.COMPONENT_ID: CellConnectionProbabilityEstimation,
     # Execution - Daily
@@ -121,6 +121,7 @@ CONSTRUCTORS = {
     LongtermPermanenceScore.COMPONENT_ID: LongtermPermanenceScore,
     UsualEnvironmentLabeling.COMPONENT_ID: UsualEnvironmentLabeling,
     UsualEnvironmentAggregation.COMPONENT_ID: UsualEnvironmentAggregation,
+    SpatialAggregation.COMPONENT_ID: SpatialAggregation,
     # Quality
     EventQualityWarnings.COMPONENT_ID: EventQualityWarnings,
     SemanticQualityWarnings.COMPONENT_ID: SemanticQualityWarnings,

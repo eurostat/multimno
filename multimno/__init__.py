@@ -3,7 +3,7 @@ import importlib.metadata
 from pathlib import Path
 
 
-APP_NAME = "multimnoa"
+APP_NAME = "multimno"
 
 __package_version = "unknown"
 

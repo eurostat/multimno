@@ -1,4 +1,5 @@
 from typing import List
+
 """
 Cell connection probabilities.
 """
@@ -19,8 +20,8 @@ class SilverCellConnectionProbabilitiesDataObject(PathDataObject):
         [
             StructField(ColNames.cell_id, StringType(), nullable=True),
             StructField(ColNames.grid_id, StringType(), nullable=True),
-            StructField(ColNames.valid_date_start, DateType(), nullable=True),
-            StructField(ColNames.valid_date_end, DateType(), nullable=True),
+            # StructField(ColNames.valid_date_start, DateType(), nullable=True),
+            # StructField(ColNames.valid_date_end, DateType(), nullable=True),
             StructField(ColNames.cell_connection_probability, FloatType(), nullable=True),
             StructField(ColNames.posterior_probability, FloatType(), nullable=True),
             # partition columns
@@ -42,15 +43,20 @@ class SilverCellConnectionProbabilitiesDataObject(PathDataObject):
         ColNames.day,
     ]
 
-    def __init__(self, spark: SparkSession, default_path: str, partition_columns: List[str] = None) -> None:
+    def __init__(
+        self, spark: SparkSession, default_path: str, partition_columns: list[str] = None, mode: str = "overwrite"
+    ) -> None:
         super().__init__(spark, default_path)
         self.interface = ParquetInterface()
         self.partition_columns = partition_columns
+        self.mode = mode
 
-    def write(self, path: str = None, partition_columns: List[str] = None):
+    def write(self, path: str = None, partition_columns: list[str] = None, mode: str = None) -> None:
         if path is None:
             path = self.default_path
         if partition_columns is None:
             partition_columns = self.partition_columns
+        if mode is None:
+            mode = self.mode
 
         self.interface.write_from_interface(self.df, path, partition_columns)

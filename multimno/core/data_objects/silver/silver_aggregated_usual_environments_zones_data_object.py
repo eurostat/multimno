@@ -1,7 +1,7 @@
 from typing import List
 
 """
-Silver present population estimatation per zone data object
+Silver usual environments estimatation per zone data object
 """
 
 from pyspark.sql import SparkSession
@@ -10,9 +10,8 @@ from pyspark.sql.types import (
     StructType,
     FloatType,
     StringType,
-    ByteType,
-    ShortType,
-    TimestampType,
+    DateType,
+    ByteType
 )
 
 from multimno.core.data_objects.data_object import PathDataObject
@@ -20,46 +19,49 @@ from multimno.core.io_interface import ParquetInterface
 from multimno.core.constants.columns import ColNames
 
 
-class SilverPresentPopulationZoneDataObject(PathDataObject):
+class SilverAggregatedUsualEnvironmentsZonesDataObject(PathDataObject):
     """
     Estimation of the population present at a given time at the level of some zoning system.
     """
 
-    ID = "SilverPresentPopulationZoneDO"
+    ID = "SilverAggregatedUsualEnvironmentsZonesDO"
     SCHEMA = StructType(
         [
             StructField(ColNames.zone_id, StringType(), nullable=False),
-            StructField(ColNames.population, FloatType(), nullable=False),
-            StructField(ColNames.timestamp, TimestampType(), nullable=False),
+            StructField(ColNames.weighted_device_count, FloatType(), nullable=False),
+            # partition columns
             StructField(ColNames.dataset_id, StringType(), nullable=False),
             StructField(ColNames.level, ByteType(), nullable=False),
-            StructField(ColNames.year, ShortType(), nullable=False),
-            StructField(ColNames.month, ByteType(), nullable=False),
-            StructField(ColNames.day, ByteType(), nullable=False),
+            StructField(ColNames.label, StringType(), nullable=False),
+            StructField(ColNames.start_date, DateType(), nullable=False),
+            StructField(ColNames.end_date, DateType(), nullable=False),
+            StructField(ColNames.season, StringType(), nullable=False),
         ]
     )
 
-    VALUE_COLUMNS = [ColNames.population]
-    
+    VALUE_COLUMNS = [ColNames.weighted_device_count]
+
     AGGREGATION_COLUMNS = [ColNames.zone_id,
-                            ColNames.timestamp,
                             ColNames.dataset_id,
+                            ColNames.label, 
                             ColNames.level,
-                            ColNames.year,
-                            ColNames.month,
-                            ColNames.day]
-    
+                            ColNames.start_date, 
+                            ColNames.end_date, 
+                            ColNames.season]
+
     PARTITION_COLUMNS = [ColNames.dataset_id, 
                          ColNames.level, 
-                         ColNames.year, 
-                         ColNames.month, 
-                         ColNames.day]
+                         ColNames.label, 
+                         ColNames.start_date, 
+                         ColNames.end_date, 
+                         ColNames.season]
 
     def __init__(
         self, spark: SparkSession, default_path: str, partition_columns: List[str] = None, mode: str = "overwrite"
     ) -> None:
         super().__init__(spark, default_path)
         self.interface = ParquetInterface()
+
         if partition_columns is None:
             partition_columns = self.PARTITION_COLUMNS
         self.partition_columns = partition_columns

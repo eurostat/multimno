@@ -12,6 +12,9 @@ from pyspark.sql.window import Window
 from pyspark.sql.dataframe import DataFrame
 import pyspark.sql.functions as F
 
+from multimno.core.log import get_execution_stats
+from multimno.core.utils import apply_schema_casting
+from multimno.core.spark_session import delete_file_or_folder
 from multimno.core.component import Component
 from multimno.core.constants.columns import ColNames
 from multimno.core.settings import CONFIG_SILVER_PATHS_KEY
@@ -24,14 +27,8 @@ from multimno.core.data_objects.silver.silver_cell_connection_probabilities_data
 from multimno.core.data_objects.silver.silver_grid_data_object import (
     SilverGridDataObject,
 )
-from multimno.core.data_objects.silver.silver_geozones_grid_map_data_object import (
-    SilverGeozonesGridMapDataObject,
-)
 from multimno.core.data_objects.silver.silver_present_population_data_object import (
     SilverPresentPopulationDataObject,
-)
-from multimno.core.data_objects.silver.silver_present_population_zone_data_object import (
-    SilverPresentPopulationZoneDataObject,
 )
 
 
@@ -44,7 +41,6 @@ class PresentPopulationEstimation(Component):
     """
 
     COMPONENT_ID = "PresentPopulationEstimation"
-    supported_aggregation_levels = ["grid", "zone"]
 
     def __init__(self, general_config_path: str, component_config_path: str) -> None:
         super().__init__(general_config_path, component_config_path)
@@ -60,15 +56,6 @@ class PresentPopulationEstimation(Component):
             self.config.get(self.COMPONENT_ID, "data_period_end"), "%Y-%m-%d  %H:%M:%S"
         )
 
-        # Total number of user id modulo partitions.
-        self.nr_of_user_id_partitions = self.config.getint(
-            self.COMPONENT_ID, "nr_of_user_id_partitions"
-        )  # TODO this should come from global config?
-        # Number of user id modulo partitions to process at a time.
-        self.nr_of_user_id_partitions_per_slice = self.config.getint(
-            self.COMPONENT_ID, "nr_of_user_id_partitions_per_slice"
-        )
-
         # Time gap (time distance in seconds between time points).
         self.time_point_gap_s = timedelta(seconds=self.config.getint(self.COMPONENT_ID, "time_point_gap_s"))
 
@@ -79,22 +66,12 @@ class PresentPopulationEstimation(Component):
         # Compares sum of absolute differences of each row.
         self.min_difference_threshold = self.config.getfloat(self.COMPONENT_ID, "min_difference_threshold")
 
-        # Set output aggregation level (grid-level or zone-level).
-        self.output_aggregation_level = self.config.get(self.COMPONENT_ID, "output_aggregation_level")
-        if self.output_aggregation_level not in self.supported_aggregation_levels:
-            raise ValueError(
-                f"Invalid output_aggregation_level config value ({self.output_aggregation_level}). Expected one of : {self.supported_aggregation_levels}"
-            )
-
-        # If using zone-level aggregation, require dataset id and zone hierarchical level.
-        if self.output_aggregation_level == "zone":
-            self.zoning_dataset_id = self.config.get(self.COMPONENT_ID, "zoning_dataset_id")
-            self.zoning_hierarchical_level = self.config.getint(self.COMPONENT_ID, "zoning_hierarchical_level")
-
+        self.event_error_flags_to_include = self.config.geteval(self.COMPONENT_ID, "event_error_flags_to_include")
         self.time_point = None
 
     def initalize_data_objects(self):
         input_silver_event_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "event_data_silver_flagged")
+        clear_destination_directory = self.config.getboolean(self.COMPONENT_ID, "clear_destination_directory")
         input_silver_cell_connection_prob_path = self.config.get(
             CONFIG_SILVER_PATHS_KEY, "cell_connection_probabilities_data_silver"
         )
@@ -109,41 +86,22 @@ class PresentPopulationEstimation(Component):
             SilverCellConnectionProbabilitiesDataObject.ID: input_silver_cell_connection_prob,
             SilverGridDataObject.ID: input_silver_grid,
         }
-        # If aggregating by zone, additionally require zone to grid mapping input data.
-        output_aggregation_level = self.config.get(self.COMPONENT_ID, "output_aggregation_level")
-        if output_aggregation_level not in self.supported_aggregation_levels:
-            raise ValueError(
-                f"Invalid output_aggregation_level config value ({self.output_aggregation_level}). Expected one of : {self.supported_aggregation_levels}"
-            )
-        if output_aggregation_level == "zone":
-            input_silver_zone_to_grid_map_path = self.config.get(
-                CONFIG_SILVER_PATHS_KEY, "geozones_grid_map_data_silver"
-            )
-            input_zone_to_grid_map = SilverGeozonesGridMapDataObject(self.spark, input_silver_zone_to_grid_map_path)
-            self.input_data_objects[SilverGeozonesGridMapDataObject.ID] = input_zone_to_grid_map
 
         # Output
         # Output data object depends on whether results are aggregated per grid or per zone.
+        silver_present_population_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "present_population_silver")
+        output_present_population = SilverPresentPopulationDataObject(
+            self.spark,
+            silver_present_population_path,
+            partition_columns=[ColNames.year, ColNames.month, ColNames.day],
+            mode="append",
+        )
+        self.output_data_objects = {SilverPresentPopulationDataObject.ID: output_present_population}
 
-        if output_aggregation_level == "grid":
-            self.silver_present_population_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "present_population_silver")
-            output_present_population = SilverPresentPopulationDataObject(
-                self.spark,
-                self.silver_present_population_path,
-                partition_columns=[ColNames.year, ColNames.month, ColNames.day, ColNames.timestamp],
-            )
-            self.output_data_objects = {SilverPresentPopulationDataObject.ID: output_present_population}
-        elif output_aggregation_level == "zone":
-            self.silver_present_population_path = self.config.get(
-                CONFIG_SILVER_PATHS_KEY, "present_population_zone_silver"
-            )
-            output_present_population = SilverPresentPopulationZoneDataObject(
-                self.spark,
-                self.silver_present_population_path,
-                partition_columns=[ColNames.year, ColNames.month, ColNames.day, ColNames.timestamp],
-            )
-            self.output_data_objects = {SilverPresentPopulationZoneDataObject.ID: output_present_population}
+        if clear_destination_directory:
+            delete_file_or_folder(self.spark, silver_present_population_path)
 
+    @get_execution_stats
     def execute(self):
         self.logger.info("STARTING: Present Population Estimation")
 
@@ -170,6 +128,7 @@ class PresentPopulationEstimation(Component):
         time_point = self.time_point
         # Filter event data to dates within allowed time bounds.
         events_df = self.input_data_objects[SilverEventFlaggedDataObject.ID].df
+        events_df = events_df.filter(F.col(ColNames.error_flag).isin(self.event_error_flags_to_include))
 
         # Apply date-level filtering to omit events from dates unrelated to this time point.
         events_df = select_where_dates_include_time_point_window(time_point, self.tolerance_period_s, events_df)
@@ -182,29 +141,18 @@ class PresentPopulationEstimation(Component):
         # calculate population estimates per grid tile.
         population_per_grid_df = self.calculate_population_per_grid(count_per_cell_df, cell_conn_prob_df)
 
-        # If output aggregation level is grid, then the population estimation is finished.
         # Prepare the results.
-        if self.output_aggregation_level == "grid":
-            population_per_grid_df = (
-                population_per_grid_df.withColumn(ColNames.timestamp, F.lit(time_point))
-                .withColumn(ColNames.year, F.lit(time_point.year))
-                .withColumn(ColNames.month, F.lit(time_point.month))
-                .withColumn(ColNames.day, F.lit(time_point.day))
-            )
-            # Set results data object
-            self.output_data_objects[SilverPresentPopulationDataObject.ID].df = population_per_grid_df
-        # If output aggregation level is zone, then additionally do grid to zone mapping.
-        # Then prepare the results.
-        elif self.output_aggregation_level == "zone":
-            zone_stats_df = self.calculate_population_per_zone(population_per_grid_df)
-            zone_stats_df = (
-                zone_stats_df.withColumn(ColNames.timestamp, F.lit(time_point))
-                .withColumn(ColNames.year, F.lit(time_point.year))
-                .withColumn(ColNames.month, F.lit(time_point.month))
-                .withColumn(ColNames.day, F.lit(time_point.day))
-            )
-            # Set results data object
-            self.output_data_objects[SilverPresentPopulationZoneDataObject.ID].df = zone_stats_df
+        population_per_grid_df = (
+            population_per_grid_df.withColumn(ColNames.timestamp, F.lit(time_point))
+            .withColumn(ColNames.year, F.lit(time_point.year))
+            .withColumn(ColNames.month, F.lit(time_point.month))
+            .withColumn(ColNames.day, F.lit(time_point.day))
+        )
+        # Set results data object
+        population_per_grid_df = apply_schema_casting(
+            population_per_grid_df, SilverPresentPopulationDataObject.SCHEMA
+        )
+        self.output_data_objects[SilverPresentPopulationDataObject.ID].df = population_per_grid_df
 
     def get_cell_connection_probabilities(self, time_point: datetime) -> DataFrame:
         """
@@ -387,37 +335,6 @@ class PresentPopulationEstimation(Component):
         # At the end of the iteration, we have our population estimation over the grid tiles
         return new_pop_df.withColumn(ColNames.population, F.col(ColNames.population).cast(FloatType()))
 
-    def calculate_population_per_zone(self, population_per_grid_df: DataFrame) -> DataFrame:
-        """
-        Calculate present population per zone by aggregating together grid populations that belong to the same zone.
-        Aggregation level depends on configuration parameters.
-
-        Args:
-            population_per_grid_df (DataFrame): (grid_id, population)
-
-        Returns:
-            DataFrame: (zone_id, population)
-        """
-        zone_to_grid_df = self.input_data_objects[SilverGeozonesGridMapDataObject.ID].df.where(
-            F.col(ColNames.dataset_id) == self.zoning_dataset_id
-        )
-        # Override zone_id with the desired hierarchical zone level.
-        zone_to_grid_df = zone_to_grid_df.withColumn(
-            ColNames.zone_id,
-            F.element_at(F.split(F.col(ColNames.hierarchical_id), pattern="\\|"), self.zoning_hierarchical_level),
-        )
-        population_per_zone_df = (
-            population_per_grid_df.join(zone_to_grid_df, on=ColNames.grid_id)
-            .groupBy(ColNames.zone_id)
-            .agg(F.sum(ColNames.population).alias(ColNames.population))
-        )
-        # TODO Casting type to float. Should this happen earlier, or not at all (have result col type be Double)?
-        population_per_zone_df = population_per_zone_df.withColumn(
-            ColNames.population, F.col(ColNames.population).cast("float")
-        )
-        return population_per_zone_df
-
-
 def generate_time_points(period_start: datetime, period_end: datetime, time_point_gap_s: timedelta) -> List[datetime]:
     """
     Generates time points within the specified period with the specified spacing.
@@ -464,31 +381,3 @@ def select_where_dates_include_time_point_window(
         (F.make_date(ColNames.year, ColNames.month, ColNames.day) >= date_lower)
         & (F.make_date(ColNames.year, ColNames.month, ColNames.day) <= date_upper)
     )
-
-
-def generate_slice_bounds(
-    nr_of_partitions: int, partitions_per_slice: int, starting_id: int = 0
-) -> List[Tuple[int, int]]:
-    """
-    Generates list of (lower_bound, upper_bound) pairs to be used for selecting equal-sized slices of partitioned data.
-    The last slice may be smaller than others if the number of partitions is not a multiple of slice size.
-
-    Args:
-        nr_of_partitions (int): total number of partitions
-        nr_of_partitions_per_slice (int): Desired number of partitions per slice.
-        starting_id (int, optional): Number to start first slice from. Defaults to 0.
-
-    Returns:
-        List[Tuple[int,int]]: list of (lower_bound, upper_bound) pairs
-    """
-    # TODO this might be reusable across components.
-    lower_bound = starting_id
-    slices_bounds = []
-    while lower_bound < nr_of_partitions:
-        if lower_bound + partitions_per_slice > nr_of_partitions:
-            upper_bound = nr_of_partitions
-        else:
-            upper_bound = lower_bound + partitions_per_slice
-        slices_bounds.append((lower_bound, upper_bound))
-        lower_bound = upper_bound
-    return slices_bounds
