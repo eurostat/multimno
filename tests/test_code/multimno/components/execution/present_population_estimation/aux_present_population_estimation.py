@@ -27,12 +27,6 @@ from multimno.core.data_objects.silver.silver_grid_data_object import (
 from multimno.core.data_objects.silver.silver_geozones_grid_map_data_object import (
     SilverGeozonesGridMapDataObject,
 )
-from multimno.core.data_objects.silver.silver_present_population_data_object import (
-    SilverPresentPopulationDataObject,
-)
-from multimno.core.data_objects.silver.silver_present_population_zone_data_object import (
-    SilverPresentPopulationZoneDataObject,
-)
 
 from tests.test_code.fixtures import spark_session as spark
 
@@ -44,7 +38,6 @@ input_cell_connection_probability_id = "input_cell_connection_probability"
 input_grid_id = "input_grid"
 input_zone_to_grid_map_id = "input_zone_to_grid_map"
 expected_present_population_id = "expected_present_population"
-expected_present_population_zone_id = "expected_present_population_zone"
 
 
 def get_expected_output_df(spark: SparkSession, expected_population_data: list[Row], schema) -> DataFrame:
@@ -70,7 +63,6 @@ def set_input_data(
     event_data: list[Row],
     grid_data: list[Row],
     cell_connection_prob_data: list[Row],
-    zone_to_grid_map_data: list[Row],
 ):
     """
     Function to write test-specific provided dataframes to input directories.
@@ -121,15 +113,6 @@ def set_input_data(
         schema=SilverCellConnectionProbabilitiesDataObject.SCHEMA,
     )
     input_cell_connection_prob_do.write(partition_columns=partition_columns)
-
-    ### Write zone to grid mapping data if present
-    if zone_to_grid_map_data is not None:
-        zone_to_grid_map_data_path = config["Paths.Silver"]["geozones_grid_map_data_silver"]
-        zone_to_grid_map_do = SilverGeozonesGridMapDataObject(spark, zone_to_grid_map_data_path)
-        zone_to_grid_map_do.df = spark.createDataFrame(
-            zone_to_grid_map_data, schema=SilverGeozonesGridMapDataObject.SCHEMA
-        )
-        zone_to_grid_map_do.write(partition_columns=partition_columns)
 
 
 def data_test_grid_0001() -> dict:
@@ -273,8 +256,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=1,
                     grid_id=1,
-                    valid_date_start=validity_date_start,
-                    valid_date_end=None,
                     # valid_date_end=validity_date_end,
                     cell_connection_probability=0.3,
                     posterior_probability=0.3,
@@ -285,8 +266,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=4,
                     grid_id=1,
-                    valid_date_start=validity_date_start,
-                    valid_date_end=None,
                     # valid_date_end=validity_date_end,
                     cell_connection_probability=0.7,
                     posterior_probability=0.7,
@@ -297,8 +276,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=1,
                     grid_id=2,
-                    valid_date_start=validity_date_start,
-                    valid_date_end=None,
                     # valid_date_end=validity_date_end,
                     cell_connection_probability=0.6,
                     posterior_probability=0.6,
@@ -309,8 +286,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=2,
                     grid_id=2,
-                    valid_date_start=validity_date_start,
-                    valid_date_end=None,
                     # valid_date_end=validity_date_end,
                     cell_connection_probability=0.4,
                     posterior_probability=0.4,
@@ -321,8 +296,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=1,
                     grid_id=3,
-                    valid_date_start=validity_date_start,
-                    valid_date_end=None,
                     # valid_date_end=validity_date_end,
                     cell_connection_probability=0.25,
                     posterior_probability=0.25,
@@ -333,8 +306,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=2,
                     grid_id=3,
-                    valid_date_start=validity_date_start,
-                    valid_date_end=None,
                     # valid_date_end=validity_date_end,
                     cell_connection_probability=0.75,
                     posterior_probability=0.75,
@@ -345,8 +316,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=2,
                     grid_id=4,
-                    valid_date_start=validity_date_start,
-                    valid_date_end=None,
                     # valid_date_end=validity_date_end,
                     cell_connection_probability=0.9,
                     posterior_probability=0.9,
@@ -357,8 +326,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=3,
                     grid_id=4,
-                    valid_date_start=validity_date_start,
-                    valid_date_end=None,
                     # valid_date_end=validity_date_end,
                     cell_connection_probability=0.1,
                     posterior_probability=0.1,
@@ -369,8 +336,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=2,
                     grid_id=5,
-                    valid_date_start=validity_date_start,
-                    valid_date_end=None,
                     # valid_date_end=validity_date_end,
                     cell_connection_probability=0.5,
                     posterior_probability=0.5,
@@ -381,8 +346,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=2,
                     grid_id=5,
-                    valid_date_start=validity_date_start,
-                    valid_date_end=None,
                     # valid_date_end=validity_date_end,
                     cell_connection_probability=0.5,
                     posterior_probability=0.5,
@@ -393,8 +356,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=3,
                     grid_id=5,
-                    valid_date_start=validity_date_start,
-                    valid_date_end=None,
                     # valid_date_end=validity_date_end,
                     cell_connection_probability=0.5,
                     posterior_probability=0.5,
@@ -405,8 +366,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=4,
                     grid_id=6,
-                    valid_date_start=validity_date_start,
-                    valid_date_end=None,
                     # valid_date_end=validity_date_end,
                     cell_connection_probability=1.0,
                     posterior_probability=1.0,
@@ -617,109 +576,3 @@ def generate_event_data_events_in_next_date(user_id: str, timestamp: datetime.ti
             user_id_modulo=1,
         ),
     ]
-
-
-"""
-Section for zone-aggregated calculations 
-"""
-
-
-def data_test_zone_0001() -> dict:
-    """
-    Data generation of zone aggregation test 0001
-    """
-    validity_period_start = "2022-01-01"
-    validity_period_end = "2025-01-01"
-    dataset_id = "zoning_01"
-
-    # Generate grid data. Physical parameters are irrelevant in this component as spatial operations are not done here.
-    input_grid_data = []
-    input_grid_data += generate_grid_data_0001()
-    # Generate cell connection probability data.
-
-    input_cell_connection_probability_data = []
-    input_cell_connection_probability_data += generate_cell_connection_probabilities_data_0001(
-        [date(2022, 12, 31), date(2023, 1, 1)], validity_period_start, validity_period_end
-    )
-    # Generate event data.
-    input_event_data = []
-    input_event_data += generate_event_data_0001()
-
-    # Generate zone to grid mapping data.
-    zone_to_grid_map_data = []
-    zone_to_grid_map_data += generate_zone_to_grid_map_data_0001(dataset_id, validity_period_start)
-
-    # Expected output: population per zone.
-    expected_output_data = generate_expected_output_data_zone_0001()
-
-    return {
-        input_grid_id: input_grid_data,
-        input_cell_connection_probability_id: input_cell_connection_probability_data,
-        input_events_id: input_event_data,
-        input_zone_to_grid_map_id: zone_to_grid_map_data,
-        expected_present_population_id: expected_output_data,
-    }
-
-
-def generate_zone_to_grid_map_data_0001(dataset_id: str, date: str) -> list[Row]:
-    """
-    Generate zone to grid mapping input data. 0001
-    """
-    timestamp = datetime.strptime(date, "%Y-%m-%d")
-    return [
-        Row(
-            grid_id=1,
-            zone_id="C01",
-            hierarchical_id="A01|B01|C01",
-            dataset_id=dataset_id,
-            year=timestamp.year,
-            month=timestamp.month,
-            day=timestamp.day,
-        ),
-        Row(
-            grid_id=2,
-            zone_id="C02",
-            hierarchical_id="A01|B01|C02",
-            dataset_id=dataset_id,
-            year=timestamp.year,
-            month=timestamp.month,
-            day=timestamp.day,
-        ),
-        Row(
-            grid_id=3,
-            zone_id="C02",
-            hierarchical_id="A01|B01|C02",
-            dataset_id=dataset_id,
-            year=timestamp.year,
-            month=timestamp.month,
-            day=timestamp.day,
-        ),
-    ]
-
-
-def generate_expected_output_data_zone_0001():
-    """
-    Generate expected zone-aggregated population results. 0001
-    """
-    timestamp_format = "%Y-%m-%dT%H:%M:%S"
-    t1 = datetime.strptime("2023-01-01T00:00:00", timestamp_format)
-    expected_results = []
-    expected_results += [
-        Row(
-            zone_id="C01",
-            population=0.057804,
-            year=t1.year,
-            month=t1.month,
-            day=t1.day,
-            timestamp=t1,
-        ),
-        Row(
-            zone_id="C02",
-            population=1.546249,
-            year=t1.year,
-            month=t1.month,
-            day=t1.day,
-            timestamp=t1,
-        ),
-    ]
-    return expected_results

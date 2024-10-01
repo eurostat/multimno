@@ -4,25 +4,30 @@ from multimno.core.configuration import parse_configuration
 from multimno.core.data_objects.silver.silver_cell_footprint_data_object import (
     SilverCellFootprintDataObject,
 )
-from multimno.core.data_objects.silver.silver_cell_intersection_groups_data_object import (
-    SilverCellIntersectionGroupsDataObject,
-)
 from multimno.components.execution.cell_footprint.cell_footprint_estimation import (
     CellFootprintEstimation,
 )
-
+from multimno.core.data_objects.silver.silver_enriched_grid_data_object import (
+    SilverEnrichedGridDataObject,
+)
+from multimno.core.data_objects.silver.silver_grid_data_object import SilverGridDataObject
 from tests.test_code.fixtures import spark_session as spark
 from tests.test_code.multimno.components.execution.cell_footprint.aux_cell_footprint_testing import (
-    expected_footprint,
-    expected_intersection_groups,
-    set_input_data,
+    set_input_network_data,
 )
-from tests.test_code.test_common import TEST_RESOURCES_PATH, TEST_GENERAL_CONFIG_PATH
+from tests.test_code.test_common import (
+    TEST_RESOURCES_PATH,
+    TEST_GENERAL_CONFIG_PATH,
+    STATIC_TEST_DATA_PATH,
+)
+from multimno.core.settings import (
+    CONFIG_SILVER_PATHS_KEY,
+)
 from tests.test_code.test_utils import setup_test_data_dir, teardown_test_data_dir
 
 
 # Dummy to avoid linting errors using pytest
-fixtures = [spark, expected_footprint, expected_intersection_groups]
+fixtures = [spark]
 
 
 def setup_function():
@@ -33,16 +38,33 @@ def teardown_function():
     teardown_test_data_dir()
 
 
-def test_cell_footprint_estimation(spark, expected_footprint, expected_intersection_groups):
+def prepare_test_data(spark):
     """
     DESCRIPTION:
-        Test shall execute the CellFootprintEstimation component with a signal stremgth dataframe containing
-        4 rows with signal strength values in single grid tile for 4 nerby cells. 1 cell signal strentgh is
-        below the threshold and 3 are above. The expected outputs:
-        1. Cell Footprint data frame with 3 rows of signal dominance values for cells which were not filtered by
-        prunning.
-        2. Cell Intersection Groups data frame with 4 rows of all possible cell intersection groups
-        for the given grid tile.
+        Function to prepare the test data for the tests.
+    """
+    # Prepare test data
+    config = parse_configuration(TEST_GENERAL_CONFIG_PATH)
+
+    grid_do = SilverGridDataObject(spark, config.get(CONFIG_SILVER_PATHS_KEY, "grid_data_silver"), ["quadkey"])
+
+    grid_sdf = (
+        spark.read.format("geoparquet")
+        .schema(SilverGridDataObject.SCHEMA)
+        .load(f"{STATIC_TEST_DATA_PATH}/grid/expected_extent_grid")
+    )
+    grid_do.df = grid_sdf
+    grid_do.write()
+
+    set_input_network_data(spark, config)
+
+
+def test_cell_footprint_estimation(spark):
+    """
+    DESCRIPTION:
+        Test shall execute the CellFootprintEstimation component with a genereated cells data
+        and pregenerated enriched grid data. The test shall assert the output cell footprint data
+        is equal to the pregenerated expected cell footrpint data.
 
     INPUT:
         Test Configs:
@@ -52,17 +74,7 @@ def test_cell_footprint_estimation(spark, expected_footprint, expected_intersect
             silver_signal_strength: /opt/testing_data/lakehouse/silver/signal_strength
 
     OUTPUT:
-        cell_footprint_data_silver:  /opt/testing_data/lakehouse/cell_footprint
-        cell_intersection_groups_data_silver:  /opt/testing_data/lakehouse/cell_intersection_groups
-
-    STEPS:
-        1.- Parse the configuration
-        2.- Generate the input data using functions from the auxiallary file
-        3.- Init the CellFootprintEstimation component with the test configs
-        4.- Execute the CellFootprintEstimation (includes read, transform, write)
-        5.- Read written Cell Footprint data object with SignalStrengthModeling class.
-        6.- Read written Cell Intesection Groups data object with SignalStrengthModeling class.
-        7.- Assert DataFrames are equal.
+        cell_footprint_data_silver:  /opt/tests/test_resources/test_data/network/cell_footprint
     """
     # Setup
 
@@ -70,16 +82,17 @@ def test_cell_footprint_estimation(spark, expected_footprint, expected_intersect
     component_config_path = (
         f"{TEST_RESOURCES_PATH}/config/network/cell_footprint_estimation/cell_footprint_estimation.ini"
     )
-    config = parse_configuration(TEST_GENERAL_CONFIG_PATH, component_config_path)
 
     ## Create Input data
-    set_input_data(spark, config)
+    prepare_test_data(spark)
 
     ## Init component class
     test_component = CellFootprintEstimation(TEST_GENERAL_CONFIG_PATH, component_config_path)
 
-    # Expected (defined as fixture)
-
+    # Expected
+    expected_do = SilverCellFootprintDataObject(spark, f"{STATIC_TEST_DATA_PATH}/network/cell_footprint/")
+    expected_do.read()
+    expected_sdf = expected_do.df
     # Execution
     test_component.execute()
 
@@ -87,12 +100,5 @@ def test_cell_footprint_estimation(spark, expected_footprint, expected_intersect
     # read from test data output
     output_footprint_data_object = test_component.output_data_objects[SilverCellFootprintDataObject.ID]
     output_footprint_data_object.read()
-
-    output_intersection_groups_data_object = test_component.output_data_objects[
-        SilverCellIntersectionGroupsDataObject.ID
-    ]
-    output_intersection_groups_data_object.read()
-
     # assert read data == expected
-    assertDataFrameEqual(output_footprint_data_object.df, expected_footprint)
-    assertDataFrameEqual(output_intersection_groups_data_object.df, expected_intersection_groups)
+    assertDataFrameEqual(output_footprint_data_object.df, expected_sdf)
