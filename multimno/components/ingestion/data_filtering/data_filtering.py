@@ -119,9 +119,7 @@ class DataFiltering(Component):
             path = path.replace(bronze_dir, bronze_dir_sample)
             if self.clear_destination_directory:
                 delete_file_or_folder(self.spark, path)
-            self.output_data_objects[value.ID] = value(
-                self.spark, path
-            )
+            self.output_data_objects[value.ID] = value(self.spark, path)
 
     @get_execution_stats
     def execute(self):
@@ -142,9 +140,8 @@ class DataFiltering(Component):
             F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day)) == F.lit(self.current_date)
         )
         cells_sdf = self.input_data_objects[BronzeNetworkDataObject.ID].df.filter(
-                F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day))
-                == F.lit(self.current_date)
-            )
+            F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day)) == F.lit(self.current_date)
+        )
         if self.spatial_filtering_mask == "polygon":
             polygons = self.input_data_objects[BronzeCountriesDataObject.ID].df.filter(
                 F.col(ColNames.iso2) == self.reference_polygon
@@ -161,7 +158,9 @@ class DataFiltering(Component):
                 if self.spatial_filtering_mask == "polygon":
                     events_sdf, cells_sdf = self.filter_by_devices_in_spatial_area(events_sdf, cells_sdf, polygons)
                 elif self.spatial_filtering_mask == "extent":
-                    events_sdf, cells_sdf = self.filter_by_devices_in_spatial_area(events_sdf, cells_sdf, bbox=self.extent)
+                    events_sdf, cells_sdf = self.filter_by_devices_in_spatial_area(
+                        events_sdf, cells_sdf, bbox=self.extent
+                    )
 
         if self.do_device_sampling:
             events_sdf = self.sample_devices(events_sdf, self.sample_size)
@@ -190,18 +189,20 @@ class DataFiltering(Component):
         """
         Filters cells DataFrame based on polygon.
         """
-        cells_sdf = (cells_sdf.withColumn(ColNames.geometry, STC.ST_Point(ColNames.longitude, ColNames.latitude))
-                        .withColumn(ColNames.geometry, STF.ST_SetSRID(ColNames.geometry, 4326))
-        )
+        cells_sdf = cells_sdf.withColumn(
+            ColNames.geometry, STC.ST_Point(ColNames.longitude, ColNames.latitude)
+        ).withColumn(ColNames.geometry, STF.ST_SetSRID(ColNames.geometry, 4326))
 
         cells_sdf = cells_sdf.join(
             polygons_sdf, STP.ST_Intersects(cells_sdf[ColNames.geometry], polygons_sdf[ColNames.geometry]), "inner"
         ).drop(polygons_sdf[ColNames.geometry])
 
         return cells_sdf
-    
+
     @staticmethod
-    def filter_by_spatial_area(events_sdf: DataFrame, cells_sdf: DataFrame, polygons_sdf: DataFrame = None, bbox: List = None) -> DataFrame:
+    def filter_by_spatial_area(
+        events_sdf: DataFrame, cells_sdf: DataFrame, polygons_sdf: DataFrame = None, bbox: List = None
+    ) -> DataFrame:
         """
         Filters events DataFrame based on spatial area.
         """
@@ -212,9 +213,11 @@ class DataFiltering(Component):
         cell_ids_list = [row[ColNames.cell_id] for row in cells_sdf.select(ColNames.cell_id).collect()]
         events_sdf = events_sdf.filter(events_sdf[ColNames.cell_id].isin(cell_ids_list))
         return events_sdf, cells_sdf
-    
+
     @staticmethod
-    def filter_by_devices_in_spatial_area(events_sdf: DataFrame, cells_sdf: DataFrame, polygons_sdf: DataFrame = None, bbox: List = None) -> DataFrame:
+    def filter_by_devices_in_spatial_area(
+        events_sdf: DataFrame, cells_sdf: DataFrame, polygons_sdf: DataFrame = None, bbox: List = None
+    ) -> DataFrame:
         """
         Filters events DataFrame based on devices in bounding box.
         """
@@ -224,7 +227,7 @@ class DataFiltering(Component):
         elif bbox is not None:
             cells_in_area_sdf = DataFiltering.filter_cells_bbox(cells_sdf, bbox)
         cell_ids_list = [row[ColNames.cell_id] for row in cells_in_area_sdf.select(ColNames.cell_id).collect()]
-        
+
         # Filter events based on cell_id being in the cells from the bounding box
         events_in_bbox_sdf = events_sdf.filter(events_sdf[ColNames.cell_id].isin(cell_ids_list))
 
