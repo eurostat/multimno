@@ -30,7 +30,7 @@
 	"shutdownAction": "stopCompose",
 
 	// Uncomment the next line to run commands after the container is created.
-	// "postCreateCommand": "cat /etc/os-release",
+	"postCreateCommand": "/opt/app/resources/hooks/set_git_hooks.sh",
 
 	// Configure tool-specific properties.
 	"customizations": {
