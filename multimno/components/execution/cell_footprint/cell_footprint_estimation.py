@@ -21,9 +21,7 @@ from multimno.core.component import Component
 from multimno.core.data_objects.silver.silver_enriched_grid_data_object import (
     SilverEnrichedGridDataObject,
 )
-from multimno.core.data_objects.silver.silver_grid_data_object import (
-    SilverGridDataObject
-)
+from multimno.core.data_objects.silver.silver_grid_data_object import SilverGridDataObject
 from multimno.core.data_objects.silver.silver_network_data_object import (
     SilverNetworkDataObject,
 )
@@ -62,7 +60,7 @@ class CellFootprintEstimation(Component):
         self.data_period_end = datetime.datetime.strptime(
             self.config.get(self.COMPONENT_ID, "data_period_end"), "%Y-%m-%d"
         ).date()
-        
+
         self.do_azimuth_angle_adjustments = self.config.getboolean(self.COMPONENT_ID, "do_azimuth_angle_adjustments")
         self.do_elevation_angle_adjustments = self.config.getboolean(
             self.COMPONENT_ID, "do_elevation_angle_adjustments"
@@ -101,16 +99,14 @@ class CellFootprintEstimation(Component):
         self.current_date = None
         self.current_cells_sdf = None
 
-
     def initalize_data_objects(self):
-        
+
         self.clear_destination_directory = self.config.getboolean(self.COMPONENT_ID, "clear_destination_directory")
         self.cartesian_crs = self.config.get(CellFootprintEstimation.COMPONENT_ID, "cartesian_crs")
         self.use_elevation = self.config.getboolean(CellFootprintEstimation.COMPONENT_ID, "use_elevation")
         self.do_do_cell_intersection_groups_calculation = self.config.getboolean(
             self.COMPONENT_ID, "do_cell_intersection_groups_calculation"
         )
-
 
         self.input_data_objects = {}
         # Input
@@ -132,13 +128,13 @@ class CellFootprintEstimation(Component):
 
         # Output
         self.output_data_objects = {}
-        cell_footprint = self.config.get(CONFIG_SILVER_PATHS_KEY, "cell_footprint_data_silver")
+        cell_footprint_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "cell_footprint_data_silver")
 
         if self.clear_destination_directory:
-            delete_file_or_folder(self.spark, cell_footprint)
+            delete_file_or_folder(self.spark, cell_footprint_path)
 
         self.output_data_objects[SilverCellFootprintDataObject.ID] = SilverCellFootprintDataObject(
-            self.spark, cell_footprint, partition_columns=[ColNames.year, ColNames.month, ColNames.day], mode="append"
+            self.spark, cell_footprint_path
         )
 
         if self.do_do_cell_intersection_groups_calculation:
@@ -149,7 +145,6 @@ class CellFootprintEstimation(Component):
                 SilverCellIntersectionGroupsDataObject(
                     self.spark,
                     self.silver_cell_intersection_groups_path,
-                    partition_columns=[ColNames.year, ColNames.month, ColNames.day],
                 )
             )
 
@@ -203,7 +198,7 @@ class CellFootprintEstimation(Component):
             )
         else:
             grid_sdf = self.input_data_objects[SilverGridDataObject.ID].df.select(ColNames.grid_id, ColNames.geometry)
-            
+
         grid_sdf = self.add_z_to_point_geometry(grid_sdf, ColNames.geometry, self.use_elevation)
         grid_sdf = grid_sdf.withColumnRenamed(ColNames.geometry, ColNames.joined_geometry)
 
@@ -303,7 +298,6 @@ class CellFootprintEstimation(Component):
 
         self.output_data_objects[SilverCellFootprintDataObject.ID].df = current_cell_grid_sdf
 
-
         if self.do_do_cell_intersection_groups_calculation:
 
             cell_intersection_groups_sdf = self.calculate_intersection_groups(current_cell_grid_sdf)
@@ -339,9 +333,9 @@ class CellFootprintEstimation(Component):
         sdf = sdf.withColumn(
             ColNames.cell_type,
             F.when(
-                ~F.col(ColNames.cell_type).isin(list(self.default_cell_properties.keys())),
-                "default",
-            ).otherwise(F.col(ColNames.cell_type)),
+                F.col(ColNames.cell_type).isin(list(self.default_cell_properties.keys())),
+                F.col(ColNames.cell_type),
+            ).otherwise("default"),
         )
 
         # all cell types which are absent from the default_properties_df will be assigned default values
@@ -706,10 +700,10 @@ class CellFootprintEstimation(Component):
     def calculate_effective_coverage(self, cells_sdf: DataFrame, grid_sdf: DataFrame) -> DataFrame:
         """
         Calculates effective cell coverage center and range based on desired signal domincance threshold.
- 
-        The function first separates the cells into omnidirectional and directional types, 
-        then calculates the signal dominance threshold points for each type. 
-        The function then calculates the effective coverage center and range for each cell 
+
+        The function first separates the cells into omnidirectional and directional types,
+        then calculates the signal dominance threshold points for each type.
+        The function then calculates the effective coverage center and range for each cell
         based on the signal dominance threshold points.
 
         Parameters:
@@ -717,10 +711,10 @@ class CellFootprintEstimation(Component):
         grid_sdf (pyspark.sql.DataFrame): A Spark DataFrame containing grid used for calculating signal dominance.
 
         Returns:
-        pyspark.sql.DataFrame: A Spark DataFrame with the effective coverage information for each cell, including the 
-                            coverage center and effective range. The DataFrame excludes intermediate columns used 
+        pyspark.sql.DataFrame: A Spark DataFrame with the effective coverage information for each cell, including the
+                            coverage center and effective range. The DataFrame excludes intermediate columns used
                             during the calculation.
-        """           
+        """
         # omnidirectional cells
         cells_omni_sdf = cells_sdf.filter(F.col(ColNames.directionality) == 0)
 
@@ -774,7 +768,7 @@ class CellFootprintEstimation(Component):
         """
         Calculates the signal dominance threshold points in cell maximum range.
 
-        For omnidirectional cell types, the signal dominance threshold point is calculated as 
+        For omnidirectional cell types, the signal dominance threshold point is calculated as
         the furthest point along 90 degrees azimuth direction where signal dominance is less than the threshold.
         For directional cells types, two signal dominance threshold points are calculated:
             1. the furthest point along the directionality angle direction where signal dominance is less than the threshold
@@ -850,7 +844,7 @@ class CellFootprintEstimation(Component):
         cell_grid_joined = cell_grid.join(cell_counts, on="cell_id", how="left").fillna(0, subset=["filtered_count"])
 
         # In case if desired threshold filter removes all grid tiles in given direction, keep closest grid tile
-        # Otherwise keep furthest point where threshold condition meet   
+        # Otherwise keep furthest point where threshold condition meet
         window_min = Window.partitionBy("cell_id").orderBy(F.col("distance_to_cell"))
         window_max = Window.partitionBy("cell_id").orderBy(F.desc(F.col("distance_to_cell")))
 
@@ -912,7 +906,7 @@ class CellFootprintEstimation(Component):
 
         # calculate distance power loss
         cell_grid_gdf = self.calculate_distance_power_loss(cell_grid_gdf)
-        
+
         # calculate horizontal angle power adjustment
         if do_azimuth_angle_adjustments:
 
@@ -1246,9 +1240,7 @@ class CellFootprintEstimation(Component):
         Returns:
         DataFrame: A DataFrame with rows exceeding the maximum number of cells per grid tile removed.
         """
-        window = Window.partitionBy(ColNames.grid_id).orderBy(
-            F.desc(ColNames.signal_dominance)
-        )
+        window = Window.partitionBy(ColNames.grid_id).orderBy(F.desc(ColNames.signal_dominance))
 
         sdf = sdf.withColumn("row_number", F.row_number().over(window))
         sdf = sdf.filter(F.col("row_number") <= max_cells_per_grid_tile)
@@ -1271,9 +1263,7 @@ class CellFootprintEstimation(Component):
         Returns:
         DataFrame: A DataFrame with rows pruned based on the signal dominance difference threshold.
         """
-        window = Window.partitionBy(ColNames.grid_id).orderBy(
-            F.desc(ColNames.signal_dominance)
-        )
+        window = Window.partitionBy(ColNames.grid_id).orderBy(F.desc(ColNames.signal_dominance))
 
         sdf = sdf.withColumn("row_number", F.row_number().over(window))
 

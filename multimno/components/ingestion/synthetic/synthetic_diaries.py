@@ -70,11 +70,7 @@ class SyntheticDiaries(Component):
 
     def initalize_data_objects(self):
         output_synthetic_diaries_data_path = self.config.get(CONFIG_BRONZE_PATHS_KEY, "diaries_data_bronze")
-        bronze_synthetic_diaries = BronzeSyntheticDiariesDataObject(
-            self.spark,
-            output_synthetic_diaries_data_path,
-            partition_columns=[ColNames.year, ColNames.month, ColNames.day],
-        )
+        bronze_synthetic_diaries = BronzeSyntheticDiariesDataObject(self.spark, output_synthetic_diaries_data_path)
         self.output_data_objects = {BronzeSyntheticDiariesDataObject.ID: bronze_synthetic_diaries}
 
     def read(self):

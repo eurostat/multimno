@@ -1,6 +1,6 @@
 ---
 title: UsualEnvironmentLabeling Configuration
-weight: 15
+weight: 13
 ---
 
 # UsualEnvironmentLabeling Configuration

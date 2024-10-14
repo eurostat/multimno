@@ -23,6 +23,7 @@ from multimno.core.constants.columns import ColNames
 from multimno.core.constants.period_names import TIME_INTERVALS, DAY_TYPES, SEASONS
 from multimno.core.log import get_execution_stats
 
+
 class LongtermPermanenceScore(Component):
     """
     Class that computes the long term permanence score and related metrics, for different combinations of

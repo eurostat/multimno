@@ -30,6 +30,7 @@ from multimno.core.data_objects.bronze.bronze_synthetic_diaries_data_object impo
 from multimno.core.settings import CONFIG_BRONZE_PATHS_KEY
 from multimno.core.log import get_execution_stats
 
+
 class SyntheticEvents(Component):
     """
     Class that generates the event synthetic data. It inherits from the Component abstract class.
@@ -82,7 +83,7 @@ class SyntheticEvents(Component):
         )
 
         self.order_output_by_timestamp = self.config.getboolean(self.COMPONENT_ID, "order_output_by_timestamp")
-        
+
         self.data_period_start = datetime.strptime(
             self.config.get(self.COMPONENT_ID, "data_period_start"), "%Y-%m-%d"
         ).date()
@@ -98,20 +99,12 @@ class SyntheticEvents(Component):
     def initalize_data_objects(self):
 
         pop_diares_input_path = self.config.get(CONFIG_BRONZE_PATHS_KEY, "diaries_data_bronze")
-        pop_diaries_bronze_event = BronzeSyntheticDiariesDataObject(
-            self.spark,
-            pop_diares_input_path,
-            partition_columns=[ColNames.year, ColNames.month, ColNames.day],
-        )
+        pop_diaries_bronze_event = BronzeSyntheticDiariesDataObject(self.spark, pop_diares_input_path)
 
         # Input for cell attributes
         network_data_input_path = self.config.get(CONFIG_BRONZE_PATHS_KEY, "network_data_bronze")
 
-        cell_locations_bronze = BronzeNetworkDataObject(
-            self.spark,
-            network_data_input_path,
-            partition_columns=[ColNames.year, ColNames.month, ColNames.day],
-        )
+        cell_locations_bronze = BronzeNetworkDataObject(self.spark, network_data_input_path)
 
         self.input_data_objects = {
             BronzeSyntheticDiariesDataObject.ID: pop_diaries_bronze_event,
@@ -119,11 +112,7 @@ class SyntheticEvents(Component):
         }
 
         output_records_path = self.config.get(CONFIG_BRONZE_PATHS_KEY, "event_data_bronze")
-        bronze_event = BronzeEventDataObject(
-            self.spark,
-            output_records_path,
-            partition_columns=[ColNames.year, ColNames.month, ColNames.day],
-        )
+        bronze_event = BronzeEventDataObject(self.spark, output_records_path)
 
         self.output_data_objects = {BronzeEventDataObject.ID: bronze_event}
 
@@ -140,22 +129,28 @@ class SyntheticEvents(Component):
                 (F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day)) == F.lit(current_date))
             )
 
-            self.current_cells = self.input_data_objects[BronzeNetworkDataObject.ID].df.filter(
-                (F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day)) == F.lit(current_date))
-            ).select(
-                ColNames.cell_id,
-                ColNames.latitude,
-                ColNames.longitude,
-                ColNames.year,
-                ColNames.month,
-                ColNames.day,
+            self.current_cells = (
+                self.input_data_objects[BronzeNetworkDataObject.ID]
+                .df.filter(
+                    (
+                        F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day))
+                        == F.lit(current_date)
+                    )
+                )
+                .select(
+                    ColNames.cell_id,
+                    ColNames.latitude,
+                    ColNames.longitude,
+                    ColNames.year,
+                    ColNames.month,
+                    ColNames.day,
+                )
             )
 
             self.transform()
             self.write()
 
         self.logger.info(f"Finished {self.COMPONENT_ID}")
-
 
     def transform(self):
 

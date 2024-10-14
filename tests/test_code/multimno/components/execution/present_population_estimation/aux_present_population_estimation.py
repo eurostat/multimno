@@ -103,7 +103,7 @@ def set_input_data(
         schema=grid_schema,
     )
     input_grid_do.df = grid_df.withColumn(ColNames.geometry, F.expr(f"ST_GeomFromWKT({ColNames.geometry})"))
-    input_grid_do.write()
+    input_grid_do.write(partition_columns=[])
 
     ### Write input cell connection probability data to test resources dir
     cell_connection_prob_data_path = config["Paths.Silver"]["cell_connection_probabilities_data_silver"]
@@ -155,42 +155,42 @@ def generate_expected_results_data_0001():
         Row(
             grid_id=1,
             population=0.05780401453375816,
+            timestamp=t1,
             year=t1.year,
             month=t1.month,
             day=t1.day,
-            timestamp=t1,
         ),
         Row(
             grid_id=2,
             population=1.0642139911651611,
+            timestamp=t1,
             year=t1.year,
             month=t1.month,
             day=t1.day,
-            timestamp=t1,
         ),
         Row(
             grid_id=3,
             population=0.48203596472740173,
+            timestamp=t1,
             year=t1.year,
             month=t1.month,
             day=t1.day,
-            timestamp=t1,
         ),
         Row(
             grid_id=4,
             population=0.16694311797618866,
+            timestamp=t1,
             year=t1.year,
             month=t1.month,
             day=t1.day,
-            timestamp=t1,
         ),
         Row(
             grid_id=5,
             population=0.2290029227733612,
+            timestamp=t1,
             year=t1.year,
             month=t1.month,
             day=t1.day,
-            timestamp=t1,
         ),
     ]
     return expected_output_data

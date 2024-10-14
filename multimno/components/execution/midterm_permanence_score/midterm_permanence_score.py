@@ -24,6 +24,7 @@ from multimno.core.constants.columns import ColNames
 from multimno.core.constants.period_names import TIME_INTERVALS, DAY_TYPES
 from multimno.core.log import get_execution_stats
 
+
 @F.udf(returnType=ArrayType(FloatType()))
 def frequency_and_regularity(
     arr, month_start: dt.date, extended_start: dt.date, month_end: dt.date, extended_end: dt.date
@@ -721,7 +722,7 @@ class MidtermPermanenceScore(Component):
         )
 
         self.output_data_objects["SilverMidtermPermanenceScoreDO"].df = mps
-    
+
     @get_execution_stats
     def execute(self):
         self.logger.info("Reading data objects...")

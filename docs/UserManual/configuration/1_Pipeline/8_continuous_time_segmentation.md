@@ -1,6 +1,6 @@
 ---
 title: ContinuousTimeSegmentation Configuration
-weight: 10
+weight: 8
 ---
 
 # ContinuousTimeSegmentation Configuration

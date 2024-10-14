@@ -1,53 +1,54 @@
 from datetime import datetime, timedelta
 from pyspark.sql.types import Row
 
+
 def generate_input_population_grid_data(timestamp: str) -> list[Row]:
     """
     Generate input population grid data.
     """
 
     t1 = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S")
-    
+
     return [
         Row(
             grid_id=1,
             population=1.0,
+            timestamp=t1,
             year=t1.year,
             month=t1.month,
             day=t1.day,
-            timestamp=t1,
         ),
         Row(
             grid_id=2,
             population=5.0,
+            timestamp=t1,
             year=t1.year,
             month=t1.month,
             day=t1.day,
-            timestamp=t1,
         ),
         Row(
             grid_id=3,
             population=8.0,
+            timestamp=t1,
             year=t1.year,
             month=t1.month,
             day=t1.day,
-            timestamp=t1,
         ),
         Row(
             grid_id=4,
             population=4.0,
+            timestamp=t1,
             year=t1.year,
             month=t1.month,
             day=t1.day,
-            timestamp=t1,
         ),
         Row(
             grid_id=5,
             population=2.0,
+            timestamp=t1,
             year=t1.year,
             month=t1.month,
             day=t1.day,
-            timestamp=t1,
         ),
     ]
 
@@ -143,6 +144,7 @@ def generate_input_ue_grid_data(start_date: str) -> list[Row]:
         ),
     ]
     return expected_output_data
+
 
 def generate_zone_to_grid_map_data(date: str) -> list[Row]:
     """
@@ -274,6 +276,7 @@ def generate_expected_population_zone_data(timestamp: str) -> list[Row]:
             day=day,
         ),
     ]
+
 
 def generate_expected_ue_zone_data(start_date: str) -> list[Row]:
     """

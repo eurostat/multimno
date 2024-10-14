@@ -6,12 +6,12 @@ from typing import List
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType
 
-from multimno.core.data_objects.data_object import PathDataObject
+from multimno.core.data_objects.data_object import ParquetDataObject
 from multimno.core.io_interface import GeoParquetInterface
 from multimno.core.constants.columns import ColNames
 
 
-class LandingGeoParquetDataObject(PathDataObject):
+class LandingGeoParquetDataObject(ParquetDataObject):
     """
     Class that models input geospatial data.
     """

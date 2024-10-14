@@ -17,6 +17,15 @@ SEDONA_VERSION_KEY = "SEDONA_VERSION"
 GEOTOOLS_WRAPPER_VERSION_KEY = "GEOTOOLS_WRAPPER_VERSION"
 
 
+class SPARK_WRITING_MODES:
+    """Enum class to define writing modes for spark"""
+
+    OVERWRITE = "overwrite"
+    APPEND = "append"
+    IGNORE = "ignore"
+    ERROR = "error"
+
+
 def generate_spark_session(config: ConfigParser) -> SparkSession:
     """Function that generates a Spark Sedona session.
 

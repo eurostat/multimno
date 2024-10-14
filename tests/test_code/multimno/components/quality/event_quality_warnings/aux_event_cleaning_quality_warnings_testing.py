@@ -39,34 +39,33 @@ fixtures = [spark]
 def expected_event_cleaning_qw_log_table(spark):
     expected_log_table_data = [
         Row(
-            date=datetime.strptime("2024-01-10", "%Y-%m-%d"),
             measure_definition=MeasureDefinitions.error_rate.format(variables=ColNames.date),
             lookback_period="week",
             daily_value=80.0,
             condition_value=0.0,
             condition=Conditions.error_rate_upper_variability.format(variables=ColNames.date, SD="2"),
             warning_text=Warnings.error_rate_upper_variability.format(variables=ColNames.date),
+            date=datetime.strptime("2024-01-10", "%Y-%m-%d"),
         ),
         Row(
-            date=datetime.strptime("2024-01-10", "%Y-%m-%d"),
             measure_definition=MeasureDefinitions.error_rate.format(variables=ColNames.date),
             lookback_period="week",
             daily_value=80.0,
             condition_value=20.0,
             condition=Conditions.error_rate_upper_limit.format(variables=ColNames.date, X="20"),
             warning_text=Warnings.error_rate_upper_limit.format(variables=ColNames.date),
+            date=datetime.strptime("2024-01-10", "%Y-%m-%d"),
         ),
         Row(
-            date=datetime.strptime("2024-01-10", "%Y-%m-%d"),
             measure_definition=MeasureDefinitions.size_data.format(type_of_data="clean"),
             lookback_period="week",
             daily_value=100.0,
             condition_value=500.0,
             condition=Conditions.size_data_variability.format(SD="3"),
             warning_text=Warnings.size_data_variability.format(type_of_data="clean"),
+            date=datetime.strptime("2024-01-10", "%Y-%m-%d"),
         ),
         Row(
-            date=datetime.strptime("2024-01-10", "%Y-%m-%d"),
             measure_definition=MeasureDefinitions.error_type_rate.format(
                 error_type_name="Deduplication same locations rate", field_name="None"
             ),
@@ -81,9 +80,9 @@ def expected_event_cleaning_qw_log_table(spark):
             warning_text=Warnings.error_type_rate_upper_variability.format(
                 error_type_name="Deduplication same locations rate", field_name="None"
             ),
+            date=datetime.strptime("2024-01-10", "%Y-%m-%d"),
         ),
         Row(
-            date=datetime.strptime("2024-01-10", "%Y-%m-%d"),
             measure_definition=MeasureDefinitions.error_type_rate.format(
                 error_type_name="Deduplication same locations rate", field_name="None"
             ),
@@ -98,6 +97,7 @@ def expected_event_cleaning_qw_log_table(spark):
             warning_text=Warnings.error_type_rate_upper_limit.format(
                 error_type_name="Deduplication same locations rate", field_name="None"
             ),
+            date=datetime.strptime("2024-01-10", "%Y-%m-%d"),
         ),
     ]
 
@@ -116,274 +116,274 @@ def expected_event_cleaning_qw_log_table(spark):
 def expected_event_cleaning_qw_for_plots(spark):
     expected_for_plots_data = [
         Row(
-            date=datetime.strptime("2024-01-01", "%Y-%m-%d"),
             type_of_qw="clean_data_size",
             lookback_period="week",
             daily_value=500.0,
             average=None,
             LCL=None,
             UCL=None,
+            date=datetime.strptime("2024-01-01", "%Y-%m-%d"),
         ),
         Row(
-            date=datetime.strptime("2024-01-02", "%Y-%m-%d"),
             type_of_qw="clean_data_size",
             lookback_period="week",
             daily_value=500.0,
             average=500.0,
             LCL=None,
             UCL=None,
+            date=datetime.strptime("2024-01-02", "%Y-%m-%d"),
         ),
         Row(
+            type_of_qw="clean_data_size",
+            lookback_period="week",
+            daily_value=500.0,
+            average=500.0,
+            LCL=500.0,
+            UCL=500.0,
             date=datetime.strptime("2024-01-03", "%Y-%m-%d"),
+        ),
+        Row(
             type_of_qw="clean_data_size",
             lookback_period="week",
             daily_value=500.0,
             average=500.0,
             LCL=500.0,
             UCL=500.0,
-        ),
-        Row(
             date=datetime.strptime("2024-01-04", "%Y-%m-%d"),
+        ),
+        Row(
             type_of_qw="clean_data_size",
             lookback_period="week",
             daily_value=500.0,
             average=500.0,
             LCL=500.0,
             UCL=500.0,
-        ),
-        Row(
             date=datetime.strptime("2024-01-05", "%Y-%m-%d"),
+        ),
+        Row(
             type_of_qw="clean_data_size",
             lookback_period="week",
             daily_value=500.0,
             average=500.0,
             LCL=500.0,
             UCL=500.0,
-        ),
-        Row(
             date=datetime.strptime("2024-01-06", "%Y-%m-%d"),
+        ),
+        Row(
             type_of_qw="clean_data_size",
             lookback_period="week",
             daily_value=500.0,
             average=500.0,
             LCL=500.0,
             UCL=500.0,
-        ),
-        Row(
             date=datetime.strptime("2024-01-07", "%Y-%m-%d"),
+        ),
+        Row(
             type_of_qw="clean_data_size",
             lookback_period="week",
             daily_value=500.0,
             average=500.0,
             LCL=500.0,
             UCL=500.0,
-        ),
-        Row(
             date=datetime.strptime("2024-01-08", "%Y-%m-%d"),
+        ),
+        Row(
             type_of_qw="clean_data_size",
             lookback_period="week",
             daily_value=500.0,
             average=500.0,
             LCL=500.0,
             UCL=500.0,
-        ),
-        Row(
             date=datetime.strptime("2024-01-09", "%Y-%m-%d"),
-            type_of_qw="clean_data_size",
-            lookback_period="week",
-            daily_value=500.0,
-            average=500.0,
-            LCL=500.0,
-            UCL=500.0,
         ),
         Row(
-            date=datetime.strptime("2024-01-10", "%Y-%m-%d"),
             type_of_qw="clean_data_size",
             lookback_period="week",
             daily_value=100.0,
             average=500.0,
             LCL=500.0,
             UCL=500.0,
+            date=datetime.strptime("2024-01-10", "%Y-%m-%d"),
         ),
         Row(
-            date=datetime.strptime("2024-01-01", "%Y-%m-%d"),
             type_of_qw="error_rate",
             lookback_period="week",
             daily_value=0.0,
             average=None,
             LCL=None,
             UCL=None,
+            date=datetime.strptime("2024-01-01", "%Y-%m-%d"),
         ),
         Row(
-            date=datetime.strptime("2024-01-02", "%Y-%m-%d"),
             type_of_qw="error_rate",
             lookback_period="week",
             daily_value=0.0,
             average=0.0,
             LCL=None,
             UCL=None,
+            date=datetime.strptime("2024-01-02", "%Y-%m-%d"),
         ),
         Row(
+            type_of_qw="error_rate",
+            lookback_period="week",
+            daily_value=0.0,
+            average=0.0,
+            LCL=None,
+            UCL=0.0,
             date=datetime.strptime("2024-01-03", "%Y-%m-%d"),
+        ),
+        Row(
             type_of_qw="error_rate",
             lookback_period="week",
             daily_value=0.0,
             average=0.0,
             LCL=None,
             UCL=0.0,
-        ),
-        Row(
             date=datetime.strptime("2024-01-04", "%Y-%m-%d"),
+        ),
+        Row(
             type_of_qw="error_rate",
             lookback_period="week",
             daily_value=0.0,
             average=0.0,
             LCL=None,
             UCL=0.0,
-        ),
-        Row(
             date=datetime.strptime("2024-01-05", "%Y-%m-%d"),
+        ),
+        Row(
             type_of_qw="error_rate",
             lookback_period="week",
             daily_value=0.0,
             average=0.0,
             LCL=None,
             UCL=0.0,
-        ),
-        Row(
             date=datetime.strptime("2024-01-06", "%Y-%m-%d"),
+        ),
+        Row(
             type_of_qw="error_rate",
             lookback_period="week",
             daily_value=0.0,
             average=0.0,
             LCL=None,
             UCL=0.0,
-        ),
-        Row(
             date=datetime.strptime("2024-01-07", "%Y-%m-%d"),
+        ),
+        Row(
             type_of_qw="error_rate",
             lookback_period="week",
             daily_value=0.0,
             average=0.0,
             LCL=None,
             UCL=0.0,
-        ),
-        Row(
             date=datetime.strptime("2024-01-08", "%Y-%m-%d"),
+        ),
+        Row(
             type_of_qw="error_rate",
             lookback_period="week",
             daily_value=0.0,
             average=0.0,
             LCL=None,
             UCL=0.0,
-        ),
-        Row(
             date=datetime.strptime("2024-01-09", "%Y-%m-%d"),
-            type_of_qw="error_rate",
-            lookback_period="week",
-            daily_value=0.0,
-            average=0.0,
-            LCL=None,
-            UCL=0.0,
         ),
         Row(
-            date=datetime.strptime("2024-01-10", "%Y-%m-%d"),
             type_of_qw="error_rate",
             lookback_period="week",
             daily_value=80.0,
             average=0.0,
             LCL=None,
             UCL=0.0,
+            date=datetime.strptime("2024-01-10", "%Y-%m-%d"),
         ),
         Row(
-            date=datetime.strptime("2024-01-01", "%Y-%m-%d"),
             type_of_qw="raw_data_size",
             lookback_period="week",
             daily_value=500.0,
             average=None,
             LCL=None,
             UCL=None,
+            date=datetime.strptime("2024-01-01", "%Y-%m-%d"),
         ),
         Row(
-            date=datetime.strptime("2024-01-02", "%Y-%m-%d"),
             type_of_qw="raw_data_size",
             lookback_period="week",
             daily_value=500.0,
             average=500.0,
             LCL=None,
             UCL=None,
+            date=datetime.strptime("2024-01-02", "%Y-%m-%d"),
         ),
         Row(
+            type_of_qw="raw_data_size",
+            lookback_period="week",
+            daily_value=500.0,
+            average=500.0,
+            LCL=500.0,
+            UCL=500.0,
             date=datetime.strptime("2024-01-03", "%Y-%m-%d"),
+        ),
+        Row(
             type_of_qw="raw_data_size",
             lookback_period="week",
             daily_value=500.0,
             average=500.0,
             LCL=500.0,
             UCL=500.0,
-        ),
-        Row(
             date=datetime.strptime("2024-01-04", "%Y-%m-%d"),
+        ),
+        Row(
             type_of_qw="raw_data_size",
             lookback_period="week",
             daily_value=500.0,
             average=500.0,
             LCL=500.0,
             UCL=500.0,
-        ),
-        Row(
             date=datetime.strptime("2024-01-05", "%Y-%m-%d"),
+        ),
+        Row(
             type_of_qw="raw_data_size",
             lookback_period="week",
             daily_value=500.0,
             average=500.0,
             LCL=500.0,
             UCL=500.0,
-        ),
-        Row(
             date=datetime.strptime("2024-01-06", "%Y-%m-%d"),
+        ),
+        Row(
             type_of_qw="raw_data_size",
             lookback_period="week",
             daily_value=500.0,
             average=500.0,
             LCL=500.0,
             UCL=500.0,
-        ),
-        Row(
             date=datetime.strptime("2024-01-07", "%Y-%m-%d"),
+        ),
+        Row(
             type_of_qw="raw_data_size",
             lookback_period="week",
             daily_value=500.0,
             average=500.0,
             LCL=500.0,
             UCL=500.0,
-        ),
-        Row(
             date=datetime.strptime("2024-01-08", "%Y-%m-%d"),
+        ),
+        Row(
             type_of_qw="raw_data_size",
             lookback_period="week",
             daily_value=500.0,
             average=500.0,
             LCL=500.0,
             UCL=500.0,
-        ),
-        Row(
             date=datetime.strptime("2024-01-09", "%Y-%m-%d"),
-            type_of_qw="raw_data_size",
-            lookback_period="week",
-            daily_value=500.0,
-            average=500.0,
-            LCL=500.0,
-            UCL=500.0,
         ),
         Row(
-            date=datetime.strptime("2024-01-10", "%Y-%m-%d"),
             type_of_qw="raw_data_size",
             lookback_period="week",
             daily_value=500.0,
             average=500.0,
             LCL=500.0,
             UCL=500.0,
+            date=datetime.strptime("2024-01-10", "%Y-%m-%d"),
         ),
     ]
 
@@ -469,10 +469,10 @@ def set_input_event_cleaning_qm_by_column(spark: SparkSession, config: ConfigPar
     data_by_column_deduplication = [
         Row(
             result_timestamp=result_timestamp[i],
-            date=date[i],
             variable=variable[i],
             type_of_error=type_of_error[i],
             value=value[i],
+            date=date[i],
         )
         for i in range(num_records)
     ]
@@ -481,10 +481,10 @@ def set_input_event_cleaning_qm_by_column(spark: SparkSession, config: ConfigPar
     data_by_column_other = [
         Row(
             result_timestamp=datetime.strptime("2024-01-15T10:00:00", "%Y-%m-%dT%H:%M:%S"),
-            date=datetime(2024, 1, 1),
             variable="cell_id",
             type_of_error=2,
             value=150,
+            date=datetime(2024, 1, 1),
         )
     ]
 

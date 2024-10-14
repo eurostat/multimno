@@ -49,6 +49,7 @@ CLASS_MAPPING = {
     },
 }
 
+
 class SpatialAggregation(Component):
     """
     This class is responsible for spatial aggregation of the gridded indicators to geographical zones of interest.
@@ -80,7 +81,7 @@ class SpatialAggregation(Component):
         )
 
         self.aggregation_type = self.config.get(SpatialAggregation.COMPONENT_ID, "aggregation_type")
-        
+
         if self.aggregation_type not in CLASS_MAPPING.keys():
             raise ValueError(f"Invalid aggregation type: {self.aggregation_type}")
 
@@ -110,12 +111,7 @@ class SpatialAggregation(Component):
             delete_file_or_folder(self.spark, output_do_path)
 
         self.output_data_objects = {}
-        self.output_data_objects[self.output_aggregation_do.ID] = self.output_aggregation_do(
-            self.spark,
-            output_do_path,
-            partition_columns=self.output_aggregation_do.PARTITION_COLUMNS,
-            mode="overwrite",
-        )
+        self.output_data_objects[self.output_aggregation_do.ID] = self.output_aggregation_do(self.spark, output_do_path)
 
     @staticmethod
     def import_class(class_path: str, class_name: str):
@@ -177,12 +173,9 @@ class SpatialAggregation(Component):
         zone_to_grid_map_sdf = zone_to_grid_map_sdf.withColumn(ColNames.level, F.lit(hierarchy_level))
 
         sdf_to_aggregate = sdf_to_aggregate.join(zone_to_grid_map_sdf, on=ColNames.grid_id)
-        
+
         # potentially different aggregation functions can be used
         agg_expressions = [F.sum(F.col(col)).alias(col) for col in output_do.VALUE_COLUMNS]
-        aggregated_sdf = (
-            sdf_to_aggregate.groupBy(*output_do.AGGREGATION_COLUMNS)
-            .agg(*agg_expressions)
-        )
+        aggregated_sdf = sdf_to_aggregate.groupBy(*output_do.AGGREGATION_COLUMNS).agg(*agg_expressions)
 
         return aggregated_sdf

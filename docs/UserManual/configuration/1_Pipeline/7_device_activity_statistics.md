@@ -1,6 +1,6 @@
 ---
 title: DeviceActivityStatistics
-weight: 9
+weight: 7
 ---
 
 # DeviceActivityStatistics Configuration

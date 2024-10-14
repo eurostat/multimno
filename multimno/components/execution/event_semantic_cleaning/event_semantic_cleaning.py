@@ -32,6 +32,7 @@ from multimno.core.spark_session import (
 )
 from multimno.core.log import get_execution_stats
 
+
 class SemanticCleaning(Component):
     """
     Class that performs semantic checks on event data and adds error flags
@@ -77,9 +78,7 @@ class SemanticCleaning(Component):
         self.semantic_min_speed = self.config.getfloat(self.COMPONENT_ID, "semantic_min_speed_m_s")
 
     def initalize_data_objects(self):
-        self.clear_destination_directory = self.config.getboolean(
-            self.COMPONENT_ID, "clear_destination_directory"
-        )
+        self.clear_destination_directory = self.config.getboolean(self.COMPONENT_ID, "clear_destination_directory")
         input_silver_event_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "event_data_silver")
         input_silver_network_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "network_data_silver")
         output_silver_event_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "event_data_silver_flagged")
@@ -90,18 +89,16 @@ class SemanticCleaning(Component):
         input_silver_network = SilverNetworkDataObject(
             self.spark,
             input_silver_network_path,
-            partition_columns=[ColNames.year, ColNames.month, ColNames.day],
         )
         input_silver_event = SilverEventDataObject(self.spark, input_silver_event_path)
 
         if self.clear_destination_directory:
             delete_file_or_folder(self.spark, output_silver_event_path)
 
-        output_silver_event = SilverEventFlaggedDataObject(self.spark, output_silver_event_path, mode="append")
+        output_silver_event = SilverEventFlaggedDataObject(self.spark, output_silver_event_path)
         output_silver_semantic_metrics = SilverEventSemanticQualityMetrics(
             self.spark,
             output_silver_semantic_metrics_path,
-            partition_columns=[ColNames.year, ColNames.month, ColNames.day],
         )
 
         self.input_data_objects = {
@@ -389,29 +386,30 @@ class SemanticCleaning(Component):
 
         # Hash the columns that define a unique location
         df = df.withColumn(
-            "location_hash",
-            F.hash(ColNames.cell_id, ColNames.latitude, ColNames.longitude, ColNames.plmn)
+            "location_hash", F.hash(ColNames.cell_id, ColNames.latitude, ColNames.longitude, ColNames.plmn)
         )
-        
+
         # Define a window partitioned by user_id only
-        window = Window.partitionBy(ColNames.year,
-                                    ColNames.month,
-                                    ColNames.day,
-                                    ColNames.user_id_modulo,
-                                    ColNames.user_id).orderBy(ColNames.timestamp)
-        
+        window = Window.partitionBy(
+            ColNames.year, ColNames.month, ColNames.day, ColNames.user_id_modulo, ColNames.user_id
+        ).orderBy(ColNames.timestamp)
+
         # Mark rows with the same user_id and timestamp but different location hashes as duplicates
         df = df.withColumn(
             ColNames.error_flag,
             F.when(
-                ((F.lag("location_hash", 1).over(window) != F.col("location_hash")) &
-                (F.lag(ColNames.timestamp, 1).over(window) == F.col(ColNames.timestamp))) |
-                ((F.lead("location_hash", 1).over(window) != F.col("location_hash")) &
-                (F.lead(ColNames.timestamp, 1).over(window) == F.col(ColNames.timestamp))),
-                F.lit(SemanticErrorType.DIFFERENT_LOCATION_DUPLICATE)
-            ).otherwise(F.col(ColNames.error_flag))
+                (
+                    (F.lag("location_hash", 1).over(window) != F.col("location_hash"))
+                    & (F.lag(ColNames.timestamp, 1).over(window) == F.col(ColNames.timestamp))
+                )
+                | (
+                    (F.lead("location_hash", 1).over(window) != F.col("location_hash"))
+                    & (F.lead(ColNames.timestamp, 1).over(window) == F.col(ColNames.timestamp))
+                ),
+                F.lit(SemanticErrorType.DIFFERENT_LOCATION_DUPLICATE),
+            ).otherwise(F.col(ColNames.error_flag)),
         )
-        
+
         return df
 
     def _compute_semantic_metrics(self, df: DataFrame) -> DataFrame:

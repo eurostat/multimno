@@ -8,6 +8,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from abc import ABCMeta, abstractmethod
+from multimno.core.spark_session import SPARK_WRITING_MODES
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.types import StructType
 from sedona.spark import ShapefileReader, Adapter
@@ -64,7 +65,7 @@ class PathInterface(IOInterface, metaclass=ABCMeta):
             )  # Read schema  # File format  # Load path
 
     def write_from_interface(
-        self, df: DataFrame, path: str, partition_columns: List[str] = None, mode: str = "overwrite"
+        self, df: DataFrame, path: str, partition_columns: List[str] = None, mode: str = SPARK_WRITING_MODES.APPEND
     ):
         """Method that writes data from a Spark DataFrame to a file type data source.
 

@@ -1,4 +1,5 @@
 from pyspark.testing.utils import assertDataFrameEqual
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 
 from multimno.core.configuration import parse_configuration
 from multimno.core.data_objects.silver.silver_cell_footprint_data_object import (
@@ -13,6 +14,8 @@ from multimno.core.data_objects.silver.silver_enriched_grid_data_object import (
 from multimno.core.data_objects.silver.silver_grid_data_object import SilverGridDataObject
 from tests.test_code.fixtures import spark_session as spark
 from tests.test_code.multimno.components.execution.cell_footprint.aux_cell_footprint_testing import (
+    EXPECTED_IMPUTE_DEFAULT_PROPERTIES,
+    get_mno_network,
     set_input_network_data,
 )
 from tests.test_code.test_common import (
@@ -28,6 +31,10 @@ from tests.test_code.test_utils import setup_test_data_dir, teardown_test_data_d
 
 # Dummy to avoid linting errors using pytest
 fixtures = [spark]
+
+CELLFOOTPRINT_CONFIG_PATH = (
+    f"{TEST_RESOURCES_PATH}/config/network/cell_footprint_estimation/cell_footprint_estimation.ini"
+)
 
 
 def setup_function():
@@ -79,15 +86,12 @@ def test_cell_footprint_estimation(spark):
     # Setup
 
     ## Init configs & paths
-    component_config_path = (
-        f"{TEST_RESOURCES_PATH}/config/network/cell_footprint_estimation/cell_footprint_estimation.ini"
-    )
 
     ## Create Input data
     prepare_test_data(spark)
 
     ## Init component class
-    test_component = CellFootprintEstimation(TEST_GENERAL_CONFIG_PATH, component_config_path)
+    test_component = CellFootprintEstimation(TEST_GENERAL_CONFIG_PATH, CELLFOOTPRINT_CONFIG_PATH)
 
     # Expected
     expected_do = SilverCellFootprintDataObject(spark, f"{STATIC_TEST_DATA_PATH}/network/cell_footprint/")
@@ -102,3 +106,31 @@ def test_cell_footprint_estimation(spark):
     output_footprint_data_object.read()
     # assert read data == expected
     assertDataFrameEqual(output_footprint_data_object.df, expected_sdf)
+
+
+def test_impute_default_cell_properties(spark):
+    """
+    DESCRIPTION:
+        Test the impute_default_cell_properties method of CellFootprintEstimation class.
+
+    INPUT:
+        sdf: Input DataFrame with null values.
+
+    OUTPUT:
+        sdf_imputed: DataFrame with imputed default cell properties.
+    """
+    prepare_test_data(spark)
+    # Create test input DataFrame
+    sdf = get_mno_network(spark)
+
+    # Create instance of CellFootprintEstimation class
+    component = CellFootprintEstimation(TEST_GENERAL_CONFIG_PATH, CELLFOOTPRINT_CONFIG_PATH)
+
+    # Call the impute_default_cell_properties method
+    sdf_imputed = component.impute_default_cell_properties(sdf)
+
+    # Define expected output DataFrame
+    expected_sdf = spark.createDataFrame(EXPECTED_IMPUTE_DEFAULT_PROPERTIES, schema=sdf_imputed.schema)
+
+    # Assert that the output DataFrame matches the expected DataFrame
+    assertDataFrameEqual(sdf_imputed, expected_sdf)

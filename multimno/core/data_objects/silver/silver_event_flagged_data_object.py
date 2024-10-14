@@ -2,7 +2,6 @@
 Silver MNO Event data module with flags computed in Semantic Checks
 """
 
-from pyspark.sql import SparkSession
 from pyspark.sql.types import (
     StructType,
     StructField,
@@ -15,12 +14,11 @@ from pyspark.sql.types import (
     ByteType,
 )
 
-from multimno.core.data_objects.data_object import PathDataObject
-from multimno.core.io_interface import ParquetInterface
+from multimno.core.data_objects.data_object import ParquetDataObject
 from multimno.core.constants.columns import ColNames
 
 
-class SilverEventFlaggedDataObject(PathDataObject):
+class SilverEventFlaggedDataObject(ParquetDataObject):
     """
     Class that models the cleaned MNO Event data, with flags computed
     in the semantic checks module.
@@ -40,6 +38,7 @@ class SilverEventFlaggedDataObject(PathDataObject):
             StructField(ColNames.longitude, FloatType(), nullable=True),
             StructField(ColNames.loc_error, FloatType(), nullable=True),
             StructField(ColNames.error_flag, IntegerType(), nullable=False),
+            # partition columns
             StructField(ColNames.year, ShortType(), nullable=False),
             StructField(ColNames.month, ByteType(), nullable=False),
             StructField(ColNames.day, ByteType(), nullable=False),
@@ -47,23 +46,4 @@ class SilverEventFlaggedDataObject(PathDataObject):
         ]
     )
 
-    def __init__(self, spark: SparkSession, default_path: str, mode: str = 'overwrite') -> None:
-        super().__init__(spark, default_path)
-        self.interface = ParquetInterface()
-        self.partition_columns = [
-            ColNames.year,
-            ColNames.month,
-            ColNames.day,
-            ColNames.user_id_modulo,
-        ]
-        self.mode = mode
-
-    def write(self, path: str = None, partition_columns: list[str] = None, mode: str = None) -> None:
-        if path is None:
-            path = self.default_path
-        if partition_columns is None:
-            partition_columns = self.partition_columns
-        if mode is None:
-            mode = self.mode
-
-        self.interface.write_from_interface(self.df, path, partition_columns, mode)
+    PARTITION_COLUMNS = [ColNames.year, ColNames.month, ColNames.day, ColNames.user_id_modulo]

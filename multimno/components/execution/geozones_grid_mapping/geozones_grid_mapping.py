@@ -31,6 +31,7 @@ from multimno.core.constants.columns import ColNames
 import multimno.core.utils as utils
 from multimno.core.log import get_execution_stats
 
+
 class GeozonesGridMapping(Component):
     """
     This class is responsible for mapping of zoning data to the operational grid.

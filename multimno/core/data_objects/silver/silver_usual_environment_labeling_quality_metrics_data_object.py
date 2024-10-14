@@ -1,9 +1,7 @@
-from typing import List
 """
 Silver Usual Environment Labeling Quality Metrics data object module
 """
 
-from pyspark.sql import SparkSession
 from pyspark.sql.types import (
     StructField,
     StructType,
@@ -12,12 +10,11 @@ from pyspark.sql.types import (
     DateType,
 )
 
-from multimno.core.data_objects.data_object import PathDataObject
-from multimno.core.io_interface import ParquetInterface
+from multimno.core.data_objects.data_object import ParquetDataObject
 from multimno.core.constants.columns import ColNames
 
 
-class SilverUsualEnvironmentLabelingQualityMetricsDataObject(PathDataObject):
+class SilverUsualEnvironmentLabelingQualityMetricsDataObject(ParquetDataObject):
     """
     Class that models the Usual Environment Labeling Quality Metrics data object.
     """
@@ -34,19 +31,4 @@ class SilverUsualEnvironmentLabelingQualityMetricsDataObject(PathDataObject):
         ]
     )
 
-    def __init__(self, spark: SparkSession, default_path: str) -> None:
-        super().__init__(spark, default_path)
-        self.interface: ParquetInterface = ParquetInterface()
-        self.partition_columns = [
-            ColNames.season,
-            ColNames.start_date,
-            ColNames.end_date,
-        ]
-
-    def write(self, path: str = None, partition_columns: List[str] = None):
-        if path is None:
-            path = self.default_path
-        if partition_columns is None:
-            partition_columns = self.partition_columns
-
-        self.interface.write_from_interface(self.df, path, partition_columns)
+    PARTITION_COLUMNS = [ColNames.start_date, ColNames.end_date, ColNames.season]

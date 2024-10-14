@@ -26,6 +26,7 @@ from multimno.core.constants.columns import ColNames
 from multimno.core.grid import InspireGridGenerator
 from multimno.core.log import get_execution_stats
 
+
 class DailyPermanenceScore(Component):
     """
     A class to calculate the daily permanence score of each user per interval and grid tile.
@@ -81,11 +82,7 @@ class DailyPermanenceScore(Component):
 
         silver_events = SilverEventFlaggedDataObject(self.spark, input_events_silver_path)
 
-        silver_cell_footprint = SilverCellFootprintDataObject(
-            self.spark,
-            input_cell_footprint_silver_path,
-            partition_columns=[ColNames.year, ColNames.month, ColNames.day],
-        )
+        silver_cell_footprint = SilverCellFootprintDataObject(self.spark, input_cell_footprint_silver_path)
 
         silver_dps = SilverDailyPermanenceScoreDataObject(self.spark, output_dps_path)
 
@@ -329,14 +326,14 @@ class DailyPermanenceScore(Component):
         Returns:
             DataFrame: events dataframe, with an additional 'is_move' boolean column.
         """
-        # left join -> bring cell footprints to events data:
+        # inner join -> bring cell footprints to events data discarding events for which there is no cell footprint
         events = events.join(
             cell_footprint.select(ColNames.cell_id, ColNames.year, ColNames.month, ColNames.day, ColNames.geometry),
             (events[ColNames.cell_id] == cell_footprint[ColNames.cell_id])
             & (events[ColNames.year] == cell_footprint[ColNames.year])
             & (events[ColNames.month] == cell_footprint[ColNames.month])
             & (events[ColNames.day] == cell_footprint[ColNames.day]),
-            "left",
+            "inner",
         ).drop(
             cell_footprint[ColNames.cell_id],
             cell_footprint[ColNames.year],
@@ -359,13 +356,12 @@ class DailyPermanenceScore(Component):
                 "dist_0_+1",
                 STF.ST_Distance(F.col(ColNames.geometry), F.col(f"{ColNames.geometry}_+1")),
             )
-            # .withColumn( 
+            # .withColumn(
             #     "dist_-1_0",
             #     STF.ST_Distance(F.col(f"{ColNames.geometry}_-1"), F.col(ColNames.geometry)),
             # )
-            .withColumn(    # repeating the distance calculation is not necessary, a lagged column works:
-                "dist_-1_0",
-                F.lag("dist_0_+1", 1).over(window)
+            .withColumn(  # repeating the distance calculation is not necessary, a lagged column works:
+                "dist_-1_0", F.lag("dist_0_+1", 1).over(window)
             )
             .withColumn(
                 "dist_-1_+1",
@@ -619,7 +615,12 @@ class DailyPermanenceScore(Component):
 
         known_dps = (
             dps.filter(F.col("int_duration") > 0.0)
-            .join(cell_footprints, [ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id], "left")
+            # Select only needed columns from cell_footprint(date, cell_id, grid_ids)
+            .join(
+                cell_footprints.select(ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id, "grid_ids"),
+                [ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id],
+                "inner",
+            )
             .withColumn("grid_id", F.explode("grid_ids"))
             .drop("grid_ids")
             .groupby(

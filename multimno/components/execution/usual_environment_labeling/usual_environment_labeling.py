@@ -27,6 +27,7 @@ from multimno.core.data_objects.silver.silver_usual_environment_labeling_quality
 )
 from multimno.core.log import get_execution_stats
 
+
 class UsualEnvironmentLabeling(Component):
     """
     A class to calculate the grid tiles that conform the usual environment, home and work locations of each user.

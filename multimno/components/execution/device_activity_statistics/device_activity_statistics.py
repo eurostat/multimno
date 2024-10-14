@@ -31,6 +31,7 @@ from multimno.core.settings import CONFIG_SILVER_PATHS_KEY, TIMEZONE_CONFIG_KEY
 from multimno.core.constants.columns import ColNames
 from multimno.core.log import get_execution_stats
 
+
 class DeviceActivityStatistics(Component):
     """
     Class that removes duplicates from clean MNO Event data

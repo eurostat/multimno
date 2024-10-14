@@ -161,9 +161,7 @@ class SyntheticNetwork(Component):
 
     def initalize_data_objects(self):
         output_network_data_path = self.config.get(CONFIG_BRONZE_PATHS_KEY, "network_data_bronze")
-        bronze_network = BronzeNetworkDataObject(
-            self.spark, output_network_data_path, partition_columns=[ColNames.year, ColNames.month, ColNames.day]
-        )
+        bronze_network = BronzeNetworkDataObject(self.spark, output_network_data_path)
         self.output_data_objects = {bronze_network.ID: bronze_network}
 
     def read(self):

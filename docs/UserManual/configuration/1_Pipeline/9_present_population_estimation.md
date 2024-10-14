@@ -1,6 +1,6 @@
 ---
 title: PresentPopulationEstimation Configuration
-weight: 11
+weight: 9
 ---
 
 
@@ -15,8 +15,6 @@ grid_data_silver = ${Paths:silver_dir}/grid
 cell_connection_probabilities_data_silver = ${Paths:silver_dir}/cell_connection_probabilities_data_silver
 event_data_silver_flagged = ${Paths:silver_dir}/mno_events_flagged
 present_population_silver = ${Paths:silver_dir}/present_population
-present_population_zone_silver = ${Paths:silver_dir}/present_population_zone
-zone_to_grid_map_silver = ${Paths:silver_dir}/zone_to_grid_map
 ...
 ```
 
@@ -29,15 +27,9 @@ Under  `[PresentPopulationEstimation]` config section:
 - **data_period_start** - string, format should be “yyyy-MM-dd HH:mm:ss“ (e.g. 2023-01-08 12:30:00). Determines when the first time point is generated.
 - **data_period_end** - string, format should be “yyyy-MM-dd HH:mm:ss“ (e.g. 2023-01-08 12:30:00). No time points can be generated after this time. A time point can be generated at this exact time.
 - **time_point_gap_s** - integer, in seconds. Determines the interval between two time points. Starting from `data_period_start`, one time point is generated after each `time_point_gap_s` seconds until `data_period_end` is reached.
-- **nr_of_user_id_partitions** - integer. Total number of user_id_modulo partitions. This should be equal to the number of partitions that user event data has been split into-  
-- **nr_of_user_id_partitions_per_slice** - integer. Number of user_id_modulo partitions to process at one time. Should be adjusted to optimize between processing speed and memory usage limitations.
 - **tolerance_period_s** - integer, in seconds. Determines the size of the temporal window of each time point. Only events within this distance from the time point are included in the results calculation of that point. 
 - **max_iterations** - integer. Maximum number of iteration allowed for the Bayesian process for each time point.
 - **min_difference_threshold** - float. Minumum difference between Bayesian process prior and posterior population estimates needed to continue iterating the process.
-- **output_aggregation_level** - string, value is either "grid" or "zone". Determines whether the final results are aggregated per grid tile or per zoning area. 
-- **zoning_dataset_id** - string. Name of the zoning data to use, has to match the `dataset_id` column in the grid to zone mapping dataset. Only needed when output_aggregation_level is "zone".
-- **zoning_hierarchical_level** - integer. Level of hierarchial zoning to aggregate results to. The corresponding level from the `hierarchical_id` column in the grid to zone mapping dataset is used. Only needed when output_aggregation_level is "zone".
- 
 
 ## Configuration example: grid-level aggregation
 

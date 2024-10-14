@@ -32,10 +32,10 @@ The hardware specification needed will vary depending on the input data volumetr
 
 ### Spark Libraries (jars)
 
-| Library          | Version |
-| ---------------- | ------- |
-| Apache Sedona    | 1.6.0   |
-| Geotools wrapper | 28.2    |
+| Library          | Version  |
+| ---------------- | -------- |
+| Apache Sedona    | >= 1.6.0 |
+| Geotools wrapper | 28.2     |
 
 ### Python Libraries
 
@@ -47,7 +47,7 @@ The hardware specification needed will vary depending on the input data volumetr
 | requests      | 2.31.0       |
 | ujson         | 5.9          |
 | toml          | 0.10         |
-| apache-sedona | 1.6.0        |
+| apache-sedona | >= 1.6.0     |
 | geopandas     | 0.11.1       |
 | shapely       | 1.8.4        |
 | pyspark       | 3.5.1        |

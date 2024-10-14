@@ -2,7 +2,7 @@
 # MULTIMNO - BASE
 ##########################################################################
 
-FROM ubuntu:22.04 as multimno-base
+FROM ubuntu:22.04 AS multimno-base
 
 # --------- Set tzdata ----------
 # Set the timezone
@@ -99,7 +99,7 @@ RUN rm -rf /var/lib/apt/lists/*
 ##########################################################################
 # MULTIMNO - DEV
 ##########################################################################
-FROM multimno-base as multimno-dev
+FROM multimno-base AS multimno-dev
 
 
 # Install git
@@ -136,7 +136,7 @@ CMD ["bash"]
 ##########################################################################
 # MULTIMNO - Production
 ##########################################################################
-FROM multimno-base as multimno-prod
+FROM multimno-base AS multimno-prod
 
 RUN mkdir -p /tmp/spark-events
 

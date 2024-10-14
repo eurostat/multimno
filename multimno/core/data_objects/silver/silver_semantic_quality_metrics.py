@@ -1,8 +1,6 @@
-from typing import List
 """
 """
 
-from pyspark.sql import SparkSession
 from pyspark.sql.types import (
     StructField,
     StructType,
@@ -14,12 +12,11 @@ from pyspark.sql.types import (
     LongType,
 )
 
-from multimno.core.data_objects.data_object import PathDataObject
-from multimno.core.io_interface import ParquetInterface
+from multimno.core.data_objects.data_object import ParquetDataObject
 from multimno.core.constants.columns import ColNames
 
 
-class SilverEventSemanticQualityMetrics(PathDataObject):
+class SilverEventSemanticQualityMetrics(ParquetDataObject):
     """ """
 
     ID = "SilverEventSemanticQualityMetrics"
@@ -30,26 +27,11 @@ class SilverEventSemanticQualityMetrics(PathDataObject):
             StructField(ColNames.variable, StringType(), nullable=False),
             StructField(ColNames.type_of_error, IntegerType(), nullable=False),
             StructField(ColNames.value, LongType(), nullable=False),
+            # partition columns
             StructField(ColNames.year, ShortType(), nullable=False),
             StructField(ColNames.month, ByteType(), nullable=False),
             StructField(ColNames.day, ByteType(), nullable=False),
         ]
     )
 
-    def __init__(self, spark: SparkSession, default_path: str, partition_columns: List[str] = None) -> None:
-        super().__init__(spark, default_path)
-        self.interface = ParquetInterface()
-        self.partition_columns = partition_columns
-
-    def write(self, path: str = None, partition_columns: List[str] = None):
-        if path is None:
-            path = self.default_path
-        if partition_columns is None:
-            partition_columns = self.partition_columns
-
-        # Always append
-        self.df.write.format(
-            self.interface.FILE_FORMAT,
-        ).partitionBy(partition_columns).mode(
-            "overwrite"
-        ).save(path)
+    PARTITION_COLUMNS = [ColNames.year, ColNames.month, ColNames.day]

@@ -15,12 +15,12 @@ from pyspark.sql.types import (
     ByteType,
 )
 
-from multimno.core.data_objects.data_object import PathDataObject
+from multimno.core.data_objects.data_object import ParquetDataObject
 from multimno.core.io_interface import ParquetInterface
 from multimno.core.constants.columns import ColNames
 
 
-class BronzeEventDataObject(PathDataObject):
+class BronzeEventDataObject(ParquetDataObject):
     """
     Class that models the RAW MNO Event data.
     """
@@ -44,20 +44,4 @@ class BronzeEventDataObject(PathDataObject):
         ]
     )
 
-    def __init__(
-        self, spark: SparkSession, default_path: str, partition_columns: List[str] = None, mode: str = "overwrite"
-    ) -> None:
-        super().__init__(spark, default_path)
-        self.interface = ParquetInterface()
-        self.partition_columns = partition_columns
-        self.mode = mode
-
-    def write(self, path: str = None, partition_columns: List[str] = None, mode: str = None):
-        if path is None:
-            path = self.default_path
-        if partition_columns is None:
-            partition_columns = self.partition_columns
-        if mode is None:
-            mode = self.mode
-
-        self.interface.write_from_interface(self.df, path, partition_columns)
+    PARTITION_COLUMNS = [ColNames.year, ColNames.month, ColNames.day]

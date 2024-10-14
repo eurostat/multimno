@@ -1,6 +1,6 @@
 ---
 title: LongtermPermanenceScore Configuration
-weight: 14
+weight: 12
 ---
 
 # LongtermPermanenceScore Configuration

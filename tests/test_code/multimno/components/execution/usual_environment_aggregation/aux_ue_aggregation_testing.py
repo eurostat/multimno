@@ -133,6 +133,7 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
         ColNames.timestamp,
     )"""
 
+
 def set_input_data_uniform(spark: SparkSession, config: ConfigParser):
     """
     Load input data (enriched cell footprint and ue labels) and write to expected path.
@@ -148,12 +149,10 @@ def set_input_data_uniform(spark: SparkSession, config: ConfigParser):
     grid_data_path = config["Paths.Silver"]["grid_data_silver"]
     input_data = SilverGridDataObject(spark, grid_data_path)
     GRID_DATA = [
-        {k: v for k,v in el.items() if k in [ColNames.grid_id, ColNames.geometry, ColNames.quadkey]} 
+        {k: v for k, v in el.items() if k in [ColNames.grid_id, ColNames.geometry, ColNames.quadkey]}
         for el in ENRICHED_GRID_DATA
     ]
-    grid_df = spark.createDataFrame(
-        [Row(**el) for el in GRID_DATA], SilverGridDataObject.SCHEMA
-    )
+    grid_df = spark.createDataFrame([Row(**el) for el in GRID_DATA], SilverGridDataObject.SCHEMA)
     input_data.df = grid_df
     input_data.write()
 

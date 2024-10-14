@@ -239,15 +239,9 @@ class NetworkQualityWarnings(Component):
             CONFIG_SILVER_PATHS_KEY, "network_syntactic_quality_warnings_pie_plot_data"
         )
 
-        silver_quality_metrics = SilverNetworkDataQualityMetricsByColumn(
-            self.spark,
-            input_silver_quality_metrics_path,
-            partition_columns=[ColNames.year, ColNames.month, ColNames.day],
-        )
+        silver_quality_metrics = SilverNetworkDataQualityMetricsByColumn(self.spark, input_silver_quality_metrics_path)
 
-        silver_log_table = SilverNetworkDataSyntacticQualityWarningsLogTable(
-            self.spark, output_silver_log_table_path, partition_columns=[ColNames.year, ColNames.month, ColNames.day]
-        )
+        silver_log_table = SilverNetworkDataSyntacticQualityWarningsLogTable(self.spark, output_silver_log_table_path)
 
         silver_line_plot_data = SilverNetworkSyntacticQualityWarningsLinePlotData(
             self.spark, output_silver_line_plot_data_path

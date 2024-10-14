@@ -35,6 +35,7 @@ from multimno.core.data_objects.silver.silver_network_row_error_metrics import S
 from multimno.core.settings import CONFIG_BRONZE_PATHS_KEY, CONFIG_SILVER_PATHS_KEY
 from multimno.core.log import get_execution_stats
 
+
 class NetworkCleaning(Component):
     """
     Class that cleans MNO Network Topology Data (based on physical properties of the cell)
@@ -103,29 +104,22 @@ class NetworkCleaning(Component):
             CONFIG_SILVER_PATHS_KEY, "network_row_error_metrics"
         )
 
-        bronze_network = BronzeNetworkDataObject(
-            self.spark, input_bronze_network_path, partition_columns=[ColNames.year, ColNames.month, ColNames.day]
-        )
-        silver_network = SilverNetworkDataObject(
-            self.spark, output_silver_network_path, partition_columns=[ColNames.year, ColNames.month, ColNames.day]
-        )
+        bronze_network = BronzeNetworkDataObject(self.spark, input_bronze_network_path)
+        silver_network = SilverNetworkDataObject(self.spark, output_silver_network_path)
 
         silver_network_quality_metrics_by_column = SilverNetworkDataQualityMetricsByColumn(
             self.spark,
             output_silver_network_syntactic_quality_metrics_by_column,
-            partition_columns=[ColNames.year, ColNames.month, ColNames.day],
         )
 
         silver_network_row_error_metrics = SilverNetworkRowErrorMetrics(
             self.spark,
             output_silver_network_row_error_metrics_path,
-            partition_columns=[ColNames.year, ColNames.month, ColNames.day],
         )
 
         silver_network_top_errors = SilverNetworkDataTopFrequentErrors(
             self.spark,
             output_silver_network_top_errors_path,
-            partition_columns=[ColNames.year, ColNames.month, ColNames.day],
         )
 
         self.input_data_objects = {bronze_network.ID: bronze_network}

@@ -34,6 +34,7 @@ from multimno.core.constants.transformations import Transformations
 import multimno.core.utils as utils
 from multimno.core.log import get_execution_stats
 
+
 class EventCleaning(Component):
     """
     Class that cleans MNO Event data
@@ -120,11 +121,11 @@ class EventCleaning(Component):
             path = self.config.get(CONFIG_SILVER_PATHS_KEY, key)
             if self.clear_destination_directory:
                 delete_file_or_folder(self.spark, path)
-                self.output_data_objects[value.ID] = value(self.spark, path, mode="append")
+                self.output_data_objects[value.ID] = value(self.spark, path)
 
     def read(self):
         self.current_input_do.read()
-    
+
     @get_execution_stats
     def execute(self):
         self.logger.info(f"Starting {self.COMPONENT_ID}...")

@@ -1,8 +1,8 @@
 import pytest
 from configparser import ConfigParser
 from pyspark.sql import SparkSession
-import pyspark.sql.functions as F
-from datetime import datetime, date
+from pyspark.sql.types import Row
+from datetime import datetime
 from hashlib import sha256
 
 from multimno.core.constants.columns import ColNames
@@ -25,7 +25,21 @@ fixtures = [spark]
 
 @pytest.fixture(scope="module")
 def expected_device_activity_statistics(spark):
-    expected_data = [[sha256(b"1").digest(), 2023, 1, 1, 1, 1, 1, None, 1, None, None]]
+    expected_data = [
+        {
+            ColNames.user_id: sha256(b"1").digest(),
+            ColNames.event_cnt: 1,
+            ColNames.unique_cell_cnt: 1,
+            ColNames.unique_location_cnt: 1,
+            ColNames.sum_distance_m: None,
+            ColNames.unique_hour_cnt: 1,
+            ColNames.mean_time_gap: None,
+            ColNames.stdev_time_gap: None,
+            ColNames.year: 2023,
+            ColNames.month: 1,
+            ColNames.day: 1,
+        }
+    ]
 
     expected_data_df = spark.createDataFrame(expected_data, schema=SilverDeviceActivityStatistics.SCHEMA)
     return expected_data_df

@@ -1,6 +1,6 @@
 ---
 title: UsualEnvironmentAggregation Configuration
-weight: 16
+weight: 14
 ---
 
 # UsualEnvironmentAggregation Configuration

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Clear the output of all notebooks
+find . -type f -name \*.ipynb | xargs jupyter nbconvert --clear-output --inplace
+
+# Format all Python files of KineoDataops
+black -l 120 multimno tests/test_code/
+
+# Add only the staged files again
+git diff --name-only --cached | xargs git add
+
+exit 0

@@ -1,6 +1,6 @@
 ---
 title: MidtermPermanenceScore Configuration
-weight: 13
+weight: 11
 ---
 
 # MidtermPermanenceScore Configuration

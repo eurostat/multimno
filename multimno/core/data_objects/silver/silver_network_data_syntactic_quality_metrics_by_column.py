@@ -1,9 +1,7 @@
-from typing import List
 """
 Silver Network topology quality metrics.
 """
 
-from pyspark.sql import SparkSession
 from pyspark.sql.types import (
     StructType,
     StructField,
@@ -16,12 +14,11 @@ from pyspark.sql.types import (
 )
 
 
-from multimno.core.data_objects.data_object import PathDataObject
-from multimno.core.io_interface import ParquetInterface
+from multimno.core.data_objects.data_object import ParquetDataObject
 from multimno.core.constants.columns import ColNames
 
 
-class SilverNetworkDataQualityMetricsByColumn(PathDataObject):
+class SilverNetworkDataQualityMetricsByColumn(ParquetDataObject):
     """
     Class that models the Silver Network Topology data quality metrics data object.
     """
@@ -35,21 +32,11 @@ class SilverNetworkDataQualityMetricsByColumn(PathDataObject):
             StructField(ColNames.field_name, StringType(), nullable=True),
             StructField(ColNames.type_code, IntegerType(), nullable=False),
             StructField(ColNames.value, IntegerType(), nullable=False),
+            # partition columns
             StructField(ColNames.year, ShortType(), nullable=False),
             StructField(ColNames.month, ByteType(), nullable=False),
             StructField(ColNames.day, ByteType(), nullable=False),
         ]
     )
 
-    def __init__(self, spark: SparkSession, default_path: str, partition_columns: List[str] = None) -> None:
-        super().__init__(spark, default_path)
-        self.interface = ParquetInterface()
-        self.partition_columns = partition_columns
-
-    def write(self, path: str = None, partition_columns: List[str] = None):
-        if path is None:
-            path = self.default_path
-        if partition_columns is None:
-            partition_columns = self.partition_columns
-
-        self.interface.write_from_interface(self.df, path, partition_columns)
+    PARTITION_COLUMNS = [ColNames.year, ColNames.month, ColNames.day]

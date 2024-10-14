@@ -60,11 +60,8 @@ flowchart TD;
     
 
     subgraph Network Processing
-    %% Signal Strength
-    InspireGridData-->SignalStrengthModeling;
-    PhysicalNetworkData-->SignalStrengthModeling-->SignalStrengthData[(Signal Strength)];
     %% Cell Footprint
-    SignalStrengthData-->CellFootprintEstimation-->CellFootprintData[(Cell Footprint\nValues)];
+    PhysicalNetworkData-->CellFootprintEstimation-->CellFootprintData[(Cell Footprint\nValues)];
     CellFootprintEstimation-->CellIntersectionGroupsData[(Cell Intersection Groups)];
     %% Cell Connection Probability
     CellFootprintData-->CellConnectionProbabilityEstimation;
@@ -82,10 +79,9 @@ flowchart TD;
     CellIntersectionGroupsData-->ContinuousTimeSegmentation;
     %% Present Population Estimation
     EventsSemanticCleaned-->PresentPopulation-->PresentPopulationData[(Present\nPopulation)];
-    CellConnectionProbabilityData-->PresentPopulation-->PresentPopulationZoneData[(Present\nPopulation\nZone)];
+    CellConnectionProbabilityData-->PresentPopulation;
     InspireGridData-->PresentPopulation;
     end
-
 
     %% --- Longitudinal module ---
     subgraph MidTerm Products
@@ -104,6 +100,11 @@ flowchart TD;
     InspireGridData-->UsualEnvironmentAggregation;
     end
 
+    subgraph Final Product Pipeline
+    %% Spatial Aggregation
+    PresentPopulationData-->SpatialAggregation-->PresentPopulationZoneData[(Present\nPopulation\nZone)];
+    end
+
     classDef green fill:#229954,stroke:#333,stroke-width:2px;
     classDef light_green fill:#AFE1AF,stroke:#333,stroke-width:1px;
     classDef bronze fill:#CD7F32,stroke:#333,stroke-width:2px;
@@ -119,7 +120,7 @@ flowchart TD;
     class PhysicalNetworkData light_silver
     class NetworkQAData,NetworkWarnings silver
     class NetworkReports gold
-    class SignalStrengthData,CellFootprintData,CellConnectionProbabilityData,CellIntersectionGroupsData light_silver
+    class CellFootprintData,CellConnectionProbabilityData,CellIntersectionGroupsData light_silver
     %% -- EVENTS --
     %% event cleaning
     class EventsRAWData bronze
@@ -151,7 +152,7 @@ flowchart TD;
     %% ---- Components ----
     class InspireGridGeneration light_green
     %% Net
-    class NetworkCleaning,SignalStrengthModeling,CellFootprintEstimation,CellConnectionProbabilityEstimation light_green
+    class NetworkCleaning,CellFootprintEstimation,CellConnectionProbabilityEstimation light_green
     class NetworkQualityWarnings green
     %% Events
     class EventCleaning,EventDeduplication,SemanticCleaning light_green
@@ -163,6 +164,8 @@ flowchart TD;
     %% Longitudinal - Midterm
     class MidTermPermanenceScore light_green
     class LongTermPermanenceScore,UsualEnvironmentLabelling,UsualEnvironmentAggregation light_green
+    %% Final products pipeline
+    class SpatialAggregation light_green
 ```
 
 

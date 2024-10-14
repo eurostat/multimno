@@ -1,6 +1,6 @@
 ---
 title: DailyPermanenceScore Configuration
-weight: 12
+weight: 10
 ---
 
 # DailyPermanenceScore Configuration

@@ -93,8 +93,6 @@ class PresentPopulationEstimation(Component):
         output_present_population = SilverPresentPopulationDataObject(
             self.spark,
             silver_present_population_path,
-            partition_columns=[ColNames.year, ColNames.month, ColNames.day],
-            mode="append",
         )
         self.output_data_objects = {SilverPresentPopulationDataObject.ID: output_present_population}
 
@@ -149,9 +147,7 @@ class PresentPopulationEstimation(Component):
             .withColumn(ColNames.day, F.lit(time_point.day))
         )
         # Set results data object
-        population_per_grid_df = apply_schema_casting(
-            population_per_grid_df, SilverPresentPopulationDataObject.SCHEMA
-        )
+        population_per_grid_df = apply_schema_casting(population_per_grid_df, SilverPresentPopulationDataObject.SCHEMA)
         self.output_data_objects[SilverPresentPopulationDataObject.ID].df = population_per_grid_df
 
     def get_cell_connection_probabilities(self, time_point: datetime) -> DataFrame:
@@ -334,6 +330,7 @@ class PresentPopulationEstimation(Component):
             self.logger.info(f"Stopped iterations after reaching max iterations {self.max_iterations}")
         # At the end of the iteration, we have our population estimation over the grid tiles
         return new_pop_df.withColumn(ColNames.population, F.col(ColNames.population).cast(FloatType()))
+
 
 def generate_time_points(period_start: datetime, period_end: datetime, time_point_gap_s: timedelta) -> List[datetime]:
     """

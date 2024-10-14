@@ -94,8 +94,6 @@ class CellConnectionProbabilityEstimation(Component):
             SilverCellConnectionProbabilitiesDataObject(
                 self.spark,
                 silver_cell_probabilities_path,
-                partition_columns=[ColNames.year, ColNames.month, ColNames.day],
-                mode="append",
             )
         )
 

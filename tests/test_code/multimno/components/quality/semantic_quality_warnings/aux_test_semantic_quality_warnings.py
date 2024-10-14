@@ -129,7 +129,6 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
     metrics_data = SilverEventSemanticQualityMetrics(
         spark,
         metrics_test_data_path,
-        partition_columns=[ColNames.year, ColNames.month, ColNames.day],
     )
     metrics_data.df = metrics_df
     metrics_data.write()

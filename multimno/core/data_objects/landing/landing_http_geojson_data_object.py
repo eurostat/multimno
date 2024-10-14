@@ -4,11 +4,11 @@
 
 from pyspark.sql import SparkSession
 
-from multimno.core.data_objects.data_object import PathDataObject
+from multimno.core.data_objects.data_object import ParquetDataObject
 from multimno.core.io_interface import HttpGeoJsonInterface
 
 
-class LandingHttpGeoJsonDataObject(PathDataObject):
+class LandingHttpGeoJsonDataObject(ParquetDataObject):
     """
     Class that models input geospatial data in geojson format.
     """

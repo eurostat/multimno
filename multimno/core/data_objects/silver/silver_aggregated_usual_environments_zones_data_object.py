@@ -1,25 +1,14 @@
-from typing import List
-
 """
 Silver usual environments estimatation per zone data object
 """
 
-from pyspark.sql import SparkSession
-from pyspark.sql.types import (
-    StructField,
-    StructType,
-    FloatType,
-    StringType,
-    DateType,
-    ByteType
-)
+from pyspark.sql.types import StructField, StructType, FloatType, StringType, DateType, ByteType
 
-from multimno.core.data_objects.data_object import PathDataObject
-from multimno.core.io_interface import ParquetInterface
+from multimno.core.data_objects.data_object import ParquetDataObject
 from multimno.core.constants.columns import ColNames
 
 
-class SilverAggregatedUsualEnvironmentsZonesDataObject(PathDataObject):
+class SilverAggregatedUsualEnvironmentsZonesDataObject(ParquetDataObject):
     """
     Estimation of the population present at a given time at the level of some zoning system.
     """
@@ -41,38 +30,21 @@ class SilverAggregatedUsualEnvironmentsZonesDataObject(PathDataObject):
 
     VALUE_COLUMNS = [ColNames.weighted_device_count]
 
-    AGGREGATION_COLUMNS = [ColNames.zone_id,
-                            ColNames.dataset_id,
-                            ColNames.label, 
-                            ColNames.level,
-                            ColNames.start_date, 
-                            ColNames.end_date, 
-                            ColNames.season]
+    AGGREGATION_COLUMNS = [
+        ColNames.zone_id,
+        ColNames.dataset_id,
+        ColNames.label,
+        ColNames.level,
+        ColNames.start_date,
+        ColNames.end_date,
+        ColNames.season,
+    ]
 
-    PARTITION_COLUMNS = [ColNames.dataset_id, 
-                         ColNames.level, 
-                         ColNames.label, 
-                         ColNames.start_date, 
-                         ColNames.end_date, 
-                         ColNames.season]
-
-    def __init__(
-        self, spark: SparkSession, default_path: str, partition_columns: List[str] = None, mode: str = "overwrite"
-    ) -> None:
-        super().__init__(spark, default_path)
-        self.interface = ParquetInterface()
-
-        if partition_columns is None:
-            partition_columns = self.PARTITION_COLUMNS
-        self.partition_columns = partition_columns
-        self.mode = mode
-
-    def write(self, path: str = None, partition_columns: list[str] = None, mode: str = None) -> None:
-        if path is None:
-            path = self.default_path
-        if partition_columns is None:
-            partition_columns = self.partition_columns
-        if mode is None:
-            mode = self.mode
-
-        self.interface.write_from_interface(self.df, path, partition_columns)
+    PARTITION_COLUMNS = [
+        ColNames.dataset_id,
+        ColNames.level,
+        ColNames.label,
+        ColNames.start_date,
+        ColNames.end_date,
+        ColNames.season,
+    ]

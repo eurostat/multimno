@@ -1,6 +1,6 @@
 ---
 title: CellConnectionProbabilityEstimation Configuration
-weight: 6
+weight: 5
 ---
 
 # CellConnectionProbabilityEstimation Configuration

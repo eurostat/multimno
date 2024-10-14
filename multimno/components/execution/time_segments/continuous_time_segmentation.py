@@ -110,12 +110,6 @@ class ContinuousTimeSegmentation(Component):
         self.output_data_objects[SilverTimeSegmentsDataObject.ID] = SilverTimeSegmentsDataObject(
             self.spark,
             self.silver_signal_strength_path,
-            partition_columns=[
-                ColNames.year,
-                ColNames.month,
-                ColNames.day,
-                ColNames.user_id_modulo,
-            ],
         )
 
     def execute(self):
@@ -219,7 +213,7 @@ class ContinuousTimeSegmentation(Component):
             intersections_set=intersections_set,
         )
 
-        groupby_cols = self.input_data_objects[SilverEventFlaggedDataObject.ID].partition_columns + [ColNames.user_id]
+        groupby_cols = self.input_data_objects[SilverEventFlaggedDataObject.ID].PARTITION_COLUMNS + [ColNames.user_id]
 
         # Using cogroup to join the current events with the last time segment.
         # Handy to avoid joining last segments to every row of the current events

@@ -57,9 +57,7 @@ def set_grid_zone_map_data(spark: SparkSession):
 
     config = parse_configuration(TEST_GENERAL_CONFIG_PATH)
     grid_zone_map_data_path = config["Paths.Silver"]["geozones_grid_map_data_silver"]
-    grid_zone_map_do = SilverGeozonesGridMapDataObject(
-        spark, grid_zone_map_data_path, partition_columns=["year", "month", "day"]
-    )
+    grid_zone_map_do = SilverGeozonesGridMapDataObject(spark, grid_zone_map_data_path)
     grid_zone_map_do.df = spark.createDataFrame(
         generate_zone_to_grid_map_data("2023-01-01"), schema=SilverGeozonesGridMapDataObject.SCHEMA
     )
@@ -77,9 +75,7 @@ def set_population_test_data(spark: SparkSession):
     # Set input population data
     config = parse_configuration(TEST_GENERAL_CONFIG_PATH)
     input_population_data_path = config["Paths.Silver"]["present_population_silver"]
-    input_population_data_do = SilverPresentPopulationDataObject(
-        spark, input_population_data_path, partition_columns=["year", "month", "day"]
-    )
+    input_population_data_do = SilverPresentPopulationDataObject(spark, input_population_data_path)
     input_population_data_do.df = spark.createDataFrame(
         generate_input_population_grid_data("2023-01-01T00:00:00"), schema=SilverPresentPopulationDataObject.SCHEMA
     )
@@ -97,29 +93,11 @@ def set_ue_test_data(spark: SparkSession):
     # Set input UE data
     config = parse_configuration(TEST_GENERAL_CONFIG_PATH)
     input_ue_data_path = config["Paths.Silver"]["aggregated_usual_environments_silver"]
-    input_ue_data_do = SilverAggregatedUsualEnvironmentsDataObject(
-        spark,
-        input_ue_data_path,
-        partition_columns=[
-            "label",
-            "start_date",
-            "end_date",
-            "season",
-        ],
-    )
+    input_ue_data_do = SilverAggregatedUsualEnvironmentsDataObject(spark, input_ue_data_path)
     input_ue_data_do.df = spark.createDataFrame(
         generate_input_ue_grid_data("2023-01-01"), schema=SilverAggregatedUsualEnvironmentsDataObject.SCHEMA
     )
     input_ue_data_do.write()
-
-
-def get_expected_output_df(spark: SparkSession, path_id: str, schema: StructType):
-
-    config = parse_configuration(TEST_GENERAL_CONFIG_PATH)
-    path = config["Paths.Silver"][path_id]
-    sdf = spark.read.parquet(path, schema=schema)
-    sdf = apply_schema_casting(sdf, schema)
-    return sdf
 
 
 def test_present_population_spatial_aggregation(spark):
@@ -162,11 +140,8 @@ def test_present_population_spatial_aggregation(spark):
     output_data_object.read()
 
     # assert read data == expected
-    expected_result = get_expected_output_df(
-        spark,
-        path_id="present_population_zone_silver",
-        schema=SilverPresentPopulationZoneDataObject.SCHEMA,
-    )
+    expected_result = generate_expected_population_zone_data("2023-01-01T00:00:00")
+    expected_result = spark.createDataFrame(expected_result, schema=SilverPresentPopulationZoneDataObject.SCHEMA)
 
     assertDataFrameEqual(output_data_object.df, expected_result)
 
@@ -211,10 +186,9 @@ def test_ue_spatial_aggregation(spark):
     output_data_object.read()
 
     # assert read data == expected
-    expected_result = get_expected_output_df(
-        spark,
-        path_id="aggregated_usual_environments_zone_silver",
-        schema=SilverAggregatedUsualEnvironmentsZonesDataObject.SCHEMA,
+    expected_result = generate_expected_ue_zone_data("2023-01-01")
+    expected_result = spark.createDataFrame(
+        expected_result, schema=SilverAggregatedUsualEnvironmentsZonesDataObject.SCHEMA
     )
 
     assertDataFrameEqual(output_data_object.df, expected_result)

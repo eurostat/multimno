@@ -135,7 +135,6 @@ def set_input_metrics_data(spark: SparkSession, config: ConfigParser):
         spark (SparkSession): spark session
         config (ConfigParser): component config
     """
-    partition_columns = [ColNames.year, ColNames.month, ColNames.day]
     test_data_path = config["Paths.Silver"]["network_syntactic_quality_metrics_by_column"]
 
     field_codes = {
@@ -244,4 +243,4 @@ def set_input_metrics_data(spark: SparkSession, config: ConfigParser):
     # Write input data in test resoruces dir
     input_data = SilverNetworkDataQualityMetricsByColumn(spark, test_data_path)
     input_data.df = input_data_df
-    input_data.write(partition_columns=partition_columns)
+    input_data.write()

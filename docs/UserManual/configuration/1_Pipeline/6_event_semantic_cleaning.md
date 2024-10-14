@@ -1,6 +1,6 @@
 ---
 title: SemanticCleaning Configuration
-weight: 8
+weight: 6
 ---
 
 # SemanticCleaning Configuration
