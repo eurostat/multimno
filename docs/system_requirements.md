@@ -1,6 +1,6 @@
 # System Requirements
 
-Multimno is a python library which requires the installation of additional system & python libraries.In this section the requirements for executing this software are defined. 
+Multimno is a python library which requires the installation of additional system & python libraries. In this section the requirements for executing this software are defined. 
 
 In the case of using the docker image provided,
 the system only needs to comply with the [Hardware Requirements](./system_requirements.md#hardware-requirements) and [Docker requirements](./system_requirements.md#docker-requirements) as the docker image will have all the [software requirements](./system_requirements.md#software-requirements) already installed.
@@ -23,12 +23,12 @@ The hardware specification needed will vary depending on the input data volumetr
 
 ### OS Libraries
 
-| Library      | Version |
-| ------------ | ------- |
-| Python       | >= 3.9  |
-| Java JDK     | 17.0.9  |
-| Apache Spark | 3.5.1   |
-| GDAL         | 3.6.2   |
+| Library      | Version  |
+| ------------ | -------- |
+| Python       | >= 3.9   |
+| Java JDK     | >= 11    |
+| Apache Spark | 3.5.1    |
+| GDAL         | >= 3.6.2 |
 
 ### Spark Libraries (jars)
 
@@ -45,7 +45,6 @@ The hardware specification needed will vary depending on the input data volumetr
 | pandas        | >=2.0,<2.3   |
 | pyarrow       | >=17.0       |
 | requests      | 2.31.0       |
-| ujson         | 5.9          |
 | toml          | 0.10         |
 | apache-sedona | >= 1.6.0     |
 | geopandas     | 0.11.1       |
@@ -54,7 +53,7 @@ The hardware specification needed will vary depending on the input data volumetr
 | py4j          | >=0.10.9.7   |
 
 ## Docker requirements
-In the case of using the docker image provided for single node execution the following requirements must be fulfilled:
-  - **Docker-engine:** >=25.X
-  - **Docker-compose:** >=2.24.X
-  - Internet connection to Ubuntu/Spark/Docker official repositories for building the docker image
+In the case of using the docker image provided for single node execution the following requirements must be fulfilled:  
+  - **Docker-engine:** >=25.X  
+  - **Docker-compose:** >=2.24.X  
+  - Internet connection to Ubuntu/Spark/Docker official repositories for building the docker image  

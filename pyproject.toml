@@ -10,7 +10,7 @@ include = ["multimno*"]
 # Project metadata
 [project]
 name = "multimno"
-version = "0.4.0"
+version = "0.5.0"
 description = "Big data pipeline software for mobility and sociodemographic analysis from MNO Data."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -33,7 +33,6 @@ dependencies = [
     "pandas>=2.0,<2.3",
     "pyarrow~=17.0",
     "requests~=2.31",
-    "ujson~=5.9",
     "toml~=0.10",
 
     # ------ sedona ------

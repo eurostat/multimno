@@ -80,6 +80,8 @@ class DataFiltering(Component):
 
         self.current_date = None
 
+        self.repartition_num = self.config.getint(self.COMPONENT_ID, "repartition_num")
+
     def initalize_data_objects(self):
         # Input
         self.input_data_objects = {}
@@ -165,9 +167,16 @@ class DataFiltering(Component):
         if self.do_device_sampling:
             events_sdf = self.sample_devices(events_sdf, self.sample_size)
 
+        # --- Export actions ---
+        # Schema casting
         events_sdf = utils.apply_schema_casting(events_sdf, BronzeEventDataObject.SCHEMA)
         cells_sdf = utils.apply_schema_casting(cells_sdf, BronzeNetworkDataObject.SCHEMA)
 
+        # Partition output data (Avoid generating thousands of small files)
+        events_sdf = events_sdf.repartition(self.repartition_num)
+        cells_sdf = cells_sdf.repartition(self.repartition_num)
+
+        cells_sdf.cache()
         self.output_data_objects[BronzeNetworkDataObject.ID].df = cells_sdf
         self.output_data_objects[BronzeEventDataObject.ID].df = events_sdf
 
@@ -210,8 +219,9 @@ class DataFiltering(Component):
             cells_sdf = DataFiltering.filter_cells_polygon(cells_sdf, polygons_sdf)
         elif bbox is not None:
             cells_sdf = DataFiltering.filter_cells_bbox(cells_sdf, bbox)
-        cell_ids_list = [row[ColNames.cell_id] for row in cells_sdf.select(ColNames.cell_id).collect()]
-        events_sdf = events_sdf.filter(events_sdf[ColNames.cell_id].isin(cell_ids_list))
+        # cell_ids_list = [row[ColNames.cell_id] for row in cells_sdf.select(ColNames.cell_id).collect()]
+        # events_sdf = events_sdf.filter(events_sdf[ColNames.cell_id].isin(cell_ids_list))
+        events_sdf = events_sdf.join(cells_sdf.select(ColNames.cell_id), on=ColNames.cell_id, how="inner")
         return events_sdf, cells_sdf
 
     @staticmethod
@@ -226,10 +236,13 @@ class DataFiltering(Component):
             cells_in_area_sdf = DataFiltering.filter_cells_polygon(cells_sdf, polygons_sdf)
         elif bbox is not None:
             cells_in_area_sdf = DataFiltering.filter_cells_bbox(cells_sdf, bbox)
-        cell_ids_list = [row[ColNames.cell_id] for row in cells_in_area_sdf.select(ColNames.cell_id).collect()]
+        # cell_ids_list = [row[ColNames.cell_id] for row in cells_in_area_sdf.select(ColNames.cell_id).collect()]
 
         # Filter events based on cell_id being in the cells from the bounding box
-        events_in_bbox_sdf = events_sdf.filter(events_sdf[ColNames.cell_id].isin(cell_ids_list))
+        # events_in_bbox_sdf = events_sdf.filter(events_sdf[ColNames.cell_id].isin(cell_ids_list))
+        events_in_bbox_sdf = events_sdf.join(
+            cells_in_area_sdf.select(ColNames.cell_id), on=ColNames.cell_id, how="inner"
+        )
 
         # Get distinct devices in the filtered events
         devices_in_bbox_sdf = events_in_bbox_sdf.select(ColNames.user_id).distinct()
@@ -239,9 +252,10 @@ class DataFiltering(Component):
 
         # Filter cells based on the distinct cell IDs in the filtered events
         all_cells_sdf = events_sdf.select(ColNames.cell_id).distinct()
-        all_cell_ids_list = [row[ColNames.cell_id] for row in all_cells_sdf.collect()]
+        # all_cell_ids_list = [row[ColNames.cell_id] for row in all_cells_sdf.collect()]
 
-        cells_sdf = cells_sdf.filter(cells_sdf[ColNames.cell_id].isin(all_cell_ids_list))
+        # cells_sdf = cells_sdf.filter(cells_sdf[ColNames.cell_id].isin(all_cell_ids_list))
+        cells_sdf = cells_sdf.join(all_cells_sdf, on=ColNames.cell_id, how="inner")
 
         return events_sdf, cells_sdf
 

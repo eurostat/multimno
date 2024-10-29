@@ -73,7 +73,12 @@ from multimno.components.execution.usual_environment_labeling.usual_environment_
 from multimno.components.execution.usual_environment_aggregation.usual_environment_aggregation import (
     UsualEnvironmentAggregation,
 )
+
+# Postprocessing
 from multimno.components.execution.spatial_aggregation.spatial_aggregation import SpatialAggregation
+from multimno.components.execution.estimation.estimation import Estimation
+from multimno.components.execution.kanonimity.kanonimity import KAnonimity
+from multimno.components.execution.multimno_aggregation.multimno_aggregation import MultiMNOAggregation
 
 # Quality
 from multimno.components.quality.event_quality_warnings.event_quality_warnings import (
@@ -121,7 +126,11 @@ CONSTRUCTORS = {
     LongtermPermanenceScore.COMPONENT_ID: LongtermPermanenceScore,
     UsualEnvironmentLabeling.COMPONENT_ID: UsualEnvironmentLabeling,
     UsualEnvironmentAggregation.COMPONENT_ID: UsualEnvironmentAggregation,
+    # Postprocessing
     SpatialAggregation.COMPONENT_ID: SpatialAggregation,
+    Estimation.COMPONENT_ID: Estimation,
+    KAnonimity.COMPONENT_ID: KAnonimity,
+    MultiMNOAggregation.COMPONENT_ID: MultiMNOAggregation,
     # Quality
     EventQualityWarnings.COMPONENT_ID: EventQualityWarnings,
     SemanticQualityWarnings.COMPONENT_ID: SemanticQualityWarnings,

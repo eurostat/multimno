@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from pyspark.sql.types import Row
+import calendar as cal
 
 
 def generate_input_population_grid_data(timestamp: str) -> list[Row]:
@@ -53,13 +54,14 @@ def generate_input_population_grid_data(timestamp: str) -> list[Row]:
     ]
 
 
-def generate_input_ue_grid_data(start_date: str) -> list[Row]:
+def generate_input_ue_grid_data(start_date: str, end_date: str) -> list[Row]:
     """
     Generate input population grid data.
     """
     # create end date from start date. Just date not time
-    start_date = datetime.strptime(start_date, "%Y-%m-%d")
-    end_date = start_date + timedelta(days=90)
+    start_date = datetime.strptime(start_date, "%Y-%m")
+    end_date = datetime.strptime(end_date, "%Y-%m")
+    end_date = end_date + timedelta(days=cal.monthrange(end_date.year, end_date.month)[1] - 1)
 
     expected_output_data = [
         Row(
@@ -278,13 +280,14 @@ def generate_expected_population_zone_data(timestamp: str) -> list[Row]:
     ]
 
 
-def generate_expected_ue_zone_data(start_date: str) -> list[Row]:
+def generate_expected_ue_zone_data(start_date: str, end_date: str) -> list[Row]:
     """
     Generate expected output data by aggregating weighted_device_count over hierarchical zones and labels.
     """
     # Parse the start and end dates
-    start_date_dt = datetime.strptime(start_date, "%Y-%m-%d")
-    end_date_dt = start_date_dt + timedelta(days=90)
+    start_date = datetime.strptime(start_date, "%Y-%m")
+    end_date = datetime.strptime(end_date, "%Y-%m")
+    end_date = end_date + timedelta(days=cal.monthrange(end_date.year, end_date.month)[1] - 1)
     dataset_id = "nuts"
     season = "all"
 
@@ -296,8 +299,8 @@ def generate_expected_ue_zone_data(start_date: str) -> list[Row]:
             dataset_id=dataset_id,
             level=1,
             label="home",
-            start_date=start_date_dt,
-            end_date=end_date_dt,
+            start_date=start_date,
+            end_date=end_date,
             season=season,
         ),
         Row(
@@ -306,8 +309,8 @@ def generate_expected_ue_zone_data(start_date: str) -> list[Row]:
             dataset_id=dataset_id,
             level=1,
             label="work",
-            start_date=start_date_dt,
-            end_date=end_date_dt,
+            start_date=start_date,
+            end_date=end_date,
             season=season,
         ),
         Row(
@@ -316,8 +319,8 @@ def generate_expected_ue_zone_data(start_date: str) -> list[Row]:
             dataset_id=dataset_id,
             level=1,
             label="ue",
-            start_date=start_date_dt,
-            end_date=end_date_dt,
+            start_date=start_date,
+            end_date=end_date,
             season=season,
         ),
         # Level 2 Aggregations
@@ -328,8 +331,8 @@ def generate_expected_ue_zone_data(start_date: str) -> list[Row]:
             dataset_id=dataset_id,
             level=2,
             label="home",
-            start_date=start_date_dt,
-            end_date=end_date_dt,
+            start_date=start_date,
+            end_date=end_date,
             season=season,
         ),
         Row(
@@ -338,8 +341,8 @@ def generate_expected_ue_zone_data(start_date: str) -> list[Row]:
             dataset_id=dataset_id,
             level=2,
             label="work",
-            start_date=start_date_dt,
-            end_date=end_date_dt,
+            start_date=start_date,
+            end_date=end_date,
             season=season,
         ),
         Row(
@@ -348,8 +351,8 @@ def generate_expected_ue_zone_data(start_date: str) -> list[Row]:
             dataset_id=dataset_id,
             level=2,
             label="ue",
-            start_date=start_date_dt,
-            end_date=end_date_dt,
+            start_date=start_date,
+            end_date=end_date,
             season=season,
         ),
         # B02
@@ -359,8 +362,8 @@ def generate_expected_ue_zone_data(start_date: str) -> list[Row]:
             dataset_id=dataset_id,
             level=2,
             label="home",
-            start_date=start_date_dt,
-            end_date=end_date_dt,
+            start_date=start_date,
+            end_date=end_date,
             season=season,
         ),
         Row(
@@ -369,8 +372,8 @@ def generate_expected_ue_zone_data(start_date: str) -> list[Row]:
             dataset_id=dataset_id,
             level=2,
             label="work",
-            start_date=start_date_dt,
-            end_date=end_date_dt,
+            start_date=start_date,
+            end_date=end_date,
             season=season,
         ),
         Row(
@@ -379,8 +382,8 @@ def generate_expected_ue_zone_data(start_date: str) -> list[Row]:
             dataset_id=dataset_id,
             level=2,
             label="ue",
-            start_date=start_date_dt,
-            end_date=end_date_dt,
+            start_date=start_date,
+            end_date=end_date,
             season=season,
         ),
         # Level 3 Aggregations
@@ -391,8 +394,8 @@ def generate_expected_ue_zone_data(start_date: str) -> list[Row]:
             dataset_id=dataset_id,
             level=3,
             label="home",
-            start_date=start_date_dt,
-            end_date=end_date_dt,
+            start_date=start_date,
+            end_date=end_date,
             season=season,
         ),
         Row(
@@ -401,8 +404,8 @@ def generate_expected_ue_zone_data(start_date: str) -> list[Row]:
             dataset_id=dataset_id,
             level=3,
             label="ue",
-            start_date=start_date_dt,
-            end_date=end_date_dt,
+            start_date=start_date,
+            end_date=end_date,
             season=season,
         ),
         # C02
@@ -412,8 +415,8 @@ def generate_expected_ue_zone_data(start_date: str) -> list[Row]:
             dataset_id=dataset_id,
             level=3,
             label="work",
-            start_date=start_date_dt,
-            end_date=end_date_dt,
+            start_date=start_date,
+            end_date=end_date,
             season=season,
         ),
         Row(
@@ -422,8 +425,8 @@ def generate_expected_ue_zone_data(start_date: str) -> list[Row]:
             dataset_id=dataset_id,
             level=3,
             label="ue",
-            start_date=start_date_dt,
-            end_date=end_date_dt,
+            start_date=start_date,
+            end_date=end_date,
             season=season,
         ),
         # C03
@@ -433,8 +436,8 @@ def generate_expected_ue_zone_data(start_date: str) -> list[Row]:
             dataset_id=dataset_id,
             level=3,
             label="home",
-            start_date=start_date_dt,
-            end_date=end_date_dt,
+            start_date=start_date,
+            end_date=end_date,
             season=season,
         ),
         Row(
@@ -443,8 +446,8 @@ def generate_expected_ue_zone_data(start_date: str) -> list[Row]:
             dataset_id=dataset_id,
             level=3,
             label="work",
-            start_date=start_date_dt,
-            end_date=end_date_dt,
+            start_date=start_date,
+            end_date=end_date,
             season=season,
         ),
         Row(
@@ -453,8 +456,8 @@ def generate_expected_ue_zone_data(start_date: str) -> list[Row]:
             dataset_id=dataset_id,
             level=3,
             label="ue",
-            start_date=start_date_dt,
-            end_date=end_date_dt,
+            start_date=start_date,
+            end_date=end_date,
             season=season,
         ),
     ]

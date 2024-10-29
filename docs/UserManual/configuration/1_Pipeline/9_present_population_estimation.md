@@ -4,8 +4,8 @@ weight: 9
 ---
 
 
-# DailyPermanenceScore Configuration
-To initialise and run the component two configs are used -  `general_config.ini` and component’s config `present_population_estimation.ini`. In  `general_config.ini` all paths to the data objects used by DailyPermanenceScore component shall be specified. An example with the specified paths is shown below:
+# PresentPopulationEstimation Configuration
+To initialise and run the component two configs are used -  `general_config.ini` and component’s config `present_population_estimation.ini`. In  `general_config.ini` all paths to the data objects used by PresentPopulationEstimation component shall be specified. An example with the specified paths is shown below:
 
 
 ```ini
@@ -49,27 +49,5 @@ nr_of_user_id_partitions = 128 # Total number of user_id_modulo partitions. TODO
 nr_of_user_id_partitions_per_slice = 32 # Number of user_id_modulo partitions to process at one time
 max_iterations = 20 # Number of iterations allowed for the Bayesian process
 min_difference_threshold = 10000 # Minimum total difference between Bayesian process prior and posterior needed to continue processing 
-output_aggregation_level = grid # Supported values: "grid", "zone". Determines which level the results are aggregated to.
 ```
 
-## Configuration example: zone-level aggregation
-```ini
-[Logging]
-level = DEBUG
-
-[Spark]
-session_name = PresentPopulationEstimationZone
-
-[PresentPopulationEstimation]
-data_period_start = 2023-01-01 00:00:00 # Starting bound when to create time points. The first time point is created at this timestamp. 
-data_period_end = 2023-01-02 00:00:00 # Ending bound when to create time points. No time points are generated later than this timestamp. A time point can happen to be generated on this timestamp, but this is not always the case.
-time_point_gap_s = 43200 # space between consecutive time points
-tolerance_period_s = 3600 # Maximum allowed time difference for an event to be included in a time point
-nr_of_user_id_partitions = 128 # Total number of user_id_modulo partitions. TODO should be a global conf value
-nr_of_user_id_partitions_per_slice = 32 # Number of user_id_modulo partitions to process at one time
-max_iterations = 20 # Number of iterations allowed for the Bayesian process
-min_difference_threshold = 10000 # Minimum total difference between Bayesian process prior and posterior needed to continue processing 
-output_aggregation_level = zone # Supported values: "grid", "zone". Determines which level the results are aggregated to.
-zoning_dataset_id = zoning_01 # Name of zoning dataset. Only needed when output_aggregation_level is "zone".
-zoning_hierarchical_level = 3 # Level of hierarchial zoning to aggregate results to. Only needed when output_aggregation_level is "zone".
-```

@@ -2,9 +2,9 @@
 This module is responsible for aggregation of the gridded indicators to geographical zones of interest.
 """
 
-from typing import Any, Dict
-from sedona.sql import st_predicates as STP
 import importlib
+import datetime as dt
+import calendar as cal
 
 import pyspark.sql.functions as F
 from pyspark.sql import DataFrame
@@ -14,36 +14,45 @@ from multimno.core.data_objects.data_object import DataObject
 from multimno.core.data_objects.silver.silver_geozones_grid_map_data_object import (
     SilverGeozonesGridMapDataObject,
 )
+from multimno.core.data_objects.silver.silver_present_population_data_object import (
+    SilverPresentPopulationDataObject,
+)
+from multimno.core.data_objects.silver.silver_present_population_zone_data_object import (
+    SilverPresentPopulationZoneDataObject,
+)
+from multimno.core.data_objects.silver.silver_aggregated_usual_environments_data_object import (
+    SilverAggregatedUsualEnvironmentsDataObject,
+)
+from multimno.core.data_objects.silver.silver_aggregated_usual_environments_zones_data_object import (
+    SilverAggregatedUsualEnvironmentsZonesDataObject,
+)
 from multimno.core.spark_session import check_if_data_path_exists, delete_file_or_folder
 from multimno.core.settings import (
     CONFIG_SILVER_PATHS_KEY,
 )
 from multimno.core.constants.columns import ColNames
+from multimno.core.constants.period_names import SEASONS
 import multimno.core.utils as utils
 from multimno.core.log import get_execution_stats
 
 CLASS_MAPPING = {
-    "present_population": {
+    "PresentPopulation": {
         "input": [
-            "multimno.core.data_objects.silver.silver_present_population_data_object",
-            "SilverPresentPopulationDataObject",
+            SilverPresentPopulationDataObject,
             "present_population_silver",
         ],
         "output": [
-            "multimno.core.data_objects.silver.silver_present_population_zone_data_object",
-            "SilverPresentPopulationZoneDataObject",
+            SilverPresentPopulationZoneDataObject,
             "present_population_zone_silver",
         ],
     },
-    "usual_environments": {
+    "UsualEnvironment": {
         "input": [
-            "multimno.core.data_objects.silver.silver_aggregated_usual_environments_data_object",
-            "SilverAggregatedUsualEnvironmentsDataObject",
+            SilverAggregatedUsualEnvironmentsDataObject,
             "aggregated_usual_environments_silver",
         ],
         "output": [
-            "multimno.core.data_objects.silver.silver_aggregated_usual_environments_zones_data_object",
-            "SilverAggregatedUsualEnvironmentsZonesDataObject",
+            SilverAggregatedUsualEnvironmentsZonesDataObject,
             "aggregated_usual_environments_zone_silver",
         ],
     },
@@ -60,38 +69,30 @@ class SpatialAggregation(Component):
     def __init__(self, general_config_path: str, component_config_path: str) -> None:
         super().__init__(general_config_path, component_config_path)
 
-        self.zoning_dataset_id = self.config.get(SpatialAggregation.COMPONENT_ID, "zonning_dataset_id")
-        hierarchical_levels_raw = self.config.get(SpatialAggregation.COMPONENT_ID, "hierarchical_levels").split(",")
-
-        self.hierarchical_levels = []
-        # check levels are numeric, otherwise raise error
-        for level in hierarchical_levels_raw:
-            try:
-                self.hierarchical_levels.append(int(level))
-            except ValueError:
-                raise ValueError(f"Invalid hierarchical level: {level}")
-
+        self.zoning_dataset_id = None
         self.current_level = None
+        self.input_aggregation_do = None
 
     def initalize_data_objects(self):
 
         # inputs
-        self.clear_destination_directory = self.config.getboolean(
-            SpatialAggregation.COMPONENT_ID, "clear_destination_directory"
-        )
+        self.aggegation_targets = []
+        if self.config.getboolean(SpatialAggregation.COMPONENT_ID, "present_population_execution"):
+            self.aggegation_targets.append("PresentPopulation")
 
-        self.aggregation_type = self.config.get(SpatialAggregation.COMPONENT_ID, "aggregation_type")
+        if self.config.getboolean(SpatialAggregation.COMPONENT_ID, "usual_environment_execution"):
+            self.aggegation_targets.append("UsualEnvironment")
 
-        if self.aggregation_type not in CLASS_MAPPING.keys():
-            raise ValueError(f"Invalid aggregation type: {self.aggregation_type}")
+        if len(self.aggegation_targets) == 0:
+            raise ValueError("No aggregation targets specified")
 
         # prepare input data objects to aggregate
-        input_aggregation_do_params = CLASS_MAPPING[self.aggregation_type]["input"]
-        self.input_aggregation_do = self.import_class(input_aggregation_do_params[0], input_aggregation_do_params[1])
-        inputs = {
-            input_aggregation_do_params[2]: self.input_aggregation_do,
-            "geozones_grid_map_data_silver": SilverGeozonesGridMapDataObject,
-        }
+
+        inputs = {"geozones_grid_map_data_silver": SilverGeozonesGridMapDataObject}
+
+        for target in self.aggegation_targets:
+            input_aggregation_do_params = CLASS_MAPPING[target]["input"]
+            inputs[input_aggregation_do_params[1]] = input_aggregation_do_params[0]
 
         self.input_data_objects = {}
         for key, value in inputs.items():
@@ -103,31 +104,90 @@ class SpatialAggregation(Component):
                 raise ValueError(f"Invalid path for {value.ID}: {path}")
 
         # prepare output data objects
-        output_do_params = CLASS_MAPPING[self.aggregation_type]["output"]
-        self.output_aggregation_do = self.import_class(output_do_params[0], output_do_params[1])
-        output_do_path = self.config.get(CONFIG_SILVER_PATHS_KEY, output_do_params[2])
-
-        if self.clear_destination_directory:
-            delete_file_or_folder(self.spark, output_do_path)
 
         self.output_data_objects = {}
-        self.output_data_objects[self.output_aggregation_do.ID] = self.output_aggregation_do(self.spark, output_do_path)
+        for target in self.aggegation_targets:
+            output_do_params = CLASS_MAPPING[target]["output"]
+            output_do_path = self.config.get(CONFIG_SILVER_PATHS_KEY, output_do_params[1])
 
-    @staticmethod
-    def import_class(class_path: str, class_name: str):
-        module = importlib.import_module(class_path)
-        return getattr(module, class_name)
+            if self.config.get(f"{SpatialAggregation.COMPONENT_ID}.{target}", "clear_destination_directory"):
+                delete_file_or_folder(self.spark, output_do_path)
+            self.output_data_objects[output_do_params[0].ID] = output_do_params[0](self.spark, output_do_path)
+            self.output_data_objects[output_do_params[0].ID].df = self.spark.createDataFrame(
+                self.spark.sparkContext.emptyRDD(), output_do_params[0].SCHEMA
+            )
+
+    def filter_dataframe(self, aggregation_target: str) -> DataFrame:
+        """Filtering function that takes the partitions of the dataframe specified via configuration file
+
+        Args:
+            df (DataFrame): original DataFrame
+
+        Raises:
+            ValueError: if `season` value in configuration file is not one of allowed values
+
+        Returns:
+            DataFrame: filtered DataFrame
+        """
+
+        current_input_sdf = self.input_data_objects[self.input_aggregation_do.ID].df
+        if aggregation_target == "PresentPopulation":
+            start_date = dt.datetime.strptime(
+                self.config.get(f"{self.COMPONENT_ID}.{aggregation_target}", "start_date"), "%Y-%m-%d"
+            )
+            end_date = dt.datetime.strptime(
+                self.config.get(f"{self.COMPONENT_ID}.{aggregation_target}", "end_date"), "%Y-%m-%d"
+            )
+
+            current_input_sdf = current_input_sdf.where(
+                F.make_date(ColNames.year, ColNames.month, ColNames.day).between(start_date, end_date)
+            )
+
+        if aggregation_target == "UsualEnvironment":
+            labels = self.config.get(f"{self.COMPONENT_ID}.{aggregation_target}", "labels")
+            labels = list(x.strip() for x in labels.split(","))
+
+            start_date = dt.datetime.strptime(
+                self.config.get(f"{self.COMPONENT_ID}.{aggregation_target}", "start_month"), "%Y-%m"
+            )
+            end_date = dt.datetime.strptime(
+                self.config.get(f"{self.COMPONENT_ID}.{aggregation_target}", "end_month"), "%Y-%m"
+            )
+            end_date = end_date + dt.timedelta(days=cal.monthrange(end_date.year, end_date.month)[1] - 1)
+            season = self.config.get(f"{self.COMPONENT_ID}.{aggregation_target}", "season")
+            if season not in SEASONS:
+                raise ValueError(f"Unknown season {season} -- valid values are {SEASONS}")
+
+            current_input_sdf = (
+                current_input_sdf.where(F.col(ColNames.label).isin(labels))
+                .where(F.col(ColNames.start_date) == start_date)
+                .where(F.col(ColNames.end_date) == end_date)
+                .where(F.col(ColNames.season) == season)
+            )
+
+        return current_input_sdf
 
     @get_execution_stats
     def execute(self):
         self.logger.info(f"Starting {self.COMPONENT_ID}...")
-        # iterate over each hierarchichal level of zoning dataset
-        for level in self.hierarchical_levels:
-            self.logger.info(f"Starting aggregation for level {level} ...")
-            self.current_level = level
+
+        for target in self.aggegation_targets:
+            self.logger.info(f"Starting spatial aggregation for {target} ...")
+            self.input_aggregation_do = self.input_data_objects[CLASS_MAPPING[target]["input"][0].ID]
+            self.output_aggregation_do = self.output_data_objects[CLASS_MAPPING[target]["output"][0].ID]
+
+            self.zoning_dataset_id = self.config.get(f"{self.COMPONENT_ID}.{target}", "zoning_dataset_id")
+            levels = self.config.get(f"{self.COMPONENT_ID}.{target}", "hierarchical_levels")
+            levels = list(int(x.strip()) for x in levels.split(","))
+
             self.read()
-            self.transform()
-            self.write()
+            self.current_input_sdf = self.filter_dataframe(target)
+            # iterate over each hierarchichal level of zoning dataset
+            for level in levels:
+                self.logger.info(f"Starting aggregation for level {level} ...")
+                self.current_level = level
+                self.transform()
+                self.write()
         self.logger.info(f"Finished {self.COMPONENT_ID}")
 
     def transform(self):
@@ -138,11 +198,9 @@ class SpatialAggregation(Component):
             current_zoning_sdf[ColNames.dataset_id].isin(self.zoning_dataset_id)
         ).select(ColNames.grid_id, ColNames.hierarchical_id, ColNames.zone_id, ColNames.dataset_id)
 
-        current_input_sdf = self.input_data_objects[self.input_aggregation_do.ID].df
-
         # do aggregation
         aggregated_sdf = self.aggregate_to_zone(
-            current_input_sdf, current_zoning_sdf, self.current_level, self.output_aggregation_do
+            self.current_input_sdf, current_zoning_sdf, self.current_level, self.output_aggregation_do
         )
 
         aggregated_sdf = utils.apply_schema_casting(aggregated_sdf, self.output_aggregation_do.SCHEMA)

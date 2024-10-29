@@ -95,7 +95,7 @@ def set_ue_test_data(spark: SparkSession):
     input_ue_data_path = config["Paths.Silver"]["aggregated_usual_environments_silver"]
     input_ue_data_do = SilverAggregatedUsualEnvironmentsDataObject(spark, input_ue_data_path)
     input_ue_data_do.df = spark.createDataFrame(
-        generate_input_ue_grid_data("2023-01-01"), schema=SilverAggregatedUsualEnvironmentsDataObject.SCHEMA
+        generate_input_ue_grid_data("2023-01", "2023-03"), schema=SilverAggregatedUsualEnvironmentsDataObject.SCHEMA
     )
     input_ue_data_do.write()
 
@@ -186,7 +186,7 @@ def test_ue_spatial_aggregation(spark):
     output_data_object.read()
 
     # assert read data == expected
-    expected_result = generate_expected_ue_zone_data("2023-01-01")
+    expected_result = generate_expected_ue_zone_data("2023-01", "2023-03")
     expected_result = spark.createDataFrame(
         expected_result, schema=SilverAggregatedUsualEnvironmentsZonesDataObject.SCHEMA
     )

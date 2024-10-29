@@ -103,6 +103,15 @@ flowchart TD;
     subgraph Final Product Pipeline
     %% Spatial Aggregation
     PresentPopulationData-->SpatialAggregation-->PresentPopulationZoneData[(Present\nPopulation\nZone)];
+    UEAdata-->SpatialAggregation-->UEAZoneData[(UsualEnvironment\nAggregation\nZone)]
+
+    %% Estimation
+    PresentPopulationZoneData-->Estimation-->PresentPopulationEstimationData[(Present\nPopulation\Estimation)];
+    UEAZoneData-->Estimation-->UEAEstimationData[(UsualEnvironment\nAggregation\Estimation)]
+
+    %% K-Anonymity
+    PresentPopulationEstimationData-->K_Anonymity-->PresentPopulationK_AnonymityData[(Present\nPopulation\K_Anonymity)];
+    UEAEstimationData-->K_Anonymity-->UEAK_AnonymityData[(UsualEnvironment\nAggregation\K_Anonymity)]
     end
 
     classDef green fill:#229954,stroke:#333,stroke-width:2px;
@@ -112,33 +121,35 @@ flowchart TD;
     classDef light_silver fill:#dcdcdc,stroke:#333,stroke-width:2px;
     classDef gold fill:#FFD700,stroke:#333,stroke-width:2px;
 
+    %% ++++++++++++++++ BRONZE ++++++++++++++++
+    class PhysicalNetworkRAWData,EventsRAWData bronze
+    class HolidayData bronze
+
+    %% ++++++++++++++++ SILVER ++++++++++++++++
     %% --- Reference Data ---
-    class InspireGridData,HolidayData light_silver
+    class InspireGridData light_silver
     %% --- MNO Data ---
     %% -- NETWORK --
-    class PhysicalNetworkRAWData bronze
     class PhysicalNetworkData light_silver
     class NetworkQAData,NetworkWarnings silver
-    class NetworkReports gold
     class CellFootprintData,CellConnectionProbabilityData,CellIntersectionGroupsData light_silver
     %% -- EVENTS --
     %% event cleaning
-    class EventsRAWData bronze
     class EventsData light_silver
     class EventsQA,EventsQAfreq,EventsWarnings silver
-    class EventsReports gold
+
     %% event deduplicated
     class EventsDeduplicated light_silver
     class EventsDeduplicatedQA,EventsDeduplicatedQAfreq,EventsDeduplicatedWarnings silver
-    class EventsDeduplicatedReports gold
+
     %% device activity statistics
     class DeviceActivityStatisticsData light_silver
     %% events semantic clean
     class EventsSemanticCleaned light_silver
     class DeviceSemanticQualityMetrics,EventSemanticWarnings silver
-    class EventSemanticReports gold
+
     %% Present population
-    class PresentPopulationData,PresentPopulationZoneData light_silver
+    class PresentPopulationData light_silver
     %% --- Daily Processing module ---
     %% Daily Permanence Score
     class DPSdata light_silver
@@ -148,6 +159,16 @@ flowchart TD;
     class MPSdata,LPSdata light_silver
     %% UE data
     class UELdata,UEAdata light_silver
+    %% Final components data
+    class PresentPopulationZoneData,UEAZoneData light_silver
+    class PresentPopulationEstimationData,UEAEstimationData light_silver
+
+    %% ++++++++++++++++ GOLD ++++++++++++++++
+    class NetworkReports gold
+    class EventsDeduplicatedReports gold
+    class EventsReports gold
+    class EventSemanticReports gold
+    class PresentPopulationK_AnonymityData,UEAK_AnonymityData gold
 
     %% ---- Components ----
     class InspireGridGeneration light_green
@@ -165,7 +186,7 @@ flowchart TD;
     class MidTermPermanenceScore light_green
     class LongTermPermanenceScore,UsualEnvironmentLabelling,UsualEnvironmentAggregation light_green
     %% Final products pipeline
-    class SpatialAggregation light_green
+    class SpatialAggregation,Estimation,K_Anonymity light_green
 ```
 
 

@@ -644,10 +644,9 @@ class NetworkCleaning(Component):
             ).collect()[0]["max(id)"]
 
             if prev_id is None:
-                self.accdf = self.accdf.filter(F.lit(False)).drop("id")
-            else:
-                prev_id = prev_id[0]["max(id)"]
-                self.accdf = self.accdf.filter(F.col("id") <= F.lit(prev_id + 1)).drop("id")
+                prev_id = 0
+
+            self.accdf = self.accdf.filter(F.col("id") <= F.lit(prev_id + 1)).drop("id")
 
         self.accdf = (
             self.accdf.withColumn(ColNames.result_timestamp, F.lit(self.timestamp).cast(TimestampType()))
