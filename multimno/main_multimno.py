@@ -54,6 +54,9 @@ from multimno.components.execution.cell_footprint.cell_footprint_estimation impo
 from multimno.components.execution.cell_connection_probability.cell_connection_probability import (
     CellConnectionProbabilityEstimation,
 )
+from multimno.components.execution.cell_proximity_estimation.cell_proximity_estimation import (
+    CellProximityEstimation,
+)
 
 # Exection - Daily
 from multimno.components.execution.time_segments.continuous_time_segmentation import (
@@ -116,6 +119,7 @@ CONSTRUCTORS = {
     DeviceActivityStatistics.COMPONENT_ID: DeviceActivityStatistics,
     CellFootprintEstimation.COMPONENT_ID: CellFootprintEstimation,
     CellConnectionProbabilityEstimation.COMPONENT_ID: CellConnectionProbabilityEstimation,
+    CellProximityEstimation.COMPONENT_ID: CellProximityEstimation,
     # Execution - Daily
     ContinuousTimeSegmentation.COMPONENT_ID: ContinuousTimeSegmentation,
     DailyPermanenceScore.COMPONENT_ID: DailyPermanenceScore,

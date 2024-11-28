@@ -51,16 +51,16 @@ EVENTS_AUX_SCHEMA = StructType(
 
 DPS_AUX_SCHEMA = StructType(
     [
-        StructField(ColNames.user_id, StringType(), nullable=False),
-        StructField(ColNames.grid_id, StringType(), nullable=False),
+        StructField(ColNames.cell_id, StringType(), nullable=False),
         StructField(ColNames.time_slot_initial_time, StringType(), nullable=False),
         StructField(ColNames.time_slot_end_time, StringType(), nullable=False),
-        StructField(ColNames.dps, IntegerType(), nullable=False),
+        StructField(ColNames.stay_duration, FloatType(), nullable=False),
         StructField(ColNames.year, ShortType(), nullable=False),
         StructField(ColNames.month, ByteType(), nullable=False),
         StructField(ColNames.day, ByteType(), nullable=False),
         StructField(ColNames.user_id_modulo, IntegerType(), nullable=False),
-        StructField(ColNames.id_type, StringType(), nullable=False),
+        StructField(ColNames.user_id, StringType(), nullable=False),
+        StructField(ColNames.id_type, StringType(), nullable=True),
     ]
 )
 
@@ -100,19 +100,26 @@ def cast_timestamp_field(df: DataFrame, colname: str):
 
 
 @pytest.fixture
-def expected_data(spark):
+def expected_data(spark: SparkSession):
     """
     Aux function to setup expected data using reference data file.
 
     Args:
         spark (SparkSession): spark session.
     """
+    # Quick fix to add id_type to dummy DPS data
+    [x.update({ColNames.id_type: "cell"}) for x in DPS]
     expected_df = spark.createDataFrame([Row(**el) for el in DPS], DPS_AUX_SCHEMA)
-    expected_df = cast_user_id_to_binary(expected_df)
-    expected_df = cast_timestamp_field(expected_df, ColNames.time_slot_initial_time)
+    expected_df = cast_timestamp_field(cast_user_id_to_binary(expected_df), ColNames.time_slot_initial_time)
     expected_df = cast_timestamp_field(expected_df, ColNames.time_slot_end_time)
+    expected_df = expected_df.select(SilverDailyPermanenceScoreDataObject.SCHEMA.fieldNames())
     expected_df = spark.createDataFrame(expected_df.rdd, SilverDailyPermanenceScoreDataObject.SCHEMA)
+
     return expected_df
+
+
+def get_cellfootprint_testing_df(spark: SparkSession):
+    return spark.createDataFrame([Row(**el) for el in CELL_FOOTPRINT], SilverCellFootprintDataObject.SCHEMA)
 
 
 def set_input_data(spark: SparkSession, config: ConfigParser):
@@ -125,7 +132,7 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
     """
     partition_columns = [ColNames.year, ColNames.month, ColNames.day]
     test_data_path = config["Paths.Silver"]["cell_footprint_data_silver"]
-    input_cells_df = spark.createDataFrame([Row(**el) for el in CELL_FOOTPRINT], SilverCellFootprintDataObject.SCHEMA)
+    input_cells_df = get_cellfootprint_testing_df(spark)
     input_data = SilverCellFootprintDataObject(spark, test_data_path)
     input_data.df = input_cells_df
     input_data.write(partition_columns=partition_columns)

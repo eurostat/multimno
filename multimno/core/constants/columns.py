@@ -116,6 +116,12 @@ class ColNames:
     cells = "cells"
     group_size = "group_size"
 
+    # Nearby cells and cell overlap
+    overlapping_cell_ids = "overlapping_cell_ids"
+    cell_id_a = "cell_id_a"
+    cell_id_b = "cell_id_b"
+    distance = "distance"
+
     # time segments
     time_segment_id = "time_segment_id"
     start_timestamp = "start_timestamp"
@@ -129,10 +135,10 @@ class ColNames:
 
     # dps (daily permanence score)
     dps = "dps"
+    stay_duration = "stay_duration"
     time_slot_initial_time = "time_slot_initial_time"
     time_slot_end_time = "time_slot_end_time"
     id_type = "id_type"
-    # time_slot_duration = "time_slot_duration"
 
     # midterm permanence score
     mps = "mps"

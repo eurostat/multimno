@@ -65,7 +65,7 @@ def generate_logger(config: ConfigParser, component_id: str):
             raise ValueError("report_path is required to build a file logger.")
 
         # Get log path
-        today = datetime.now().strftime("%y%m%d")
+        today = datetime.now().strftime("%y%m%d_%H%M%S")
         log_path = f"{report_path}/{component_id}/{component_id}_{today}.log"
         # Make report path + log dir
         os.makedirs(os.path.dirname(log_path), exist_ok=True)

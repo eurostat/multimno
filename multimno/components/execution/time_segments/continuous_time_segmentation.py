@@ -167,7 +167,8 @@ class ContinuousTimeSegmentation(Component):
                         == F.lit(current_date)
                     )
                 )
-                .select(ColNames.cells)
+                .select(ColNames.overlapping_cell_ids)
+                .withColumnRenamed(ColNames.overlapping_cell_ids, ColNames.cells)
             )
 
             self.transform()

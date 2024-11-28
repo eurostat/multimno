@@ -829,6 +829,12 @@ class UsualEnvironmentLabeling(Component):
         # generate labeling quality metrics dataset:
         labeling_quality_metrics_df = self.generate_quality_metrics(labeled_tiles_df)
 
+        # Repartition
+        labeled_tiles_df = labeled_tiles_df.repartition(*SilverUsualEnvironmentLabelsDataObject.PARTITION_COLUMNS)
+        labeling_quality_metrics_df = labeling_quality_metrics_df.repartition(
+            *SilverUsualEnvironmentLabelingQualityMetricsDataObject.PARTITION_COLUMNS
+        )
+
         # save objects to output data dict:
         self.output_data_objects[SilverUsualEnvironmentLabelsDataObject.ID].df = labeled_tiles_df
         self.output_data_objects[SilverUsualEnvironmentLabelingQualityMetricsDataObject.ID].df = (

@@ -28,9 +28,6 @@ from multimno.core.data_objects.silver.silver_network_data_object import (
 from multimno.core.data_objects.silver.silver_cell_footprint_data_object import (
     SilverCellFootprintDataObject,
 )
-from multimno.core.data_objects.silver.silver_cell_intersection_groups_data_object import (
-    SilverCellIntersectionGroupsDataObject,
-)
 from multimno.core.spark_session import check_if_data_path_exists, delete_file_or_folder
 from multimno.core.settings import CONFIG_SILVER_PATHS_KEY
 from multimno.core.constants.columns import ColNames
@@ -99,14 +96,13 @@ class CellFootprintEstimation(Component):
         self.current_date = None
         self.current_cells_sdf = None
 
+        self.partition_number = self.config.getint(self.COMPONENT_ID, "partition_number")
+
     def initalize_data_objects(self):
 
         self.clear_destination_directory = self.config.getboolean(self.COMPONENT_ID, "clear_destination_directory")
         self.cartesian_crs = self.config.get(CellFootprintEstimation.COMPONENT_ID, "cartesian_crs")
         self.use_elevation = self.config.getboolean(CellFootprintEstimation.COMPONENT_ID, "use_elevation")
-        self.do_do_cell_intersection_groups_calculation = self.config.getboolean(
-            self.COMPONENT_ID, "do_cell_intersection_groups_calculation"
-        )
 
         self.input_data_objects = {}
         # Input
@@ -137,22 +133,11 @@ class CellFootprintEstimation(Component):
             self.spark, cell_footprint_path
         )
 
-        if self.do_do_cell_intersection_groups_calculation:
-            self.silver_cell_intersection_groups_path = self.config.get(
-                CONFIG_SILVER_PATHS_KEY, "cell_intersection_groups_data_silver"
-            )
-            self.output_data_objects[SilverCellIntersectionGroupsDataObject.ID] = (
-                SilverCellIntersectionGroupsDataObject(
-                    self.spark,
-                    self.silver_cell_intersection_groups_path,
-                )
-            )
-
     def execute(self):
         self.logger.info(f"Starting {self.COMPONENT_ID}...")
         self.read()
 
-        # for every date in the data period, get the events and the intersection groups
+        # for every date in the data period, get the events
         # for that date and calculate the time segments
         for current_date in self.data_period_dates:
 
@@ -173,6 +158,7 @@ class CellFootprintEstimation(Component):
                     ColNames.cell_type,
                     ColNames.antenna_height,
                     ColNames.power,
+                    ColNames.range,
                     ColNames.horizontal_beam_width,
                     ColNames.vertical_beam_width,
                     ColNames.altitude,
@@ -296,20 +282,9 @@ class CellFootprintEstimation(Component):
 
         current_cell_grid_sdf = utils.apply_schema_casting(current_cell_grid_sdf, SilverCellFootprintDataObject.SCHEMA)
 
+        current_cell_grid_sdf = current_cell_grid_sdf.coalesce(self.partition_number)
+
         self.output_data_objects[SilverCellFootprintDataObject.ID].df = current_cell_grid_sdf
-
-        if self.do_do_cell_intersection_groups_calculation:
-
-            cell_intersection_groups_sdf = self.calculate_intersection_groups(current_cell_grid_sdf)
-            cell_intersection_groups_sdf = cell_intersection_groups_sdf.persist(StorageLevel.MEMORY_AND_DISK)
-            cell_intersection_groups_sdf.count()
-
-            cell_intersection_groups_sdf = self.calculate_all_intersection_combinations(cell_intersection_groups_sdf)
-
-            cell_intersection_groups_sdf = utils.apply_schema_casting(
-                cell_intersection_groups_sdf, SilverCellIntersectionGroupsDataObject.SCHEMA
-            )
-            self.output_data_objects[SilverCellIntersectionGroupsDataObject.ID].df = cell_intersection_groups_sdf
 
     def impute_default_cell_properties(self, sdf: DataFrame) -> DataFrame:
         """
@@ -1280,87 +1255,3 @@ class CellFootprintEstimation(Component):
         sdf = sdf.drop("row_number", "max_signal_dominance", "signal_dominance_diff_percentage")
 
         return sdf
-
-    @staticmethod
-    def calculate_intersection_groups(sdf: DataFrame) -> DataFrame:
-        """
-        Calculates the cell intersection groups based on cell footprints overlaps
-        over grid tiles.
-
-        Parameters:
-        sdf (DataFrame): A Spark DataFrame containing the signal dominance data.
-
-        Returns:
-        DataFrame: A DataFrame with the intersection groups.
-        """
-        intersections_sdf = (
-            sdf.groupBy(
-                F.col(ColNames.year),
-                F.col(ColNames.month),
-                F.col(ColNames.day),
-                F.col(ColNames.grid_id),
-            )
-            .agg(F.array_sort(F.collect_set(ColNames.cell_id)).alias(ColNames.cells))
-            .select(ColNames.cells, ColNames.year, ColNames.month, ColNames.day)
-        )
-
-        intersections_sdf = intersections_sdf.drop_duplicates(
-            [ColNames.year, ColNames.month, ColNames.day, ColNames.cells]
-        )
-        intersections_sdf = intersections_sdf.withColumn(ColNames.group_size, F.size(F.col(ColNames.cells)))
-        intersections_sdf = intersections_sdf.filter(F.col(ColNames.group_size) > 1)
-
-        return intersections_sdf
-
-    @staticmethod
-    def calculate_all_intersection_combinations(sdf: DataFrame) -> DataFrame:
-        """
-        Calculates all possible combinations of intersection groups.
-        It is necessary to extract all overlap combinations from every
-        intersection group. If there is an intersection group ABC intersection
-        groups AB, AC, BC also has to be present.
-
-        Parameters:
-        sdf (DataFrame): A Spark DataFrame containing the intersection groups data.
-
-        Returns:
-        DataFrame: A DataFrame with all possible combinations of intersection groups for each grid tile.
-        """
-        combinations_sdf = []
-        max_level = sdf.agg(F.max(ColNames.group_size).alias("max")).collect()[0]["max"]
-
-        for level in range(2, max_level + 1):
-            combinations_udf = CellFootprintEstimation.generate_combinations(level)
-
-            combinations_sdf_level = sdf.filter(F.col(ColNames.group_size) >= level).withColumn(
-                ColNames.cells, F.explode(combinations_udf(F.col(ColNames.cells)))
-            )
-
-            combinations_sdf_level = combinations_sdf_level.withColumn(
-                ColNames.cells, F.array_sort(F.col(ColNames.cells))
-            )
-            combinations_sdf_level = combinations_sdf_level.drop_duplicates(
-                [ColNames.year, ColNames.month, ColNames.day, ColNames.cells]
-            )
-
-            combinations_sdf_level = combinations_sdf_level.withColumn(ColNames.group_size, F.lit(level))
-
-            window = Window.partitionBy(ColNames.year, ColNames.month, ColNames.day, ColNames.group_size).orderBy(
-                F.col(ColNames.group_size)
-            )
-
-            combinations_sdf_level = combinations_sdf_level.withColumn(
-                ColNames.group_id,
-                F.concat(F.col(ColNames.group_size), F.lit("_"), F.row_number().over(window)),
-            )
-
-            combinations_sdf.append(combinations_sdf_level)
-
-        return reduce(DataFrame.unionAll, combinations_sdf)
-
-    @staticmethod
-    def generate_combinations(level):
-        def combinations_udf(arr):
-            return list(combinations(arr, level))
-
-        return F.udf(combinations_udf, ArrayType(ArrayType(StringType())))

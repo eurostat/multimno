@@ -5,7 +5,7 @@ Silver Usual Environment Labeling Quality Metrics data object module
 from pyspark.sql.types import (
     StructField,
     StructType,
-    IntegerType,
+    LongType,
     StringType,
     DateType,
 )
@@ -23,7 +23,7 @@ class SilverUsualEnvironmentLabelingQualityMetricsDataObject(ParquetDataObject):
     SCHEMA = StructType(
         [
             StructField(ColNames.labeling_quality_metric, StringType(), nullable=False),
-            StructField(ColNames.labeling_quality_count, IntegerType(), nullable=False),
+            StructField(ColNames.labeling_quality_count, LongType(), nullable=False),
             # partition columns
             StructField(ColNames.start_date, DateType(), nullable=False),
             StructField(ColNames.end_date, DateType(), nullable=False),

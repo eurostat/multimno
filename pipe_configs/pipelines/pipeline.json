@@ -23,10 +23,6 @@
             "component_config_path": "pipe_configs/configurations/device_activity_statistics/device_activity_statistics.ini"
         },
         {
-            "component_id": "SignalStrengthModeling",
-            "component_config_path": "pipe_configs/configurations/network/signal_strength_modeling.ini"
-        },
-        {
             "component_id": "CellFootprintEstimation",
             "component_config_path": "pipe_configs/configurations/network/cell_footprint_estimation.ini"
         },
@@ -35,16 +31,20 @@
             "component_config_path": "pipe_configs/configurations/network/cell_connection_probability_estimation.ini"
         },
         {
+            "component_id": "CellProximityEstimation",
+            "component_config_path": "pipe_configs/configurations/network/cell_proximity_estimation.ini"
+        },
+        {
             "component_id": "ContinuousTimeSegmentation",
             "component_config_path": "pipe_configs/configurations/daily_aggregations/continuous_time_segmentation.ini"
         },
         {
-            "component_id": "DailyPermanenceScore",
-            "component_config_path": "pipe_configs/configurations/daily_aggregations/daily_permanence_score.ini"
-        },
-        {
             "component_id": "PresentPopulationEstimation",
             "component_config_path": "pipe_configs/configurations/daily_aggregations/present_population_estimation.ini"
+        },
+        {
+            "component_id": "DailyPermanenceScore",
+            "component_config_path": "pipe_configs/configurations/daily_aggregations/daily_permanence_score.ini"
         },
         {
             "component_id": "MidtermPermanenceScore",
@@ -61,6 +61,26 @@
         {
             "component_id": "UsualEnvironmentAggregation",
             "component_config_path": "pipe_configs/configurations/longterm_analysis/usual_environment_aggregation.ini"
+        },
+        {
+            "component_id": "GeozonesGridMapping",
+            "component_config_path": "pipe_configs/configurations/grid/geozones_grid_mapping.ini"
+        },
+        {
+            "component_id": "SpatialAggregation",
+            "component_config_path": "pipe_configs/configurations/indicators_aggregations/spatial_aggregation.ini"
+        },
+        {
+            "component_id": "Estimation",
+            "component_config_path": "pipe_configs/configurations/estimation/estimation.ini"
+        },
+        {
+            "component_id": "KAnonimity",
+            "component_config_path": "pipe_configs/configurations/kanonimity/kanonimity.ini"
+        },
+        {
+            "component_id": "MultiMNOAggregation",
+            "component_config_path": "pipe_configs/configurations/multimno_aggregation/multimno_aggregation.ini"
         }
     ]
 }

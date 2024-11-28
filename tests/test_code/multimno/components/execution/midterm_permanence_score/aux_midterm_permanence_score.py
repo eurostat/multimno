@@ -1,6 +1,7 @@
 import pytest
 from configparser import ConfigParser
 import datetime
+from multimno.core.data_objects.silver.silver_cell_footprint_data_object import SilverCellFootprintDataObject
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
     Row,
@@ -12,6 +13,7 @@ from pyspark.sql.types import (
     ShortType,
     ByteType,
     DateType,
+    BinaryType,
 )
 import pyspark.sql.functions as F
 
@@ -28,323 +30,95 @@ from multimno.core.data_objects.silver.silver_midterm_permanence_score_data_obje
 )
 
 from tests.test_code.fixtures import spark_session as spark
+from tests.test_code.multimno.components.execution.daily_permanence_score.aux_dps_testing import (
+    DPS_AUX_SCHEMA,
+    get_cellfootprint_testing_df,
+)
+from tests.test_code.test_utils import get_user_id_hashed
 
 fixtures = [spark]
 
-
-@pytest.fixture
-def expected_midterm_ps(spark):
-
-    expected_data_list = [
-        Row(
-            user_id=bytearray(
-                b"k\x86\xb2s\xff4\xfc\xe1\x9dk\x80N\xffZ?WG\xad\xa4\xea\xa2/\x1dI\xc0\x1eR\xdd\xb7\x87[K"
-            ),
-            grid_id="100mN4056000E5275300",
-            mps=1,
-            frequency=1,
-            regularity_mean=22.0,
-            regularity_std=31.11269760131836,
-            year=2023,
-            month=1,
-            day_type="all",
-            time_interval="evening_time",
-            id_type="grid",
-            user_id_modulo=1,
-        ),
-        Row(
-            user_id=bytearray(
-                b"k\x86\xb2s\xff4\xfc\xe1\x9dk\x80N\xffZ?WG\xad\xa4\xea\xa2/\x1dI\xc0\x1eR\xdd\xb7\x87[K"
-            ),
-            grid_id="100mN4056000E5275300",
-            mps=1,
-            frequency=1,
-            regularity_mean=22.0,
-            regularity_std=31.11269760131836,
-            year=2023,
-            month=1,
-            day_type="all",
-            time_interval="night_time",
-            id_type="grid",
-            user_id_modulo=1,
-        ),
-        Row(
-            user_id=bytearray(
-                b"k\x86\xb2s\xff4\xfc\xe1\x9dk\x80N\xffZ?WG\xad\xa4\xea\xa2/\x1dI\xc0\x1eR\xdd\xb7\x87[K"
-            ),
-            grid_id="100mN4056000E5275300",
-            mps=1,
-            frequency=1,
-            regularity_mean=22.0,
-            regularity_std=31.11269760131836,
-            year=2023,
-            month=1,
-            day_type="workdays",
-            time_interval="night_time",
-            id_type="grid",
-            user_id_modulo=1,
-        ),
-        Row(
-            user_id=bytearray(
-                b"k\x86\xb2s\xff4\xfc\xe1\x9dk\x80N\xffZ?WG\xad\xa4\xea\xa2/\x1dI\xc0\x1eR\xdd\xb7\x87[K"
-            ),
-            grid_id="100mN4056000E5275300",
-            mps=2,
-            frequency=1,
-            regularity_mean=22.0,
-            regularity_std=31.11269760131836,
-            year=2023,
-            month=1,
-            day_type="all",
-            time_interval="working_hours",
-            id_type="grid",
-            user_id_modulo=1,
-        ),
-        Row(
-            user_id=bytearray(
-                b"k\x86\xb2s\xff4\xfc\xe1\x9dk\x80N\xffZ?WG\xad\xa4\xea\xa2/\x1dI\xc0\x1eR\xdd\xb7\x87[K"
-            ),
-            grid_id="100mN4056000E5275300",
-            mps=2,
-            frequency=1,
-            regularity_mean=22.0,
-            regularity_std=31.11269760131836,
-            year=2023,
-            month=1,
-            day_type="weekends",
-            time_interval="all",
-            id_type="grid",
-            user_id_modulo=1,
-        ),
-        Row(
-            user_id=bytearray(
-                b"k\x86\xb2s\xff4\xfc\xe1\x9dk\x80N\xffZ?WG\xad\xa4\xea\xa2/\x1dI\xc0\x1eR\xdd\xb7\x87[K"
-            ),
-            grid_id="100mN4056000E5275300",
-            mps=3,
-            frequency=2,
-            regularity_mean=14.666666984558105,
-            regularity_std=17.785762786865234,
-            year=2023,
-            month=1,
-            day_type="all",
-            time_interval="all",
-            id_type="grid",
-            user_id_modulo=1,
-        ),
-        Row(
-            user_id=bytearray(
-                b"k\x86\xb2s\xff4\xfc\xe1\x9dk\x80N\xffZ?WG\xad\xa4\xea\xa2/\x1dI\xc0\x1eR\xdd\xb7\x87[K"
-            ),
-            grid_id="device_observation",
-            mps=1,
-            frequency=1,
-            regularity_mean=None,
-            regularity_std=None,
-            year=2023,
-            month=1,
-            day_type="all",
-            time_interval="evening_time",
-            id_type="device_observation",
-            user_id_modulo=1,
-        ),
-        Row(
-            user_id=bytearray(
-                b"k\x86\xb2s\xff4\xfc\xe1\x9dk\x80N\xffZ?WG\xad\xa4\xea\xa2/\x1dI\xc0\x1eR\xdd\xb7\x87[K"
-            ),
-            grid_id="device_observation",
-            mps=1,
-            frequency=1,
-            regularity_mean=None,
-            regularity_std=None,
-            year=2023,
-            month=1,
-            day_type="all",
-            time_interval="night_time",
-            id_type="device_observation",
-            user_id_modulo=1,
-        ),
-        Row(
-            user_id=bytearray(
-                b"k\x86\xb2s\xff4\xfc\xe1\x9dk\x80N\xffZ?WG\xad\xa4\xea\xa2/\x1dI\xc0\x1eR\xdd\xb7\x87[K"
-            ),
-            grid_id="device_observation",
-            mps=1,
-            frequency=1,
-            regularity_mean=None,
-            regularity_std=None,
-            year=2023,
-            month=1,
-            day_type="workdays",
-            time_interval="night_time",
-            id_type="device_observation",
-            user_id_modulo=1,
-        ),
-        Row(
-            user_id=bytearray(
-                b"k\x86\xb2s\xff4\xfc\xe1\x9dk\x80N\xffZ?WG\xad\xa4\xea\xa2/\x1dI\xc0\x1eR\xdd\xb7\x87[K"
-            ),
-            grid_id="device_observation",
-            mps=2,
-            frequency=1,
-            regularity_mean=None,
-            regularity_std=None,
-            year=2023,
-            month=1,
-            day_type="all",
-            time_interval="working_hours",
-            id_type="device_observation",
-            user_id_modulo=1,
-        ),
-        Row(
-            user_id=bytearray(
-                b"k\x86\xb2s\xff4\xfc\xe1\x9dk\x80N\xffZ?WG\xad\xa4\xea\xa2/\x1dI\xc0\x1eR\xdd\xb7\x87[K"
-            ),
-            grid_id="device_observation",
-            mps=2,
-            frequency=1,
-            regularity_mean=None,
-            regularity_std=None,
-            year=2023,
-            month=1,
-            day_type="weekends",
-            time_interval="all",
-            id_type="device_observation",
-            user_id_modulo=1,
-        ),
-        Row(
-            user_id=bytearray(
-                b"k\x86\xb2s\xff4\xfc\xe1\x9dk\x80N\xffZ?WG\xad\xa4\xea\xa2/\x1dI\xc0\x1eR\xdd\xb7\x87[K"
-            ),
-            grid_id="device_observation",
-            mps=3,
-            frequency=2,
-            regularity_mean=None,
-            regularity_std=None,
-            year=2023,
-            month=1,
-            day_type="all",
-            time_interval="all",
-            id_type="device_observation",
-            user_id_modulo=1,
-        ),
-    ]
-    expected_data_df = spark.createDataFrame(expected_data_list, schema=SilverMidtermPermanenceScoreDataObject.SCHEMA)
-
-    return expected_data_df
+# --------- Data Objects ---------
 
 
-def set_input_data(spark: SparkSession, config: ConfigParser):
-    """"""
-    dps_test_data_path = config["Paths.Silver"]["daily_permanence_score_data_silver"]
-    holiday_data_path = config["Paths.Bronze"]["holiday_calendar_data_bronze"]
-
-    dps_data_list = [
-        [
-            1,
-            "100mN4056000E5275300",
-            datetime.datetime(2023, 1, 1, 8, 0, 0),
-            datetime.datetime(2023, 1, 1, 9, 0, 0),
-            0,
-            2023,
-            1,
-            1,
-            1,
-            "grid",
-        ],
-        [
-            1,
-            "100mN4056000E5275300",
-            datetime.datetime(2023, 1, 1, 9, 0, 0),
-            datetime.datetime(2023, 1, 1, 10, 0, 0),
-            1,
-            2023,
-            1,
-            1,
-            1,
-            "grid",
-        ],
-        [
-            1,
-            "100mN4056000E5275300",
-            datetime.datetime(2023, 1, 1, 10, 0, 0),
-            datetime.datetime(2023, 1, 1, 11, 0, 0),
-            1,
-            2023,
-            1,
-            1,
-            1,
-            "grid",
-        ],
-        [
-            1,
-            "100mN4056000E5275300",
-            datetime.datetime(2023, 1, 3, 17, 0, 0),
-            datetime.datetime(2023, 1, 3, 18, 0, 0),
-            0,
-            2023,
-            1,
-            3,
-            1,
-            "grid",
-        ],  # next day
-        [
-            1,
-            "100mN4056000E5275300",
-            datetime.datetime(2023, 1, 3, 18, 0, 0),
-            datetime.datetime(2023, 1, 3, 19, 0, 0),
-            1,
-            2023,
-            1,
-            3,
-            1,
-            "grid",
-        ],  # next day
+# --- Input Data ---
+def get_dps_testing_df(spark: SparkSession):
+    # stay duration in seconds
+    # 2023, 1, 2 = monday
+    dps_data = [
+        {
+            ColNames.user_id: get_user_id_hashed("1"),
+            ColNames.cell_id: "106927944066972",
+            ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 2, 8, 0, 0),
+            ColNames.time_slot_end_time: datetime.datetime(2023, 1, 2, 9, 0, 0),
+            ColNames.stay_duration: 30.0 * 60,
+            ColNames.year: 2023,
+            ColNames.month: 1,
+            ColNames.day: 2,
+            ColNames.user_id_modulo: 1,
+            ColNames.id_type: "cell",
+        },
+        {
+            ColNames.user_id: get_user_id_hashed("1"),
+            ColNames.cell_id: "106927944066972",
+            ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 2, 9, 0, 0),
+            ColNames.time_slot_end_time: datetime.datetime(2023, 1, 2, 10, 0, 0),
+            ColNames.stay_duration: 15.0 * 60,
+            ColNames.year: 2023,
+            ColNames.month: 1,
+            ColNames.day: 2,
+            ColNames.user_id_modulo: 1,
+            ColNames.id_type: "cell",
+        },
+        {
+            ColNames.user_id: get_user_id_hashed("1"),
+            ColNames.cell_id: "106927944066972",
+            ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 2, 9, 0, 0),
+            ColNames.time_slot_end_time: datetime.datetime(2023, 1, 2, 10, 0, 0),
+            ColNames.stay_duration: 20.0 * 60,
+            ColNames.year: 2023,
+            ColNames.month: 1,
+            ColNames.day: 2,
+            ColNames.user_id_modulo: 1,
+            ColNames.id_type: "cell",
+        },
+        {
+            ColNames.user_id: get_user_id_hashed("1"),
+            ColNames.cell_id: "106927944066972",
+            ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 3, 17, 0, 0),
+            ColNames.time_slot_end_time: datetime.datetime(2023, 1, 3, 18, 0, 0),
+            ColNames.stay_duration: 45.0 * 60,
+            ColNames.year: 2023,
+            ColNames.month: 1,
+            ColNames.day: 3,
+            ColNames.user_id_modulo: 1,
+            ColNames.id_type: "cell",
+        },  # next day
+        {
+            ColNames.user_id: get_user_id_hashed("1"),
+            ColNames.cell_id: "106927944066972",
+            ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 3, 18, 0, 0),
+            ColNames.time_slot_end_time: datetime.datetime(2023, 1, 3, 19, 0, 0),
+            ColNames.stay_duration: 10.0 * 60,
+            ColNames.year: 2023,
+            ColNames.month: 1,
+            ColNames.day: 3,
+            ColNames.user_id_modulo: 1,
+            ColNames.id_type: "cell",
+        },  # next day
     ]
 
-    daily_ps_df = [
-        Row(
-            **{
-                ColNames.user_id: dpsdata[0],
-                ColNames.grid_id: dpsdata[1],
-                ColNames.time_slot_initial_time: dpsdata[2],
-                ColNames.time_slot_end_time: dpsdata[3],
-                ColNames.dps: dpsdata[4],
-                ColNames.year: dpsdata[5],
-                ColNames.month: dpsdata[6],
-                ColNames.day: dpsdata[7],
-                ColNames.user_id_modulo: dpsdata[8],
-                ColNames.id_type: dpsdata[9],
-            }
-        )
-        for dpsdata in dps_data_list
-    ]
+    # Create df
+    dps_df = spark.createDataFrame([Row(**row) for row in dps_data], schema=SilverDailyPermanenceScoreDataObject.SCHEMA)
 
-    TEMP_SCHEMA = StructType(
-        [
-            StructField(ColNames.user_id, IntegerType(), nullable=False),
-            StructField(ColNames.grid_id, StringType(), nullable=False),
-            StructField(ColNames.time_slot_initial_time, TimestampType(), nullable=False),
-            StructField(ColNames.time_slot_end_time, TimestampType(), nullable=False),
-            StructField(ColNames.dps, ByteType(), nullable=False),
-            StructField(ColNames.year, ShortType(), nullable=False),
-            StructField(ColNames.month, ByteType(), nullable=False),
-            StructField(ColNames.day, ByteType(), nullable=False),
-            StructField(ColNames.user_id_modulo, IntegerType(), nullable=False),
-            StructField(ColNames.id_type, StringType(), nullable=False),
-        ]
-    )
+    dps_do = SilverDailyPermanenceScoreDataObject(spark, None)
+    dps_do.df = dps_df
+    dps_do.cast_to_schema()
 
-    dps_df = spark.createDataFrame(daily_ps_df, schema=TEMP_SCHEMA)
+    return dps_do.df
 
-    dps_df = (
-        dps_df.withColumn("hashed", F.sha2(F.col(ColNames.user_id).cast(StringType()), 256))
-        .withColumn(ColNames.user_id, F.unhex(F.col("hashed")))
-        .drop("hashed")
-    )
 
-    # ---------------- Holiday calendar data object -----------------
-
+def get_holiday_testing_df(spark):
     holiday_data_list = ["IT", datetime.date(2023, 12, 24), "Christmas"]
 
     HOLIDAY_SCHEMA = StructType(
@@ -357,14 +131,72 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
 
     holiday_df = spark.createDataFrame([holiday_data_list], schema=HOLIDAY_SCHEMA)
 
+    return holiday_df
+
+
+# --- Expected ---
+
+
+def get_expected_midterm_df(spark):
+    expected_midterm_ps_data = [
+        {
+            ColNames.user_id: get_user_id_hashed("1"),
+            ColNames.grid_id: "100mN100E100",
+            ColNames.mps: 2,
+            ColNames.frequency: 2,
+            ColNames.regularity_mean: 14.666667,
+            ColNames.regularity_std: 17.953644,
+            ColNames.year: 2023,
+            ColNames.month: 1,
+            ColNames.day_type: "all",
+            ColNames.time_interval: "all",
+            ColNames.id_type: "grid",
+            ColNames.user_id_modulo: 1,
+        }
+    ]
+    # TODO: more accurate comparison
+    return spark.createDataFrame(
+        [Row(**row) for row in expected_midterm_ps_data], schema=SilverMidtermPermanenceScoreDataObject.SCHEMA
+    )
+
+
+# --- Input Data Writing ---
+
+
+def set_input_data(spark: SparkSession, config: ConfigParser):
+    """"""
+    dps_test_data_path = config["Paths.Silver"]["daily_permanence_score_data_silver"]
+    holiday_data_path = config["Paths.Bronze"]["holiday_calendar_data_bronze"]
+    cell_footprint_path = config["Paths.Silver"]["cell_footprint_data_silver"]
+
+    # ---------------- Daily permanence score data object -----------------
+    dps_df = get_dps_testing_df(spark)
+
+    # ---------------- Holiday calendar data object -----------------
+    holiday_df = get_holiday_testing_df(spark)
+    # ---------------- Cell Footprint -----------------
+    cell_footprint_df = get_cellfootprint_testing_df(spark)
+
     # ---------------- Writing -----------------
 
     # Write input data in test resources dir
+    # DPS
+    dps_do = SilverDailyPermanenceScoreDataObject(spark, dps_test_data_path)
+    dps_do.df = dps_df
+    dps_do.write()
 
-    dps_data = SilverDailyPermanenceScoreDataObject(spark, dps_test_data_path)
-    dps_data.df = dps_df
-    dps_data.write(partition_columns=[ColNames.year, ColNames.month, ColNames.day])
+    # Holiday
+    holiday_do = BronzeHolidayCalendarDataObject(spark, holiday_data_path)
+    holiday_do.df = holiday_df
+    holiday_do.write()
 
-    holiday_data = BronzeHolidayCalendarDataObject(spark, holiday_data_path)
-    holiday_data.df = holiday_df
-    holiday_data.write()
+    # Cell Footprint
+    cell_footprint_do = SilverCellFootprintDataObject(spark, cell_footprint_path)
+    cell_footprint_do.df = cell_footprint_df
+    cell_footprint_do.write()
+
+
+# --------- Expected Fixture ---------
+@pytest.fixture
+def expected_midterm_ps(spark):
+    return get_expected_midterm_df(spark)

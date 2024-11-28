@@ -57,6 +57,7 @@ class CellConnectionProbabilityEstimation(Component):
 
         self.current_date = None
         self.current_cell_footprint = None
+        self.partition_number = self.config.getint(self.COMPONENT_ID, "partition_number")
 
     def initalize_data_objects(self):
 
@@ -159,5 +160,6 @@ class CellConnectionProbabilityEstimation(Component):
         cell_conn_probs_df = utils.apply_schema_casting(
             cell_conn_probs_df, SilverCellConnectionProbabilitiesDataObject.SCHEMA
         )
+        cell_conn_probs_df = cell_conn_probs_df.coalesce(self.partition_number)
 
         self.output_data_objects[SilverCellConnectionProbabilitiesDataObject.ID].df = cell_conn_probs_df

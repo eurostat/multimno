@@ -4,6 +4,7 @@ Module that computes semantic checks on event data and adds error flags
 
 import datetime
 
+from pyspark import StorageLevel
 from pyspark.sql import Window, DataFrame, Row
 from pyspark.sql.types import LongType, ShortType, ByteType, StructField, StructType
 import pyspark.sql.functions as F
@@ -160,9 +161,9 @@ class SemanticCleaning(Component):
         # Keep only the necessary columns and remove auxiliar ones
         df = df.select(SilverEventFlaggedDataObject.SCHEMA.names)
 
-        df = df.repartition(ColNames.year, ColNames.month, ColNames.day, ColNames.user_id_modulo)
+        df = df.repartition(*SilverEventFlaggedDataObject.PARTITION_COLUMNS)
 
-        # df.cache()
+        df.persist(StorageLevel.MEMORY_AND_DISK)
 
         # Semantic metrics
         metrics_df = self._compute_semantic_metrics(df)
@@ -490,6 +491,7 @@ class SemanticCleaning(Component):
             self.logger.info(f"Processing data for {date}")
             self.transform()
             self.write()
+            self.spark.catalog.clearCache()
             self.logger.info(f"Finished {date}")
 
         self.logger.info(f"Finished {self.COMPONENT_ID}")

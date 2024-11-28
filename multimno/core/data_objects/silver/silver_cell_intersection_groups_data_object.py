@@ -9,14 +9,17 @@ from multimno.core.constants.columns import ColNames
 
 
 class SilverCellIntersectionGroupsDataObject(ParquetDataObject):
-    """ """
+    """
+    Data Object for cell intersection groups.
+    Identifies for each (cell, date) the list of other cells
+    that are considered as intersecting (having sufficiently overlapping coverage area).
+    """
 
     ID = "SilverCellIntersectionGroupsDO"
     SCHEMA = StructType(
         [
-            StructField(ColNames.group_id, StringType(), nullable=True),
-            StructField(ColNames.cells, ArrayType(StringType()), nullable=True),
-            StructField(ColNames.group_size, IntegerType(), nullable=True),
+            StructField(ColNames.cell_id, StringType(), nullable=True),
+            StructField(ColNames.overlapping_cell_ids, ArrayType(StringType()), nullable=True),
             # partition columns
             StructField(ColNames.year, ShortType(), nullable=True),
             StructField(ColNames.month, ByteType(), nullable=True),
@@ -25,9 +28,8 @@ class SilverCellIntersectionGroupsDataObject(ParquetDataObject):
     )
 
     MANDATORY_COLUMNS = [
-        ColNames.group_id,
-        ColNames.cells,
-        ColNames.group_size,
+        ColNames.cell_id,
+        ColNames.overlapping_cell_ids,
         ColNames.year,
         ColNames.month,
         ColNames.day,

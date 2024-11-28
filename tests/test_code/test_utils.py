@@ -1,3 +1,5 @@
+import binascii
+import hashlib
 import os
 import shutil
 
@@ -66,3 +68,7 @@ def setup_test_data_dir():
 
 def teardown_test_data_dir():
     shutil.rmtree(TESTING_DATA_PATH, ignore_errors=True)
+
+
+def get_user_id_hashed(user_id_str: str):
+    return binascii.unhexlify(hashlib.sha256(user_id_str.encode()).hexdigest())

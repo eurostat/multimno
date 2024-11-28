@@ -47,7 +47,7 @@ def create_logger(general_config_path: str):
     logger.setLevel(logging.DEBUG)  # Set the logging level
 
     # Get log path
-    today = datetime.now().strftime("%y%m%d")
+    today = datetime.now().strftime("%y%m%d_%H%M%S")
     log_path = f"{report_path}/multimno_{today}.log"
     # Make report path + log dir
     os.makedirs(os.path.dirname(log_path), exist_ok=True)

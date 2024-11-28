@@ -209,7 +209,7 @@ class LongtermPermanenceScore(Component):
                             & (F.col(ColNames.time_interval) == F.lit(time_interval))
                         )
 
-                        data_exists = midterm_df.where(partition_filter).count() > 0
+                        data_exists = midterm_df.where(partition_filter).limit(1).count() > 0
                         if not data_exists:
                             raise FileNotFoundError(
                                 "No Mid-term Permanence Score data has been found for month "
@@ -354,6 +354,8 @@ class LongtermPermanenceScore(Component):
                 ColNames.time_interval: F.lit(self.current_lt_analysis["time_interval"]),
             }
         )
+
+        longterm_df = longterm_df.repartition(*SilverLongtermPermanenceScoreDataObject.PARTITION_COLUMNS)
 
         self.output_data_objects[SilverLongtermPermanenceScoreDataObject.ID].df = longterm_df
 

@@ -68,6 +68,7 @@ class PresentPopulationEstimation(Component):
 
         self.event_error_flags_to_include = self.config.geteval(self.COMPONENT_ID, "event_error_flags_to_include")
         self.time_point = None
+        self.partition_number = self.config.getint(self.COMPONENT_ID, "partition_number")
 
     def initalize_data_objects(self):
         input_silver_event_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "event_data_silver_flagged")
@@ -148,6 +149,8 @@ class PresentPopulationEstimation(Component):
         )
         # Set results data object
         population_per_grid_df = apply_schema_casting(population_per_grid_df, SilverPresentPopulationDataObject.SCHEMA)
+        population_per_grid_df = population_per_grid_df.coalesce(self.partition_number)
+
         self.output_data_objects[SilverPresentPopulationDataObject.ID].df = population_per_grid_df
 
     def get_cell_connection_probabilities(self, time_point: datetime) -> DataFrame:

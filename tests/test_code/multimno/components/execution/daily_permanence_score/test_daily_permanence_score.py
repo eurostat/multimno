@@ -1,4 +1,6 @@
+from multimno.core.constants.columns import ColNames
 from pyspark.testing.utils import assertDataFrameEqual
+from pyspark.sql import functions as F
 
 from multimno.core.configuration import parse_configuration
 from multimno.components.execution.daily_permanence_score.daily_permanence_score import DailyPermanenceScore
@@ -76,8 +78,5 @@ def test_daily_permanence_score(spark, expected_data):
     output_data_object = dps_component.output_data_objects[SilverDailyPermanenceScoreDataObject.ID]
     output_data_object.read()
 
-    # print(output_data_object.df.show(50))
-    # print(expected_data.show(50))
-
-    # assert read data == expected
-    assertDataFrameEqual(output_data_object.df, expected_data)
+    # assert read data == expected (Expected data only defined for known dps)
+    assertDataFrameEqual(output_data_object.df.filter(F.col(ColNames.id_type) == "cell"), expected_data)

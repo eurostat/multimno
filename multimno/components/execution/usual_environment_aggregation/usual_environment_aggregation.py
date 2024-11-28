@@ -164,6 +164,10 @@ class UsualEnvironmentAggregation(Component):
             aggregated_results_sdf, SilverAggregatedUsualEnvironmentsDataObject.SCHEMA
         )
 
+        aggregated_results_sdf = aggregated_results_sdf.repartition(
+            *SilverAggregatedUsualEnvironmentsDataObject.PARTITION_COLUMNS
+        )
+
         self.output_data_objects[SilverAggregatedUsualEnvironmentsDataObject.ID].df = aggregated_results_sdf
 
     def assign_tile_weights(self, grid_sdf: DataFrame, uniform_tile_weights: bool) -> DataFrame:

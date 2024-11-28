@@ -305,17 +305,15 @@ def data_test_0001() -> dict:
     # Case: single cell in one group. Cell id and day matches event data.
     cell_intersection_groups_data = [
         Row(
-            group_id=None,
-            cells=[cell_id_b1, cell_id_b2],
-            group_size=2,
+            cell_id=None,
+            overlapping_cell_ids=[cell_id_b1, cell_id_b2],
             year=year,
             month=month,
             day=day,
         ),
         Row(
-            group_id=None,
-            cells=[cell_id_b1, cell_id_b2],
-            group_size=2,
+            cell_id=None,
+            overlapping_cell_ids=[cell_id_b1, cell_id_b2],
             year=year,
             month=month,
             day=4,

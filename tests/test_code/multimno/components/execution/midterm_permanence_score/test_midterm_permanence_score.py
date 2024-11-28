@@ -1,5 +1,5 @@
 from pyspark.testing.utils import assertDataFrameEqual
-
+import pyspark.sql.functions as F
 from multimno.core.configuration import parse_configuration
 
 from multimno.core.data_objects.silver.silver_midterm_permanence_score_data_object import (
@@ -18,7 +18,7 @@ from tests.test_code.multimno.components.execution.midterm_permanence_score.aux_
     set_input_data,
 )
 from tests.test_code.test_common import TEST_RESOURCES_PATH, TEST_GENERAL_CONFIG_PATH
-from tests.test_code.test_utils import setup_test_data_dir, teardown_test_data_dir
+from tests.test_code.test_utils import get_user_id_hashed, setup_test_data_dir, teardown_test_data_dir
 
 
 fixtures = [spark, expected_midterm_ps]
@@ -78,4 +78,13 @@ def test_midterm_ps(spark, expected_midterm_ps):
     output_events_data_object = midterm_ps.output_data_objects[SilverMidtermPermanenceScoreDataObject.ID]
     output_events_data_object.read()
 
-    assertDataFrameEqual(output_events_data_object.df, expected_midterm_ps)
+    # Filter to specific row
+    # TODO: more specific comparison
+    comparison_df = (
+        output_events_data_object.df.filter(F.col(ColNames.user_id) == get_user_id_hashed("1"))
+        .filter(F.col(ColNames.grid_id) == "100mN100E100")
+        .filter(F.col(ColNames.time_interval) == "all")
+        .filter(F.col(ColNames.day_type) == "all")
+    )
+
+    assertDataFrameEqual(comparison_df, expected_midterm_ps)

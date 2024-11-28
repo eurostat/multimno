@@ -3,8 +3,8 @@
     "spark_submit_args": [],
     "pipeline": [
         {
-            "component_id": "UsualEnvironmentAggregation",
-            "component_config_path": "pipe_configs/configurations/longterm_analysis/usual_environment_aggregation.ini"
+            "component_id": "CellFootprintEstimation",
+            "component_config_path": "pipe_configs/configurations/network/cell_footprint_estimation.ini"
         }
     ]
 }

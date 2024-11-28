@@ -1,0 +1,10 @@
+{
+    "general_config_path": "sample_data/pipe_configs/dps_refactor/configuration/general_config.ini",
+    "spark_submit_args": [],
+    "pipeline": [
+        {
+            "component_id": "DataFiltering",
+            "component_config_path": "pipe_configs/configurations/ingestion/data_filtering.ini"
+        }
+    ]
+}

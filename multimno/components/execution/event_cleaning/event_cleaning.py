@@ -5,6 +5,7 @@ Module that cleans RAW MNO Event data.
 from typing import List, Dict
 import datetime
 from functools import reduce
+from pyspark import StorageLevel
 from pyspark.sql import DataFrame, Window
 import pyspark.sql.functions as F
 from multimno.core.component import Component
@@ -80,7 +81,7 @@ class EventCleaning(Component):
         # Input
         self.bronze_event_path = self.config.get(CONFIG_BRONZE_PATHS_KEY, "event_data_bronze")
 
-        self.clear_destination_directory = self.config.get(self.COMPONENT_ID, "clear_destination_directory")
+        self.clear_destination_directory = self.config.getboolean(self.COMPONENT_ID, "clear_destination_directory")
         self.number_of_partitions = self.config.get(self.COMPONENT_ID, "number_of_partitions")
 
         self.data_period_start = datetime.datetime.strptime(
@@ -121,7 +122,7 @@ class EventCleaning(Component):
             path = self.config.get(CONFIG_SILVER_PATHS_KEY, key)
             if self.clear_destination_directory:
                 delete_file_or_folder(self.spark, path)
-                self.output_data_objects[value.ID] = value(self.spark, path)
+            self.output_data_objects[value.ID] = value(self.spark, path)
 
     def read(self):
         self.current_input_do.read()
@@ -205,6 +206,8 @@ class EventCleaning(Component):
         # add no error flag columns
         df_events = self.add_no_error_flag_columns(df_events)
 
+        df_events.persist(StorageLevel.MEMORY_AND_DISK)
+
         # get metrics by flag column
         output_qa_by_column = self.get_metrics_by_flag_column(df_events)
 
@@ -249,6 +252,7 @@ class EventCleaning(Component):
         )
 
         df_events = utils.apply_schema_casting(df_events, SilverEventDataObject.SCHEMA)
+        df_events = df_events.repartition(*SilverEventDataObject.PARTITION_COLUMNS)
 
         self.output_data_objects[SilverEventDataObject.ID].df = df_events
 

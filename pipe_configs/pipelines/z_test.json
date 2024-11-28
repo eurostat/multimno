@@ -1,0 +1,26 @@
+{
+    "general_config_path": "pipe_configs/configurations/general_config.ini",
+    "spark_submit_args": [],
+    "pipeline": [
+        {
+            "component_id": "DailyPermanenceScore",
+            "component_config_path": "pipe_configs/configurations/daily_aggregations/daily_permanence_score.ini"
+        },
+        {
+            "component_id": "MidtermPermanenceScore",
+            "component_config_path": "pipe_configs/configurations/midterm_analysis/midterm_permanence_score.ini"
+        },
+        {
+            "component_id": "LongtermPermanenceScore",
+            "component_config_path": "pipe_configs/configurations/longterm_analysis/longterm_permanence_score.ini"
+        },
+        {
+            "component_id": "UsualEnvironmentLabeling",
+            "component_config_path": "pipe_configs/configurations/longterm_analysis/usual_environment_labeling.ini"
+        },
+        {
+            "component_id": "UsualEnvironmentAggregation",
+            "component_config_path": "pipe_configs/configurations/longterm_analysis/usual_environment_aggregation.ini"
+        }
+    ]
+}

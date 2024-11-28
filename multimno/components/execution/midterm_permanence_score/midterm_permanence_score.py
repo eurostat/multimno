@@ -19,6 +19,7 @@ from multimno.core.data_objects.silver.silver_daily_permanence_score_data_object
 from multimno.core.data_objects.silver.silver_midterm_permanence_score_data_object import (
     SilverMidtermPermanenceScoreDataObject,
 )
+from multimno.core.data_objects.silver.silver_cell_footprint_data_object import SilverCellFootprintDataObject
 from multimno.core.settings import CONFIG_BRONZE_PATHS_KEY, CONFIG_SILVER_PATHS_KEY
 from multimno.core.constants.columns import ColNames
 from multimno.core.constants.period_names import TIME_INTERVALS, DAY_TYPES
@@ -143,7 +144,6 @@ class MidtermPermanenceScore(Component):
 
         # list of dictionaries with each mid-term to be analysed
         self.midterm_periods = self._get_midterm_periods()
-
         # Hour used to define the start of a day, e.g. 4 means that a Monday starts at 4AM Monday and ends at
         # 4AM Tuesday
         self.day_start_hour = self.config.getint(self.COMPONENT_ID, "day_start_hour")
@@ -237,6 +237,9 @@ class MidtermPermanenceScore(Component):
                     raise ValueError(f"Unknown time interval `{val}` in period_combinations under `{key}`")
                 self.period_combinations[key.lower()].append(val)
 
+        # Score interval, for DPS calculation, currently set = 2
+        self.score_interval = 2
+
         # Country of study, used to load its holidays
         self.country_of_study = self.config.get(self.COMPONENT_ID, "country_of_study")
 
@@ -245,6 +248,7 @@ class MidtermPermanenceScore(Component):
         self.time_interval = None
         self.current_mt_period = None
         self.current_dps_data = None
+        self.footprint = None
 
     def _get_midterm_periods(self) -> List[dict]:
         """Computes the date limits of each mid-term period, together with the limits of the regularity metrics' extra
@@ -331,15 +335,18 @@ class MidtermPermanenceScore(Component):
     def initalize_data_objects(self):
         input_silver_daily_ps_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "daily_permanence_score_data_silver")
         input_bronze_holiday_calendar_path = self.config.get(CONFIG_BRONZE_PATHS_KEY, "holiday_calendar_data_bronze")
+        input_silver_cell_footprint = self.config.get(CONFIG_SILVER_PATHS_KEY, "cell_footprint_data_silver")
         output_silver_midterm_ps_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "midterm_permanence_score_data_silver")
 
         daily_ps = SilverDailyPermanenceScoreDataObject(self.spark, input_silver_daily_ps_path)
         holiday_calendar = BronzeHolidayCalendarDataObject(self.spark, input_bronze_holiday_calendar_path)
+        cell_footprint = SilverCellFootprintDataObject(self.spark, input_silver_cell_footprint)
         midterm_ps = SilverMidtermPermanenceScoreDataObject(self.spark, output_silver_midterm_ps_path)
 
         self.input_data_objects = {
             holiday_calendar.ID: holiday_calendar,
             daily_ps.ID: daily_ps,
+            cell_footprint.ID: cell_footprint,
         }
         self.output_data_objects = {midterm_ps.ID: midterm_ps}
 
@@ -359,8 +366,8 @@ class MidtermPermanenceScore(Component):
         """
         dps = self.input_data_objects[SilverDailyPermanenceScoreDataObject.ID].df
 
-        # First filter: take out DPS = 0
-        dps = dps.filter(F.col(ColNames.dps) > 0)
+        # First filter: take out stay_duration = 0  # TODO: filter out unknowns??
+        dps = dps.filter(F.col(ColNames.stay_duration) > 0)
 
         # Add a one-day buffer, as later on the definition of a day does not match the midnight definition
         dps = dps.filter(
@@ -605,6 +612,50 @@ class MidtermPermanenceScore(Component):
             )
         return df
 
+    def compute_daily_permanence_score(self, df: DataFrame) -> DataFrame:
+        """
+        Compute daily permanence score at grid tile level from stay durations at cell level and
+        cell footprint datasets.
+
+        Args:
+            df (DataFrame): dataset with stay durations at cell level.
+
+        Returns:
+            DataFrame: dps dataset at grid tile level.
+        """
+        """unknown = df.where(F.col(ColNames.id_type) == F.lit("unknown")).select(
+            ColNames.date,
+            ColNames.user_id_modulo,
+            ColNames.user_id,
+            F.lit("unknown").alias("grid_id"),
+            ColNames.time_slot_initial_time,
+            ColNames.stay_duration,
+            F.lit("unknown").alias(ColNames.id_type),
+        )"""
+
+        dps = (
+            df.join(self.footprint, on=[ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id], how="inner")
+            .groupby(
+                ColNames.date,
+                ColNames.user_id_modulo,
+                ColNames.user_id,
+                ColNames.grid_id,
+                ColNames.time_slot_initial_time,
+            )
+            .agg(F.sum(ColNames.stay_duration).cast(FloatType()).alias(ColNames.stay_duration))
+            .withColumn(ColNames.id_type, F.lit("grid"))
+            # .union(unknown)
+            .withColumn(
+                ColNames.dps,
+                F.lit(-1)
+                + F.ceil(F.lit(self.score_interval) * F.col(ColNames.stay_duration) / F.lit(3600)).cast(ByteType()),
+            )
+            .filter(F.col(ColNames.dps) > 0)
+            .drop(ColNames.stay_duration)
+        )
+
+        return dps
+
     def compute_midterm_metrics(self, df: DataFrame) -> DataFrame:
         """Compute the mid-term permanence score and metrics of the current mid-term period, submonthly (i.e. day type)
         and subdaily (i.e. time interval) combination.
@@ -698,6 +749,7 @@ class MidtermPermanenceScore(Component):
         return combined_df
 
     def transform(self):
+        # Load all needed dps
         if self.time_interval == "all":
             time_interval_start = dt.time(hour=self.day_start_hour)
             time_interval_end = dt.time(hour=self.day_start_hour)
@@ -709,10 +761,15 @@ class MidtermPermanenceScore(Component):
         filtered = self.filter_dps_by_time_interval(
             self.current_dps_data, self.time_interval, time_interval_start, time_interval_end
         )
+
         # Keep only time slots belonging to the day type
         filtered = self.filter_dps_by_day_type(filtered, self.day_type)
+
+        # Compute DPS
+        dps = self.compute_daily_permanence_score(filtered)
+
         # Compute metrics
-        mps = self.compute_midterm_metrics(filtered)
+        mps = self.compute_midterm_metrics(dps)
 
         mps = (
             mps.withColumn(ColNames.day_type, F.lit(self.day_type))
@@ -721,7 +778,9 @@ class MidtermPermanenceScore(Component):
             .withColumn(ColNames.month, F.lit(self.current_mt_period["month_start"].month).cast(ByteType()))
         )
 
-        self.output_data_objects["SilverMidtermPermanenceScoreDO"].df = mps
+        mps = mps.repartition(*SilverMidtermPermanenceScoreDataObject.PARTITION_COLUMNS)
+
+        self.output_data_objects[SilverMidtermPermanenceScoreDataObject.ID].df = mps
 
     @get_execution_stats
     def execute(self):
@@ -744,6 +803,17 @@ class MidtermPermanenceScore(Component):
             self.current_mt_period = mt_period
             self.current_dps_data = midterm_daily_data[i]
             self.logger.info(f"... working on month {mt_period['month_start']} to {mt_period['month_end']}")
+
+            self.footprint = self.input_data_objects[SilverCellFootprintDataObject.ID].df
+            self.footprint = self.footprint.select(
+                ColNames.cell_id, ColNames.grid_id, ColNames.year, ColNames.month, ColNames.day
+            ).filter(
+                F.make_date(ColNames.year, ColNames.month, ColNames.day).between(
+                    self.current_mt_period["extended_month_start"] - dt.timedelta(days=1),
+                    self.current_mt_period["extended_month_end"] + dt.timedelta(days=1),
+                )
+            )
+
             for day_type, time_intervals in self.period_combinations.items():
                 for time_interval in time_intervals:
                     self.day_type = day_type

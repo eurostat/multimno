@@ -81,6 +81,8 @@ class DataFiltering(Component):
         self.current_date = None
 
         self.repartition_num = self.config.getint(self.COMPONENT_ID, "repartition_num")
+        self.sample_seed = self.config.getint(self.COMPONENT_ID, "sample_seed")
+        self.devices_subset = None
 
     def initalize_data_objects(self):
         # Input
@@ -108,7 +110,7 @@ class DataFiltering(Component):
         # Output
         bronze_dir = self.config.get(CONFIG_PATHS_KEY, "bronze_dir")
         bronze_dir_sample = self.config.get(CONFIG_PATHS_KEY, "bronze_dir_sample")
-        self.clear_destination_directory = self.config.get(self.COMPONENT_ID, "clear_destination_directory")
+        self.clear_destination_directory = self.config.getboolean(self.COMPONENT_ID, "clear_destination_directory")
         self.output_data_objects = {}
 
         outputs = {
@@ -126,14 +128,24 @@ class DataFiltering(Component):
     @get_execution_stats
     def execute(self):
         self.logger.info(f"Starting {self.COMPONENT_ID}...")
+        if self.do_device_sampling:
+            self.logger.info(f"Sampling devices for data period with sample size {self.sample_size}")
+            self.input_data_objects[BronzeEventDataObject.ID].read()
+            events_sdf = self.input_data_objects[BronzeEventDataObject.ID].df
+            # Get users in first day
+            events_sdf = events_sdf.filter(
+                F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day))
+                == F.lit(self.data_period_dates[0])
+            )
+            self.devices_subset = self.sample_devices(events_sdf, self.sample_size, self.sample_seed)
+            self.devices_subset.cache()
+            self.logger.info(f"Devices sampled: {self.devices_subset.count()}")
         for current_date in self.data_period_dates:
             self.current_date = current_date
             self.logger.info(f"Processing {current_date}")
             self.read()
-            self.transform()  # Transforms the input_df
+            self.transform()
             self.write()
-            # after each chunk processing clear all Cache to free memory and disk
-            self.spark.catalog.clearCache()
         self.logger.info(f"Finished {self.COMPONENT_ID}")
 
     def transform(self):
@@ -165,7 +177,7 @@ class DataFiltering(Component):
                     )
 
         if self.do_device_sampling:
-            events_sdf = self.sample_devices(events_sdf, self.sample_size)
+            events_sdf = self.sample_events(events_sdf, self.devices_subset)
 
         # --- Export actions ---
         # Schema casting
@@ -176,7 +188,6 @@ class DataFiltering(Component):
         events_sdf = events_sdf.repartition(self.repartition_num)
         cells_sdf = cells_sdf.repartition(self.repartition_num)
 
-        cells_sdf.cache()
         self.output_data_objects[BronzeNetworkDataObject.ID].df = cells_sdf
         self.output_data_objects[BronzeEventDataObject.ID].df = events_sdf
 
@@ -219,9 +230,9 @@ class DataFiltering(Component):
             cells_sdf = DataFiltering.filter_cells_polygon(cells_sdf, polygons_sdf)
         elif bbox is not None:
             cells_sdf = DataFiltering.filter_cells_bbox(cells_sdf, bbox)
-        # cell_ids_list = [row[ColNames.cell_id] for row in cells_sdf.select(ColNames.cell_id).collect()]
-        # events_sdf = events_sdf.filter(events_sdf[ColNames.cell_id].isin(cell_ids_list))
+
         events_sdf = events_sdf.join(cells_sdf.select(ColNames.cell_id), on=ColNames.cell_id, how="inner")
+
         return events_sdf, cells_sdf
 
     @staticmethod
@@ -236,10 +247,8 @@ class DataFiltering(Component):
             cells_in_area_sdf = DataFiltering.filter_cells_polygon(cells_sdf, polygons_sdf)
         elif bbox is not None:
             cells_in_area_sdf = DataFiltering.filter_cells_bbox(cells_sdf, bbox)
-        # cell_ids_list = [row[ColNames.cell_id] for row in cells_in_area_sdf.select(ColNames.cell_id).collect()]
 
         # Filter events based on cell_id being in the cells from the bounding box
-        # events_in_bbox_sdf = events_sdf.filter(events_sdf[ColNames.cell_id].isin(cell_ids_list))
         events_in_bbox_sdf = events_sdf.join(
             cells_in_area_sdf.select(ColNames.cell_id), on=ColNames.cell_id, how="inner"
         )
@@ -252,22 +261,22 @@ class DataFiltering(Component):
 
         # Filter cells based on the distinct cell IDs in the filtered events
         all_cells_sdf = events_sdf.select(ColNames.cell_id).distinct()
-        # all_cell_ids_list = [row[ColNames.cell_id] for row in all_cells_sdf.collect()]
 
-        # cells_sdf = cells_sdf.filter(cells_sdf[ColNames.cell_id].isin(all_cell_ids_list))
         cells_sdf = cells_sdf.join(all_cells_sdf, on=ColNames.cell_id, how="inner")
 
         return events_sdf, cells_sdf
 
     @staticmethod
-    def sample_devices(events_sdf: DataFrame, sample_size: float) -> DataFrame:
-        """
-        Samples devices from the events DataFrame.
-        """
-        devices_sdf = events_sdf.select(ColNames.user_id).distinct()
-        devices_sdf = devices_sdf.sample(False, sample_size)
+    def sample_devices(events_sdf: DataFrame, sample_size: float, sample_seed: int) -> DataFrame:
 
-        # Perform an inner join to filter events_sdf by the sampled devices
+        devices_sdf = events_sdf.select(ColNames.user_id).distinct()
+        devices_sdf = devices_sdf.sample(False, sample_size, sample_seed)
+
+        return devices_sdf
+
+    @staticmethod
+    def sample_events(events_sdf: DataFrame, devices_sdf: DataFrame) -> DataFrame:
+
         events_sdf = events_sdf.join(devices_sdf, on=ColNames.user_id, how="inner")
 
         return events_sdf
