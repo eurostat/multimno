@@ -32,7 +32,7 @@ def expected_cell_connection_probabilities(spark):
     expected_data = [
         Row(
             cell_id="956618596010533",
-            grid_id="123231342131342",
+            grid_id=123231342131342,
             # valid_date_start=v_start,
             # valid_date_end=v_end,
             cell_connection_probability=1.0,
@@ -43,7 +43,7 @@ def expected_cell_connection_probabilities(spark):
         ),
         Row(
             cell_id="956618596010533",
-            grid_id="123231342131341",
+            grid_id=123231342131341,
             # valid_date_start=v_start,
             # valid_date_end=v_end,
             cell_connection_probability=0.25,
@@ -54,7 +54,7 @@ def expected_cell_connection_probabilities(spark):
         ),
         Row(
             cell_id="956618596010512",
-            grid_id="123231342131341",
+            grid_id=123231342131341,
             # valid_date_start=v_start,
             # valid_date_end=v_end,
             cell_connection_probability=0.75,
@@ -90,7 +90,7 @@ def set_input_cell_footprint_data(spark: SparkSession, config: ConfigParser):
     data = [
         Row(
             cell_id="956618596010533",
-            grid_id="123231342131342",
+            grid_id=123231342131342,
             # valid_date_start=v_start,
             # valid_date_end=v_end,
             signal_dominance=0.392,
@@ -100,7 +100,7 @@ def set_input_cell_footprint_data(spark: SparkSession, config: ConfigParser):
         ),
         Row(
             cell_id="956618596010533",
-            grid_id="123231342131341",
+            grid_id=123231342131341,
             # valid_date_start=v_start,
             # valid_date_end=v_end,
             signal_dominance=0.25,  # 0.451,
@@ -110,7 +110,7 @@ def set_input_cell_footprint_data(spark: SparkSession, config: ConfigParser):
         ),
         Row(
             cell_id="956618596010512",
-            grid_id="123231342131341",
+            grid_id=123231342131341,
             # valid_date_start=v_start,
             # valid_date_end=v_end,
             signal_dominance=0.75,
@@ -146,7 +146,7 @@ def set_input_grid_data(spark: SparkSession, config: ConfigParser):
     data = [
         Row(
             geometry="SRID=3035;POINT (3159450 2030350)",
-            grid_id="123231342131342",
+            grid_id=123231342131342,
             elevation=129.12,
             prior_probability=0.2,
             environment_ple_coefficient=1,
@@ -154,7 +154,7 @@ def set_input_grid_data(spark: SparkSession, config: ConfigParser):
         ),
         Row(
             geometry="SRID=3035;POINT (3159550 2030350)",
-            grid_id="123231342131341",
+            grid_id=123231342131341,
             elevation=125.12,
             prior_probability=0.9,
             environment_ple_coefficient=1,

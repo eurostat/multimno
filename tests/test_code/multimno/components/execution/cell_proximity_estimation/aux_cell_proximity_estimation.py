@@ -45,7 +45,7 @@ def get_input_cell_footprint(spark):
         # cA, 2023-01-01 (near cB, cC)
         Row(
             cell_id="cA",
-            grid_id="100mE10N10",
+            grid_id=10000101000010,
             signal_dominance=1.0,
             year=2023,
             month=1,
@@ -53,7 +53,7 @@ def get_input_cell_footprint(spark):
         ),
         Row(
             cell_id="cA",
-            grid_id="100mE11N10",
+            grid_id=10000111000010,
             signal_dominance=1.0,
             year=2023,
             month=1,
@@ -61,7 +61,7 @@ def get_input_cell_footprint(spark):
         ),
         Row(
             cell_id="cA",
-            grid_id="100mE10N11",
+            grid_id=10000101000011,
             signal_dominance=1.0,
             year=2023,
             month=1,
@@ -70,7 +70,7 @@ def get_input_cell_footprint(spark):
         # cB, 2023-01-01 (near cA, cC)
         Row(
             cell_id="cB",
-            grid_id="100mE10N12",
+            grid_id=10000101000012,
             signal_dominance=1.0,
             year=2023,
             month=1,
@@ -78,7 +78,7 @@ def get_input_cell_footprint(spark):
         ),
         Row(
             cell_id="cB",
-            grid_id="100mE10N13",
+            grid_id=10000101000013,
             signal_dominance=1.0,
             year=2023,
             month=1,
@@ -87,7 +87,7 @@ def get_input_cell_footprint(spark):
         # cC, 2023-01-01 (near cA, cB)
         Row(
             cell_id="cC",
-            grid_id="100mE10N13",
+            grid_id=10000101000013,
             signal_dominance=1.0,
             year=2023,
             month=1,
@@ -96,7 +96,7 @@ def get_input_cell_footprint(spark):
         # cD, 2023-01-01 (near cE)
         Row(
             cell_id="cD",
-            grid_id="100mE500N200",
+            grid_id=10005001000200,
             signal_dominance=1.0,
             year=2023,
             month=1,
@@ -105,7 +105,7 @@ def get_input_cell_footprint(spark):
         # cE, 2023-01-01 (near cD)
         Row(
             cell_id="cE",
-            grid_id="100mE505N205",
+            grid_id=10005051000205,
             signal_dominance=1.0,
             year=2023,
             month=1,
@@ -114,7 +114,7 @@ def get_input_cell_footprint(spark):
         # cA, 2023-01-03 (same as previous 2023-01-01)
         Row(
             cell_id="cA",
-            grid_id="100mE10N10",
+            grid_id=10000101000010,
             signal_dominance=1.0,
             year=2023,
             month=1,
@@ -122,7 +122,7 @@ def get_input_cell_footprint(spark):
         ),
         Row(
             cell_id="cA",
-            grid_id="100mE11N10",
+            grid_id=10000111000010,
             signal_dominance=1.0,
             year=2023,
             month=1,
@@ -130,7 +130,7 @@ def get_input_cell_footprint(spark):
         ),
         Row(
             cell_id="cA",
-            grid_id="100mE10N11",
+            grid_id=10000101000011,
             signal_dominance=1.0,
             year=2023,
             month=1,
@@ -139,7 +139,7 @@ def get_input_cell_footprint(spark):
         # cB, 2023-01-03 (different from prev 2023-01-01)
         Row(
             cell_id="cB",
-            grid_id="100mE11N12",
+            grid_id=10000111000012,
             signal_dominance=1.0,
             year=2023,
             month=1,
@@ -147,7 +147,7 @@ def get_input_cell_footprint(spark):
         ),
         Row(
             cell_id="cB",
-            grid_id="100mE10N13",
+            grid_id=10000101000013,
             signal_dominance=1.0,
             year=2023,
             month=1,
@@ -156,7 +156,7 @@ def get_input_cell_footprint(spark):
         # cC, 2023-01-03 (far from previous location)
         Row(
             cell_id="cC",
-            grid_id="100mE4000N4000",
+            grid_id=10040001004000,
             signal_dominance=1.0,
             year=2023,
             month=1,

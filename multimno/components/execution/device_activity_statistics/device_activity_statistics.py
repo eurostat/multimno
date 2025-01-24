@@ -27,7 +27,7 @@ from multimno.core.data_objects.silver.silver_device_activity_statistics import 
 
 
 from multimno.core.spark_session import check_if_data_path_exists, delete_file_or_folder
-from multimno.core.settings import CONFIG_SILVER_PATHS_KEY, TIMEZONE_CONFIG_KEY
+from multimno.core.settings import CONFIG_SILVER_PATHS_KEY, GENERAL_CONFIG_KEY
 from multimno.core.constants.columns import ColNames
 from multimno.core.log import get_execution_stats
 
@@ -59,7 +59,7 @@ class DeviceActivityStatistics(Component):
         self.clear_destination_directory = self.config.get(
             DeviceActivityStatistics.COMPONENT_ID, "clear_destination_directory"
         )
-        self.local_timezone_str = self.config.get(TIMEZONE_CONFIG_KEY, "local_timezone")
+        self.local_timezone_str = self.config.get(GENERAL_CONFIG_KEY, "local_timezone")
 
         # Create all possible dates between start and end
         sdate = pd.to_datetime(self.data_period_start)

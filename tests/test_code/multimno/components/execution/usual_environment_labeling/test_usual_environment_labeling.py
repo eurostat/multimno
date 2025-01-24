@@ -26,8 +26,8 @@ def setup_function():
     setup_test_data_dir()
 
 
-def teardown_function():
-    teardown_test_data_dir()
+# def teardown_function():
+#     teardown_test_data_dir()
 
 
 def prepare_test_data(spark):
@@ -43,7 +43,7 @@ def prepare_test_data(spark):
     longterm_permanence_sdf = spark.read.format("parquet").load(
         f"{STATIC_TEST_DATA_PATH}/longterm_analysis/longterm_permanence_score"
     )
-
+    longterm_permanence_sdf.show()
     longterm_permanence_do.df = longterm_permanence_sdf
     longterm_permanence_do.write()
 

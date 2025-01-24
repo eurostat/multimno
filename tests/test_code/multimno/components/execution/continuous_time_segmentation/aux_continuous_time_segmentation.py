@@ -1,4 +1,5 @@
 import pytest
+import hashlib
 from configparser import ConfigParser
 from datetime import datetime
 from multimno.core.constants.columns import ColNames
@@ -82,7 +83,7 @@ def data_test_0001() -> dict:
     cell_id_a = "a0001"
     cell_id_b1 = "b0001"
     cell_id_b2 = "b0002"
-    user_id = "1000".encode("ascii")
+    user_id = hashlib.sha256("1000".encode()).digest()
     mcc = 100
     mnc = "01"
     plmn = None
@@ -304,32 +305,86 @@ def data_test_0001() -> dict:
     # Input: cell intersection groups data.
     # Case: single cell in one group. Cell id and day matches event data.
     cell_intersection_groups_data = [
+        # Day day overlaps
         Row(
-            cell_id=None,
-            overlapping_cell_ids=[cell_id_b1, cell_id_b2],
+            cell_id=cell_id_a,
+            overlapping_cell_ids=[],
             year=year,
             month=month,
             day=day,
         ),
         Row(
-            cell_id=None,
-            overlapping_cell_ids=[cell_id_b1, cell_id_b2],
+            cell_id=cell_id_b1,
+            overlapping_cell_ids=[cell_id_b2],
             year=year,
             month=month,
-            day=4,
+            day=day,
+        ),
+        Row(
+            cell_id=cell_id_b2,
+            overlapping_cell_ids=[cell_id_b1],
+            year=year,
+            month=month,
+            day=day,
+        ),
+        # Day 4 overlaps
+        Row(
+            cell_id=cell_id_a,
+            overlapping_cell_ids=[],
+            year=year,
+            month=month,
+            day=day + 1,
+        ),
+        Row(
+            cell_id=cell_id_b1,
+            overlapping_cell_ids=[cell_id_b2],
+            year=year,
+            month=month,
+            day=day + 1,
+        ),
+        Row(
+            cell_id=cell_id_b2,
+            overlapping_cell_ids=[cell_id_b1],
+            year=year,
+            month=month,
+            day=day + 1,
         ),
     ]
     # Expected output: time segments.
     # One time segment of type stay on the day data was present.
     # No time segments before that date.
     # Entire day time segments of type unknown for dates after with no data.
+    unhex_user_id = user_id.hex().upper()
+
     expected_output_data = [
-        Row(  # "unknown" segment from start of day until first event. End is shortened by padding.
+        Row(  # "unknown" segment for entire date before first events
             user_id=user_id,
-            time_segment_id=1,
+            time_segment_id=hashlib.md5(
+                f"{unhex_user_id}{datetime.strptime('2023-01-02T00:00:00', date_format)}".encode()
+            ).hexdigest(),
+            start_timestamp=datetime.strptime("2023-01-02T00:00:00", date_format),
+            end_timestamp=datetime.strptime("2023-01-02T23:59:59", date_format),
+            mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
+            cells=[],
+            state="unknown",
+            is_last=True,
+            year=year,
+            month=month,
+            day=day - 1,
+            user_id_modulo=user_id_modulo,
+        ),
+        Row(  # "unknown" segment from start of day until first event
+            user_id=user_id,
+            time_segment_id=hashlib.md5(
+                f"{unhex_user_id}{datetime.strptime('2023-01-03T00:00:00', date_format)}".encode()
+            ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-03T00:00:00", date_format),
             end_timestamp=datetime.strptime("2023-01-03T00:55:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cells=[],
             state="unknown",
             is_last=False,
@@ -338,12 +393,16 @@ def data_test_0001() -> dict:
             day=day,
             user_id_modulo=user_id_modulo,
         ),
-        Row(  # Stay at cell_id_a. Start is extended by padding.
+        Row(  # Stay at cell_id_a
             user_id=user_id,
-            time_segment_id=2,
+            time_segment_id=hashlib.md5(
+                f"{unhex_user_id}{datetime.strptime('2023-01-03T00:55:00', date_format)}".encode()
+            ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-03T00:55:00", date_format),
             end_timestamp=datetime.strptime("2023-01-03T03:03:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cells=[cell_id_a],
             state="stay",
             is_last=False,
@@ -352,12 +411,16 @@ def data_test_0001() -> dict:
             day=day,
             user_id_modulo=user_id_modulo,
         ),
-        Row(  # Move half from cell_id_a.
+        Row(  # Move half from cell_id_a
             user_id=user_id,
-            time_segment_id=3,
+            time_segment_id=hashlib.md5(
+                f"{unhex_user_id}{datetime.strptime('2023-01-03T03:03:00', date_format)}".encode()
+            ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-03T03:03:00", date_format),
             end_timestamp=datetime.strptime("2023-01-03T03:23:30", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cells=[cell_id_a],
             state="move",
             is_last=False,
@@ -366,12 +429,16 @@ def data_test_0001() -> dict:
             day=day,
             user_id_modulo=user_id_modulo,
         ),
-        Row(  # Move half to cell_id_b1.
+        Row(  # Move half to cell_id_b1
             user_id=user_id,
-            time_segment_id=4,
+            time_segment_id=hashlib.md5(
+                f"{unhex_user_id}{datetime.strptime('2023-01-03T03:23:30', date_format)}".encode()
+            ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-03T03:23:30", date_format),
             end_timestamp=datetime.strptime("2023-01-03T03:44:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cells=[cell_id_b1],
             state="move",
             is_last=False,
@@ -380,12 +447,16 @@ def data_test_0001() -> dict:
             day=day,
             user_id_modulo=user_id_modulo,
         ),
-        Row(  # Stay at cell_id_b1,cell_id_b2. End is extended into unknown segment.
+        Row(  # Stay at cell_id_b1,cell_id_b2
             user_id=user_id,
-            time_segment_id=5,
+            time_segment_id=hashlib.md5(
+                f"{unhex_user_id}{datetime.strptime('2023-01-03T03:44:00', date_format)}".encode()
+            ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-03T03:44:00", date_format),
             end_timestamp=datetime.strptime("2023-01-03T04:45:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cells=[cell_id_b1, cell_id_b2],
             state="stay",
             is_last=False,
@@ -394,12 +465,16 @@ def data_test_0001() -> dict:
             day=day,
             user_id_modulo=user_id_modulo,
         ),
-        Row(  # Unknown section. Too long to be a move. Start and end are shortened by padding.
+        Row(  # Unknown section
             user_id=user_id,
-            time_segment_id=6,
+            time_segment_id=hashlib.md5(
+                f"{unhex_user_id}{datetime.strptime('2023-01-03T04:45:00', date_format)}".encode()
+            ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-03T04:45:00", date_format),
             end_timestamp=datetime.strptime("2023-01-03T07:12:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cells=[],
             state="unknown",
             is_last=False,
@@ -408,12 +483,16 @@ def data_test_0001() -> dict:
             day=day,
             user_id_modulo=user_id_modulo,
         ),
-        Row(  # Undetermined section. Location is cell_id_a, but duration is too short to be a stay.
+        Row(  # Undetermined section
             user_id=user_id,
-            time_segment_id=7,
+            time_segment_id=hashlib.md5(
+                f"{unhex_user_id}{datetime.strptime('2023-01-03T07:12:00', date_format)}".encode()
+            ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-03T07:12:00", date_format),
             end_timestamp=datetime.strptime("2023-01-03T07:18:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cells=[cell_id_a],
             state="undetermined",
             is_last=False,
@@ -424,10 +503,14 @@ def data_test_0001() -> dict:
         ),
         Row(  # Move section from cell_id_a
             user_id=user_id,
-            time_segment_id=8,
+            time_segment_id=hashlib.md5(
+                f"{unhex_user_id}{datetime.strptime('2023-01-03T07:18:00', date_format)}".encode()
+            ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-03T07:18:00", date_format),
             end_timestamp=datetime.strptime("2023-01-03T07:19:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cells=[cell_id_a],
             state="move",
             is_last=False,
@@ -438,10 +521,14 @@ def data_test_0001() -> dict:
         ),
         Row(  # Move section to cell_id_b1
             user_id=user_id,
-            time_segment_id=9,
+            time_segment_id=hashlib.md5(
+                f"{unhex_user_id}{datetime.strptime('2023-01-03T07:19:00', date_format)}".encode()
+            ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-03T07:19:00", date_format),
             end_timestamp=datetime.strptime("2023-01-03T07:20:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cells=[cell_id_b1],
             state="move",
             is_last=True,
@@ -450,12 +537,16 @@ def data_test_0001() -> dict:
             day=day,
             user_id_modulo=user_id_modulo,
         ),
-        Row(  # Day 4. "unknown" section until first event. End shortened by padding.
+        Row(  # Day 4. "unknown" section
             user_id=user_id,
-            time_segment_id=1,
+            time_segment_id=hashlib.md5(
+                f"{unhex_user_id}{datetime.strptime('2023-01-04T00:00:00', date_format)}".encode()
+            ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-04T00:00:00", date_format),
             end_timestamp=datetime.strptime("2023-01-04T00:15:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cells=[],
             state="unknown",
             is_last=False,
@@ -464,12 +555,16 @@ def data_test_0001() -> dict:
             day=4,
             user_id_modulo=user_id_modulo,
         ),
-        Row(  # Undetermined at cell_id_b1. Start extended by padding.
+        Row(  # Undetermined at cell_id_b1
             user_id=user_id,
-            time_segment_id=2,
+            time_segment_id=hashlib.md5(
+                f"{unhex_user_id}{datetime.strptime('2023-01-04T00:15:00', date_format)}".encode()
+            ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-04T00:15:00", date_format),
             end_timestamp=datetime.strptime("2023-01-04T00:20:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cells=[cell_id_b1],
             state="undetermined",
             is_last=False,
@@ -478,12 +573,16 @@ def data_test_0001() -> dict:
             day=4,
             user_id_modulo=user_id_modulo,
         ),
-        Row(  # First half of move to cell_id_a.
+        Row(  # First half of move to cell_id_a
             user_id=user_id,
-            time_segment_id=3,
+            time_segment_id=hashlib.md5(
+                f"{unhex_user_id}{datetime.strptime('2023-01-04T00:20:00', date_format)}".encode()
+            ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-04T00:20:00", date_format),
             end_timestamp=datetime.strptime("2023-01-04T00:22:30", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cells=[cell_id_b1],
             state="move",
             is_last=False,
@@ -494,10 +593,14 @@ def data_test_0001() -> dict:
         ),
         Row(  # Second half of move to cell_id_a
             user_id=user_id,
-            time_segment_id=4,
+            time_segment_id=hashlib.md5(
+                f"{unhex_user_id}{datetime.strptime('2023-01-04T00:22:30', date_format)}".encode()
+            ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-04T00:22:30", date_format),
             end_timestamp=datetime.strptime("2023-01-04T00:25:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cells=[cell_id_a],
             state="move",
             is_last=False,
@@ -508,10 +611,14 @@ def data_test_0001() -> dict:
         ),
         Row(  # First half of move to cell_id_b1
             user_id=user_id,
-            time_segment_id=5,
+            time_segment_id=hashlib.md5(
+                f"{unhex_user_id}{datetime.strptime('2023-01-04T00:25:00', date_format)}".encode()
+            ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-04T00:25:00", date_format),
             end_timestamp=datetime.strptime("2023-01-04T00:26:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cells=[cell_id_a],
             state="move",
             is_last=False,
@@ -522,10 +629,14 @@ def data_test_0001() -> dict:
         ),
         Row(  # Second half of move to cell_id_b1
             user_id=user_id,
-            time_segment_id=6,
+            time_segment_id=hashlib.md5(
+                f"{unhex_user_id}{datetime.strptime('2023-01-04T00:26:00', date_format)}".encode()
+            ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-04T00:26:00", date_format),
             end_timestamp=datetime.strptime("2023-01-04T00:27:00", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cells=[cell_id_b1],
             state="move",
             is_last=True,
@@ -536,10 +647,14 @@ def data_test_0001() -> dict:
         ),
         Row(  # Day 5. no events
             user_id=user_id,
-            time_segment_id=1,
+            time_segment_id=hashlib.md5(
+                f"{unhex_user_id}{datetime.strptime('2023-01-05T00:00:00', date_format)}".encode()
+            ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-05T00:00:00", date_format),
             end_timestamp=datetime.strptime("2023-01-05T23:59:59", date_format),
             mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
             cells=[],
             state="unknown",
             is_last=True,
@@ -549,6 +664,7 @@ def data_test_0001() -> dict:
             user_id_modulo=user_id_modulo,
         ),
     ]
+
     return {
         input_events_id: input_event_data,
         input_cell_intersection_groups_id: cell_intersection_groups_data,

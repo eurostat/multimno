@@ -21,6 +21,7 @@ class ColNames:
     transformation_flag = "transformation_flag"
     affected_field = "affected_field"
     domain = "domain"
+    is_last_event = "is_last_event"  # 0: initial, 1: final
     # default values for domain col
     domestic = 1
     inbound = 2
@@ -195,3 +196,25 @@ class ColNames:
     weighted_device_count = "weighted_device_count"
     tile_weight = "tile_weight"
     device_tile_weight = "device_tile_weight"
+
+    # for tourism stays
+    zone_weight = "zone_weight"
+    is_overnight = "is_overnight"
+    zone_weights_list = "zone_weights_list"
+    zone_ids_list = "zone_ids_list"
+
+    # internal migration
+    previous_zone = "previous_zone"
+    new_zone = "new_zone"
+    migration = "migration"
+    start_date_previous = "start_date_previous"
+    end_date_previous = "end_date_previous"
+    season_previous = "season_previous"
+    start_date_new = "start_date_new"
+    end_date_new = "end_date_new"
+    season_new = "season_new"
+
+    # internal migration quality metrics
+    previous_home_users = "previous_home_users"
+    new_home_users = "new_home_users"
+    common_home_users = "common_home_users"

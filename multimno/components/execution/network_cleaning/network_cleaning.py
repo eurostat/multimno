@@ -229,9 +229,16 @@ class NetworkCleaning(Component):
         # Now we check for invalid values that are outside of the range defined for the data object.
 
         # TODO: correct check for CGI in cell ids
+        do_cgi_check = self.config.getboolean(self.COMPONENT_ID, "do_cell_cgi_check", fallback=False)
+        if do_cgi_check:
+            cgi_condition = (F.length(F.col(ColNames.cell_id)) != F.lit(14)) & (
+                F.length(F.col(ColNames.cell_id)) != F.lit(15)
+            )
+        else:
+            cgi_condition = F.lit(False)
         self.cells_df = self.cells_df.withColumn(
             f"{ColNames.cell_id}_{NetworkErrorType.OUT_OF_RANGE}",
-            (F.length(F.col(ColNames.cell_id)) != F.lit(14)) & (F.length(F.col(ColNames.cell_id)) != F.lit(15)),
+            cgi_condition,
         )
 
         # TODO: cover case where bounding box crosses the -180/180 longitude

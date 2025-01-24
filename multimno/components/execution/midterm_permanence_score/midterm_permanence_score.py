@@ -7,6 +7,9 @@ import calendar as cal
 import logging
 from typing import List
 
+from multimno.core.constants.error_types import UeGridIdType
+from multimno.core.spark_session import delete_file_or_folder
+from multimno.core.utils import apply_schema_casting
 from pyspark.sql import DataFrame
 from pyspark.sql.types import DateType, ArrayType, FloatType, IntegerType, ShortType, ByteType
 import pyspark.sql.functions as F
@@ -24,79 +27,6 @@ from multimno.core.settings import CONFIG_BRONZE_PATHS_KEY, CONFIG_SILVER_PATHS_
 from multimno.core.constants.columns import ColNames
 from multimno.core.constants.period_names import TIME_INTERVALS, DAY_TYPES
 from multimno.core.log import get_execution_stats
-
-
-@F.udf(returnType=ArrayType(FloatType()))
-def frequency_and_regularity(
-    arr, month_start: dt.date, extended_start: dt.date, month_end: dt.date, extended_end: dt.date
-) -> List[float]:
-    """PySpark UDF that calculates the mid-term frequency and regularity metrics of a device and grid tile/unknown
-    location
-
-    Args:
-        arr: ArrayType() PySpark SQL Type (seen as a list?) containing the dates in which the device has been observed
-            in a particular grid tile or in the "unknown" location. All dates belong to the mid-term's month of
-            analysis, with the possible exception of a date in the look-back dates and a date in the look-forward
-            dates used for the regularity indices' calculation.
-        month_start (dt.date): First date of the month of the current mid-term period
-        extended_start (dt.date): First date of the extended dates in the look-back dates
-        month_end (dt.date): Last date of the month of the current mid-term period
-        extended_end (dt.date): Last date of the extended dates in the look-forward dates
-
-    Raises:
-        ValueError: Whenever a record reaches this function with an empty list of dates, which is unexpected behaviour
-
-    Returns:
-        List[float]: returns a list with the frequency, regularity mean and regularity sample standard deviation
-    """
-    if len(arr) == 0:
-        raise ValueError("Found empty array of dates during regularity mean calculation. which should not be possible")
-
-    earliest_date = arr[0]
-    latest_date = arr[-1]
-
-    array_length = len(arr)
-
-    # this variable represents the number of dates in the current month that have been observed. since some dates in
-    # `arr` might belong to the look-back or look-forward period, this value might be adjusted later on
-    frequency = array_length
-
-    # if there is only one date in the array (so earliest_date equals latest_date)
-    if array_length == 1:
-        # if the single date does not belong to the study month, there is no stay in this grid tile and month
-        if earliest_date < month_start or earliest_date > month_end:
-            return None
-
-        return (
-            1.0,
-            (extended_end - extended_start).days / (array_length + 1),
-            (extended_end - extended_start).days / (2**0.5),
-        )
-    # if there are only two dates
-    elif array_length == 2:
-        # If the dates belong to the reg extended periods, there is no stay in this grid tile and month
-        if earliest_date < month_start or earliest_date > month_end:
-            return None
-
-    diffs = [(arr[i + 1] - arr[i]).days for i in range(len(arr) - 1)]
-    # If there is no date in the before (after) reg period, we consider the start (end) date as the extended_start
-    # (extended_end) date.
-    if earliest_date >= month_start:
-        diffs.append((earliest_date - extended_start).days)
-        earliest_date = extended_start
-        array_length += 1
-    else:
-        frequency -= 1
-    if latest_date <= month_end:
-        diffs.append((extended_end - latest_date).days)
-        latest_date = extended_end
-        array_length += 1
-    else:
-        frequency -= 1
-
-    mean = (latest_date - earliest_date).days / (array_length - 1)
-    std = (sum((dd - mean) ** 2 for dd in diffs) / (array_length - 2)) ** 0.5
-    return [float(frequency), mean, std]
 
 
 class MidtermPermanenceScore(Component):
@@ -248,6 +178,7 @@ class MidtermPermanenceScore(Component):
         self.time_interval = None
         self.current_mt_period = None
         self.current_dps_data = None
+        self.current_dps_data_chunk = None
         self.footprint = None
 
     def _get_midterm_periods(self) -> List[dict]:
@@ -333,10 +264,19 @@ class MidtermPermanenceScore(Component):
         return interval
 
     def initalize_data_objects(self):
+        # Initialize data objects
         input_silver_daily_ps_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "daily_permanence_score_data_silver")
         input_bronze_holiday_calendar_path = self.config.get(CONFIG_BRONZE_PATHS_KEY, "holiday_calendar_data_bronze")
         input_silver_cell_footprint = self.config.get(CONFIG_SILVER_PATHS_KEY, "cell_footprint_data_silver")
         output_silver_midterm_ps_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "midterm_permanence_score_data_silver")
+
+        # Clear destination directory if needed
+        clear_destination_directory = self.config.getboolean(
+            self.COMPONENT_ID, "clear_destination_directory", fallback=False
+        )
+        if clear_destination_directory:
+            self.logger.warning(f"Deleting: {output_silver_midterm_ps_path}")
+            delete_file_or_folder(self.spark, output_silver_midterm_ps_path)
 
         daily_ps = SilverDailyPermanenceScoreDataObject(self.spark, input_silver_daily_ps_path)
         holiday_calendar = BronzeHolidayCalendarDataObject(self.spark, input_bronze_holiday_calendar_path)
@@ -365,9 +305,6 @@ class MidtermPermanenceScore(Component):
                 self.current_mt_period
         """
         dps = self.input_data_objects[SilverDailyPermanenceScoreDataObject.ID].df
-
-        # First filter: take out stay_duration = 0  # TODO: filter out unknowns??
-        dps = dps.filter(F.col(ColNames.stay_duration) > 0)
 
         # Add a one-day buffer, as later on the definition of a day does not match the midnight definition
         dps = dps.filter(
@@ -612,50 +549,6 @@ class MidtermPermanenceScore(Component):
             )
         return df
 
-    def compute_daily_permanence_score(self, df: DataFrame) -> DataFrame:
-        """
-        Compute daily permanence score at grid tile level from stay durations at cell level and
-        cell footprint datasets.
-
-        Args:
-            df (DataFrame): dataset with stay durations at cell level.
-
-        Returns:
-            DataFrame: dps dataset at grid tile level.
-        """
-        """unknown = df.where(F.col(ColNames.id_type) == F.lit("unknown")).select(
-            ColNames.date,
-            ColNames.user_id_modulo,
-            ColNames.user_id,
-            F.lit("unknown").alias("grid_id"),
-            ColNames.time_slot_initial_time,
-            ColNames.stay_duration,
-            F.lit("unknown").alias(ColNames.id_type),
-        )"""
-
-        dps = (
-            df.join(self.footprint, on=[ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id], how="inner")
-            .groupby(
-                ColNames.date,
-                ColNames.user_id_modulo,
-                ColNames.user_id,
-                ColNames.grid_id,
-                ColNames.time_slot_initial_time,
-            )
-            .agg(F.sum(ColNames.stay_duration).cast(FloatType()).alias(ColNames.stay_duration))
-            .withColumn(ColNames.id_type, F.lit("grid"))
-            # .union(unknown)
-            .withColumn(
-                ColNames.dps,
-                F.lit(-1)
-                + F.ceil(F.lit(self.score_interval) * F.col(ColNames.stay_duration) / F.lit(3600)).cast(ByteType()),
-            )
-            .filter(F.col(ColNames.dps) > 0)
-            .drop(ColNames.stay_duration)
-        )
-
-        return dps
-
     def compute_midterm_metrics(self, df: DataFrame) -> DataFrame:
         """Compute the mid-term permanence score and metrics of the current mid-term period, submonthly (i.e. day type)
         and subdaily (i.e. time interval) combination.
@@ -670,6 +563,7 @@ class MidtermPermanenceScore(Component):
         # (if it exists)
         before_reg = (
             df.filter(F.col(ColNames.date) < F.lit(self.current_mt_period["month_start"]))
+            .withColumn(ColNames.grid_id, F.explode(ColNames.dps))
             .groupBy(ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id)
             .agg(F.max(ColNames.date).alias(ColNames.date))
         )
@@ -678,6 +572,7 @@ class MidtermPermanenceScore(Component):
         # (if it exists)
         after_reg = (
             df.filter(F.col(ColNames.date) > F.lit(self.current_mt_period["month_end"]))
+            .withColumn(ColNames.grid_id, F.explode(ColNames.dps))
             .groupBy(ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id)
             .agg(F.min(ColNames.date).alias(ColNames.date))
         )
@@ -690,8 +585,17 @@ class MidtermPermanenceScore(Component):
         )
 
         # Device observation metric
-        observation_df = (
-            study_df.filter(F.col(ColNames.id_type) == F.lit("grid"))
+        observation_df = self._generate_device_observation_df(study_df)
+        # Calculate regularity metrics
+        regularity_df = self._generate_midterm_metrics_df(study_df, before_reg, after_reg)
+
+        combined_df = regularity_df.union(observation_df)
+
+        return combined_df
+
+    def _generate_device_observation_df(self, study_df: DataFrame) -> DataFrame:
+        return (
+            study_df.filter(F.col(ColNames.id_type) == F.lit(UeGridIdType.GRID_STR))
             .groupby(ColNames.user_id_modulo, ColNames.user_id, ColNames.date)
             .agg(F.count_distinct(ColNames.time_slot_initial_time).alias("observed_day_dps"))
             .groupby(ColNames.user_id_modulo, ColNames.user_id)
@@ -702,17 +606,22 @@ class MidtermPermanenceScore(Component):
             .select(
                 ColNames.user_id_modulo,
                 ColNames.user_id,
-                F.lit("device_observation").alias(ColNames.grid_id),
+                F.lit(UeGridIdType.DEVICE_OBSERVATION).alias(ColNames.grid_id),
                 F.col(ColNames.mps).cast(IntegerType()).alias(ColNames.mps),
                 ColNames.frequency,
                 F.lit(None).cast(FloatType()).alias(ColNames.regularity_mean),
                 F.lit(None).cast(FloatType()).alias(ColNames.regularity_std),
-                F.lit("device_observation").alias(ColNames.id_type),
+                F.lit(UeGridIdType.DEVICE_OBSERVATION_STR).alias(ColNames.id_type),
             )
         )
 
-        combined_df = (
-            study_df.select(ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id, ColNames.date, ColNames.dps)
+    def _generate_midterm_metrics_df(
+        self, study_df: DataFrame, before_reg: DataFrame, after_reg: DataFrame
+    ) -> DataFrame:
+        df = (
+            study_df.withColumn(ColNames.grid_id, F.explode(ColNames.dps))
+            .withColumn(ColNames.dps, F.lit(1))
+            .select(ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id, ColNames.date, ColNames.dps)
             .union(before_reg.withColumn(ColNames.dps, F.lit(0)))
             .union(after_reg.withColumn(ColNames.dps, F.lit(0)))
             .groupby(ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id)
@@ -721,32 +630,113 @@ class MidtermPermanenceScore(Component):
                 F.array_sort(F.collect_set(ColNames.date)).alias("dates"),
             )
             .filter(F.col(ColNames.mps) > 0)
-            .withColumn(
-                "more_metrics",
-                frequency_and_regularity(
-                    F.col("dates"),
-                    F.lit(self.current_mt_period["month_start"]),
-                    F.lit(self.current_mt_period["extended_month_start"]),
-                    F.lit(self.current_mt_period["month_end"]),
-                    F.lit(self.current_mt_period["extended_month_end"]),
-                ),
-            )
-            .drop("dates")
-            .withColumn(ColNames.frequency, F.col("more_metrics")[0].cast(IntegerType()))
-            .withColumn(
-                ColNames.regularity_mean,
-                F.col("more_metrics")[1],
-            )
-            .withColumn(ColNames.regularity_std, F.col("more_metrics")[2])
-            .withColumn(
-                ColNames.id_type,
-                F.when(F.col(ColNames.grid_id) == F.lit("unknown"), F.lit("unknown")).otherwise(F.lit("grid")),
-            )
-            .drop("more_metrics")
-            .union(observation_df)
         )
 
-        return combined_df
+        return self._calculate_midterm_metrics(df)
+
+    def _calculate_midterm_metrics(self, study_df: DataFrame) -> DataFrame:
+        # Temp cols
+        size_days_colname = "size_days"
+        dates_col = "dates"
+
+        # First, calculate frequency as size of dates col
+        df = study_df.withColumn(ColNames.frequency, F.size(F.col(dates_col)))
+
+        # --------------- Handle Extended start/end buffer ---------------
+
+        # Add extended_start and extended_end to dates if no date found in buffer
+        month_start = self.current_mt_period["month_start"]
+        month_end = self.current_mt_period["month_end"]
+        extended_start = self.current_mt_period["extended_month_start"]
+        extended_end = self.current_mt_period["extended_month_end"]
+
+        # Add extended_start and extended_end to dates if no date found in buffer
+        df = (
+            df
+            # --- Start buffer ---
+            .withColumn(
+                dates_col,
+                # If earliest date is not in start buffer, add buffer start bound
+                F.when(
+                    F.element_at(F.col(dates_col), 1) >= F.lit(month_start),
+                    F.array_union(F.array(F.lit(extended_start)), F.col(dates_col)),
+                ).otherwise(F.col(dates_col)),
+            )
+            # --- End buffer ---
+            .withColumn(
+                dates_col,
+                # If latest date is not in end buffer, add buffer end bound
+                F.when(
+                    F.element_at(F.col(dates_col), -1) <= F.lit(month_end),
+                    F.array_union(F.col(dates_col), F.array(F.lit(extended_end))),
+                ).otherwise(F.col(dates_col)),
+            )
+        )
+
+        # --------------- Date distances calculation ---------------
+        day_distances_col = "day_distances"
+        df = df.withColumn(
+            day_distances_col,
+            F.expr(
+                f"""
+                    transform(
+                        slice({dates_col}, 2, size({dates_col})),
+                        (current_day, idx) -> datediff(current_day, element_at({dates_col}, idx + 1))
+                    )
+                """
+            ),
+        )
+
+        # --------------- Metrics calculation ---------------
+        df = (
+            df
+            # --- Frequency ---
+            .withColumn(size_days_colname, F.size(dates_col))
+            # --- Regularity mean ---
+            .withColumn(
+                # Optimized way to calculate regularity mean
+                # (latest_date - earliest_date).days / (array_length - 1)
+                ColNames.regularity_mean,
+                F.when(
+                    F.col(size_days_colname) > 0,
+                    F.date_diff(F.element_at(dates_col, -1), F.element_at(dates_col, 1))
+                    / (F.col(size_days_colname) - 1),
+                ).otherwise(0.0),
+            )
+            .drop(dates_col)
+            # --- Regularity deviation ---
+            .withColumn(
+                ColNames.regularity_std,
+                F.when(
+                    F.col(size_days_colname) > 1,  # Due to interval array being 1 less than the size of the dates array
+                    # (sum((dd - mean) ** 2 for dd in diffs) / (array_length - 2)) ** 0.5
+                    F.sqrt(
+                        F.expr(
+                            f"""
+                            aggregate(
+                                {day_distances_col},
+                                CAST(0 AS DOUBLE),
+                                (acc, x) -> acc + POWER(x - {ColNames.regularity_mean}, 2)
+                            ) / (size({day_distances_col}) - 1)
+                        """
+                        )
+                    ),
+                ).otherwise(0.0),
+            )
+            # Remove temp columns
+            .drop(day_distances_col)
+            .drop(size_days_colname)
+        )
+
+        # --------------- Calculate Unknown ---------------
+        df = df.withColumn(
+            ColNames.id_type,
+            F.when(F.col(ColNames.grid_id) == F.lit(UeGridIdType.UNKNOWN), F.lit(UeGridIdType.UKNOWN_STR)).otherwise(
+                F.lit(UeGridIdType.GRID_STR)
+            ),
+        )
+
+        return df
 
     def transform(self):
         # Load all needed dps
@@ -759,17 +749,14 @@ class MidtermPermanenceScore(Component):
 
         # Keep only time slots belonging to the time interval
         filtered = self.filter_dps_by_time_interval(
-            self.current_dps_data, self.time_interval, time_interval_start, time_interval_end
+            self.current_dps_data_chunk, self.time_interval, time_interval_start, time_interval_end
         )
 
         # Keep only time slots belonging to the day type
         filtered = self.filter_dps_by_day_type(filtered, self.day_type)
 
-        # Compute DPS
-        dps = self.compute_daily_permanence_score(filtered)
-
         # Compute metrics
-        mps = self.compute_midterm_metrics(dps)
+        mps = self.compute_midterm_metrics(filtered)
 
         mps = (
             mps.withColumn(ColNames.day_type, F.lit(self.day_type))
@@ -777,6 +764,8 @@ class MidtermPermanenceScore(Component):
             .withColumn(ColNames.year, F.lit(self.current_mt_period["month_start"].year).cast(ShortType()))
             .withColumn(ColNames.month, F.lit(self.current_mt_period["month_start"].month).cast(ByteType()))
         )
+
+        mps = apply_schema_casting(mps, SilverMidtermPermanenceScoreDataObject.SCHEMA)
 
         mps = mps.repartition(*SilverMidtermPermanenceScoreDataObject.PARTITION_COLUMNS)
 
@@ -787,6 +776,8 @@ class MidtermPermanenceScore(Component):
         self.logger.info("Reading data objects...")
         self.read()
         self.logger.info("... data objects read!")
+
+        partition_chunks = self._get_partition_chunks()
 
         midterm_daily_data = []
 
@@ -815,11 +806,24 @@ class MidtermPermanenceScore(Component):
             )
 
             for day_type, time_intervals in self.period_combinations.items():
+                self.day_type = day_type
+
                 for time_interval in time_intervals:
-                    self.day_type = day_type
                     self.time_interval = time_interval
-                    self.transform()
-                    self.write()
+
+                    for i, partition_chunk in enumerate(partition_chunks):
+                        self.logger.info(f"Processing partition chunk {i}")
+                        self.logger.debug(f"Partition chunk: {partition_chunk}")
+                        if partition_chunk is not None:
+                            self.current_dps_data_chunk = self.current_dps_data.filter(
+                                F.col(ColNames.user_id_modulo).isin(partition_chunk)
+                            )
+                        else:
+                            self.current_dps_data_chunk = self.current_dps_data
+
+                        self.transform()
+                        self.write()
+                        self.logger.info(f"Finished processing partition chunk {i}")
                     self.logger.info(
                         f"... finished saving results for day_type `{self.day_type}` and time_interval `{self.time_interval}`"
                     )
@@ -828,3 +832,39 @@ class MidtermPermanenceScore(Component):
             )
 
         self.logger.info("... Finished!")
+
+    def _get_partition_chunks(self) -> List[List[int]]:
+        """
+        Method that returns the partition chunks for the current date.
+
+        Returns:
+            List[List[int, int]]: list of partition chunks. If the partition_chunk_size is not defined in the config or
+                the number of partitions is less than the desired chunk size, it will return a list with a single None element.
+        """
+        # Get partitions desired
+        partition_chunk_size = self.config.getint(self.COMPONENT_ID, "partition_chunk_size", fallback=None)
+        number_of_partitions = self.config.getint(self.COMPONENT_ID, "number_of_partitions", fallback=None)
+
+        if partition_chunk_size is None or number_of_partitions is None or partition_chunk_size <= 0:
+            return [None]
+
+        if number_of_partitions <= partition_chunk_size:
+            self.logger.warning(
+                f"Available Partition number ({number_of_partitions}) is "
+                f"less than the desired chunk size ({partition_chunk_size}). "
+                f"Using all partitions."
+            )
+            return [None]
+        partition_chunks = [
+            list(range(i, min(i + partition_chunk_size, number_of_partitions)))
+            for i in range(0, number_of_partitions, partition_chunk_size)
+        ]
+        # NOTE: Generate chunks if partition_values were read for each day
+        # getting exactly the amount of partitions for that day
+
+        # partition_chunks = [
+        #     partition_values[i : i + partition_chunk_size]
+        #     for i in range(0, partition_values_size, partition_chunk_size)
+        # ]
+
+        return partition_chunks

@@ -12,20 +12,28 @@ from multimno.components.execution.present_population.present_population_estimat
 from multimno.components.execution.usual_environment_aggregation.usual_environment_aggregation import (
     UsualEnvironmentAggregation,
 )
+from multimno.components.execution.internal_migration.internal_migration import InternalMigration
 
+from multimno.core.data_objects.silver.silver_present_population_data_object import SilverPresentPopulationDataObject
 from multimno.core.data_objects.silver.silver_present_population_zone_data_object import (
     SilverPresentPopulationZoneDataObject,
+)
+from multimno.core.data_objects.silver.silver_aggregated_usual_environments_data_object import (
+    SilverAggregatedUsualEnvironmentsDataObject,
 )
 from multimno.core.data_objects.silver.silver_aggregated_usual_environments_zones_data_object import (
     SilverAggregatedUsualEnvironmentsZonesDataObject,
 )
+from multimno.core.data_objects.silver.silver_internal_migration_data_object import SilverInternalMigrationDataObject
 
 from multimno.core.spark_session import check_if_data_path_exists, delete_file_or_folder
 from multimno.core.component import Component
 from multimno.core.settings import CONFIG_SILVER_PATHS_KEY
 from multimno.core.constants.columns import ColNames
 from multimno.core.constants.period_names import SEASONS
+from multimno.core.constants.reserved_dataset_ids import ReservedDatasetIDs
 from multimno.core.log import get_execution_stats
+from multimno.core.grid import InspireGridGenerator
 
 CLASS_MAPPING = {
     PresentPopulationEstimation.COMPONENT_ID: {
@@ -37,6 +45,27 @@ CLASS_MAPPING = {
     UsualEnvironmentAggregation.COMPONENT_ID: {
         "constructor": SilverAggregatedUsualEnvironmentsZonesDataObject,
         "input_path_config_key": "aggregated_usual_environments_zone_silver",
+        "output_path_config_key": "estimated_aggregated_usual_environments_zone_silver",
+        "target_column": ColNames.weighted_device_count,
+    },
+    InternalMigration.COMPONENT_ID: {
+        "constructor": SilverInternalMigrationDataObject,
+        "input_path_config_key": "internal_migration_silver",
+        "output_path_config_key": "estimated_internal_migration_silver",
+        "target_column": ColNames.migration,
+    },
+}
+
+CLASS_MAPPING_100m = {
+    PresentPopulationEstimation.COMPONENT_ID: {
+        "constructor": SilverPresentPopulationDataObject,
+        "input_path_config_key": "present_population_silver",
+        "output_path_config_key": "estimated_present_population_zone_silver",
+        "target_column": ColNames.population,
+    },
+    UsualEnvironmentAggregation.COMPONENT_ID: {
+        "constructor": SilverAggregatedUsualEnvironmentsDataObject,
+        "input_path_config_key": "aggregated_usual_environments_silver",
         "output_path_config_key": "estimated_aggregated_usual_environments_zone_silver",
         "target_column": ColNames.weighted_device_count,
     },
@@ -62,71 +91,75 @@ class Estimation(Component):
         self.target_column: str = None
         self.deduplication_factor: float = None
         self.mno_to_target_population_factor: float = None
+        self.zoning_dataset: str = None
+        self.levels: list[int] = None
+
+    def _configure_execution(self, target_component_id: str, class_mapping: dict):
+        """Method  that sets up the input and output data objects based on the target input data to be processed,
+        and whether to remain at the INSPIRE 100m grid level or use a proper zoning system
+
+        Args:
+            target_component_id (str): COMPONENT_ID attribute of the target
+            class_mapping (dict): dict with constants for the appropiate target
+
+        Raises:
+            ValueError: input data path does not exist
+        """
+        input_do_path = self.config.get(
+            CONFIG_SILVER_PATHS_KEY, class_mapping[target_component_id]["input_path_config_key"]
+        )
+        output_do_path = self.config.get(
+            CONFIG_SILVER_PATHS_KEY, class_mapping[target_component_id]["output_path_config_key"]
+        )
+
+        if not check_if_data_path_exists(self.spark, input_do_path):
+            self.logger.warning(f"Expected path {input_do_path} to exist but it does not")
+            raise ValueError(
+                f"Invalid path for {class_mapping[target_component_id]['constructor'].ID}: {input_do_path}"
+            )
+
+        clear_destination_directory = self.config.getboolean(
+            f"{self.COMPONENT_ID}.{target_component_id}", "clear_destination_directory"
+        )
+        if clear_destination_directory:
+            delete_file_or_folder(self.spark, output_do_path)
+
+        input_do = class_mapping[target_component_id]["constructor"](self.spark, input_do_path)
+        output_do = CLASS_MAPPING[target_component_id]["constructor"](self.spark, output_do_path)
+
+        self.data_objects[target_component_id] = {"input": input_do, "output": output_do}
 
     def initalize_data_objects(self):
 
         self.execute_present_population = self.config.getboolean(self.COMPONENT_ID, "present_population_execution")
         self.execute_usual_environment = self.config.getboolean(self.COMPONENT_ID, "usual_environment_execution")
+        self.execute_internal_migration = self.config.getboolean(self.COMPONENT_ID, "internal_migration_execution")
 
         self.data_objects = {}
 
         if self.execute_present_population:
-            input_do_path = self.config.get(
-                CONFIG_SILVER_PATHS_KEY,
-                CLASS_MAPPING[PresentPopulationEstimation.COMPONENT_ID]["input_path_config_key"],
-            )
-            output_do_path = self.config.get(
-                CONFIG_SILVER_PATHS_KEY,
-                CLASS_MAPPING[PresentPopulationEstimation.COMPONENT_ID]["output_path_config_key"],
-            )
-
-            if not check_if_data_path_exists(self.spark, input_do_path):
-                self.logger.warning(f"Expected path {input_do_path} to exist but it does not")
-                raise ValueError(
-                    f"Invalid path for {CLASS_MAPPING[PresentPopulationEstimation.COMPONENT_ID]['constructor'].ID}: {input_do_path}"
-                )
-
-            clear_destination_directory = self.config.getboolean(
-                f"{self.COMPONENT_ID}.PresentPopulationEstimation", "clear_destination_directory"
-            )
-            if clear_destination_directory:
-                delete_file_or_folder(self.spark, output_do_path)
-
-            input_do = CLASS_MAPPING[PresentPopulationEstimation.COMPONENT_ID]["constructor"](self.spark, input_do_path)
-            output_do = CLASS_MAPPING[PresentPopulationEstimation.COMPONENT_ID]["constructor"](
-                self.spark, output_do_path
-            )
-
-            self.data_objects[PresentPopulationEstimation.COMPONENT_ID] = {"input": input_do, "output": output_do}
+            target_component_id = PresentPopulationEstimation.COMPONENT_ID
+            zoning_dataset = self.config.get(f"{self.COMPONENT_ID}.{target_component_id}", "zoning_dataset_id")
+            if zoning_dataset == ReservedDatasetIDs.INSPIRE_100m:
+                self._configure_execution(target_component_id, CLASS_MAPPING_100m)
+            else:
+                self._configure_execution(target_component_id, CLASS_MAPPING)
 
         if self.execute_usual_environment:
-            input_do_path = self.config.get(
-                CONFIG_SILVER_PATHS_KEY,
-                CLASS_MAPPING[UsualEnvironmentAggregation.COMPONENT_ID]["input_path_config_key"],
-            )
-            output_do_path = self.config.get(
-                CONFIG_SILVER_PATHS_KEY,
-                CLASS_MAPPING[UsualEnvironmentAggregation.COMPONENT_ID]["output_path_config_key"],
-            )
+            target_component_id = UsualEnvironmentAggregation.COMPONENT_ID
+            zoning_dataset = self.config.get(f"{self.COMPONENT_ID}.{target_component_id}", "zoning_dataset_id")
+            if zoning_dataset == ReservedDatasetIDs.INSPIRE_100m:
+                self._configure_execution(target_component_id, CLASS_MAPPING_100m)
+            else:
+                self._configure_execution(target_component_id, CLASS_MAPPING)
 
-            if not check_if_data_path_exists(self.spark, input_do_path):
-                self.logger.warning(f"Expected path {input_do_path} to exist but it does not")
-                raise ValueError(
-                    f"Invalid path for {CLASS_MAPPING[UsualEnvironmentAggregation.COMPONENT_ID]['constructor'].ID}: {input_do_path}"
-                )
-
-            clear_destination_directory = self.config.getboolean(
-                f"{self.COMPONENT_ID}.UsualEnvironmentAggregation", "clear_destination_directory"
-            )
-            if clear_destination_directory:
-                delete_file_or_folder(self.spark, output_do_path)
-
-            input_do = CLASS_MAPPING[UsualEnvironmentAggregation.COMPONENT_ID]["constructor"](self.spark, input_do_path)
-            output_do = CLASS_MAPPING[UsualEnvironmentAggregation.COMPONENT_ID]["constructor"](
-                self.spark, output_do_path
-            )
-
-            self.data_objects[UsualEnvironmentAggregation.COMPONENT_ID] = {"input": input_do, "output": output_do}
+        if self.execute_internal_migration:
+            target_component_id = InternalMigration.COMPONENT_ID
+            zoning_dataset = self.config.get(f"{self.COMPONENT_ID}.{target_component_id}", "zoning_dataset_id")
+            if zoning_dataset == ReservedDatasetIDs.INSPIRE_100m:
+                raise NotImplementedError("Estimation process for InternalMigration and INSPIRE 100m not implemented")
+            else:
+                self._configure_execution(target_component_id, CLASS_MAPPING)
 
     @get_execution_stats
     def execute(self):
@@ -146,6 +179,18 @@ class Estimation(Component):
             self.mno_to_target_population_factor = self.config.getfloat(
                 f"{self.COMPONENT_ID}.{component_id}", "mno_to_target_population_factor"
             )
+
+            self.zoning_dataset = self.config.get(
+                f"{self.COMPONENT_ID}.{self.current_component_id}", "zoning_dataset_id"
+            )
+            if self.zoning_dataset in ReservedDatasetIDs():
+                self.logger.info(
+                    f"{component_id}: zoning_dataset_id is {self.zoning_dataset} -- forcing hierarchical levels to `[1]`"
+                )
+                self.levels = [1]
+            else:
+                levels = self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "hierarchical_levels")
+                self.levels = list(int(x.strip()) for x in levels.split(","))
 
             self.input_data_objects = {
                 self.data_objects[component_id]["input"].ID: self.data_objects[component_id]["input"]
@@ -175,10 +220,6 @@ class Estimation(Component):
         """
         # TODO: move config reading and validation to __init__ (?)
         if self.current_component_id == PresentPopulationEstimation.COMPONENT_ID:
-            zoning_dataset = self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "zoning_dataset_id")
-            levels = self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "hierarchical_levels")
-            levels = list(int(x.strip()) for x in levels.split(","))
-
             start_date = dt.datetime.strptime(
                 self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "start_date"), "%Y-%m-%d"
             )
@@ -186,16 +227,23 @@ class Estimation(Component):
                 self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "end_date"), "%Y-%m-%d"
             )
 
-            df = (
-                df.where(F.col(ColNames.dataset_id) == F.lit(zoning_dataset))
-                .where(F.col(ColNames.level).isin(levels))
-                .where(F.make_date(ColNames.year, ColNames.month, ColNames.day).between(start_date, end_date))
-            )
+            df = df.where(F.make_date(ColNames.year, ColNames.month, ColNames.day).between(start_date, end_date))
+
+            if self.zoning_dataset == ReservedDatasetIDs.INSPIRE_100m:
+                df = (
+                    df.withColumn(ColNames.dataset_id, F.lit(ReservedDatasetIDs.INSPIRE_100m))
+                    .withColumn(ColNames.level, F.lit(1))
+                    .withColumn(
+                        ColNames.zone_id, F.lpad(ColNames.grid_id, InspireGridGenerator.PROJ_COORD_INT_SIZE * 2, "0")
+                    )
+                    .drop(ColNames.group_id)
+                )
+            else:
+                df = df.where(F.col(ColNames.dataset_id) == F.lit(self.zoning_dataset)).where(
+                    F.col(ColNames.level).isin(self.levels)
+                )
 
         if self.current_component_id == UsualEnvironmentAggregation.COMPONENT_ID:
-            zoning_dataset = self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "zoning_dataset_id")
-            levels = self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "hierarchical_levels")
-            levels = list(int(x.strip()) for x in levels.split(","))
             labels = self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "labels")
             labels = list(x.strip() for x in labels.split(","))
 
@@ -211,12 +259,61 @@ class Estimation(Component):
                 raise ValueError(f"Unknown season {season} -- valid values are {SEASONS}")
 
             df = (
-                df.where(F.col(ColNames.dataset_id) == zoning_dataset)
-                .where(F.col(ColNames.level).isin(levels))
-                .where(F.col(ColNames.label).isin(labels))
+                df.where(F.col(ColNames.label).isin(labels))
                 .where(F.col(ColNames.start_date) == start_date)
                 .where(F.col(ColNames.end_date) == end_date)
                 .where(F.col(ColNames.season) == season)
+            )
+            if self.zoning_dataset == ReservedDatasetIDs.INSPIRE_100m:
+                df = (
+                    df.withColumn(ColNames.dataset_id, F.lit(ReservedDatasetIDs.INSPIRE_100m))
+                    .withColumn(ColNames.level, F.lit(1))
+                    .withColumn(
+                        ColNames.zone_id, F.lpad(ColNames.grid_id, InspireGridGenerator.PROJ_COORD_INT_SIZE * 2, "0")
+                    )
+                    .drop(ColNames.group_id)
+                )
+            else:
+                df = df.where(F.col(ColNames.dataset_id) == self.zoning_dataset).where(
+                    F.col(ColNames.level).isin(self.levels)
+                )
+
+        if self.current_component_id == InternalMigration.COMPONENT_ID:
+            start_date_prev = dt.datetime.strptime(
+                self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "start_month_previous"), "%Y-%m"
+            )
+            end_date_prev = dt.datetime.strptime(
+                self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "end_month_previous"), "%Y-%m"
+            )
+            end_date_prev = end_date_prev + dt.timedelta(
+                days=cal.monthrange(end_date_prev.year, end_date_prev.month)[1] - 1
+            )
+            season_prev = self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "season_previous")
+            if season_prev not in SEASONS:
+                raise ValueError(f"Unknown season {season_prev} -- valid values are {SEASONS}")
+
+            start_date_new = dt.datetime.strptime(
+                self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "start_month_new"), "%Y-%m"
+            )
+            end_date_new = dt.datetime.strptime(
+                self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "end_month_new"), "%Y-%m"
+            )
+            end_date_new = end_date_new + dt.timedelta(
+                days=cal.monthrange(end_date_new.year, end_date_new.month)[1] - 1
+            )
+            season_new = self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "season_new")
+            if season_new not in SEASONS:
+                raise ValueError(f"Unknown season {season_new} -- valid values are {SEASONS}")
+
+            df = (
+                df.where(F.col(ColNames.dataset_id) == self.zoning_dataset)
+                .where(F.col(ColNames.level).isin(self.levels))
+                .where(F.col(ColNames.start_date_previous) == start_date_prev)
+                .where(F.col(ColNames.end_date_previous) == end_date_prev)
+                .where(F.col(ColNames.season_previous) == season_prev)
+                .where(F.col(ColNames.start_date_new) == start_date_new)
+                .where(F.col(ColNames.end_date_new) == end_date_new)
+                .where(F.col(ColNames.season_new) == season_new)
             )
 
         return df
@@ -260,8 +357,12 @@ class Estimation(Component):
         return df
 
     def transform(self):
-        df = self.input_data_objects[CLASS_MAPPING[self.current_component_id]["constructor"].ID].df
+        if self.zoning_dataset == ReservedDatasetIDs.INSPIRE_100m:
+            constructor_id = CLASS_MAPPING_100m[self.current_component_id]["constructor"].ID
+        else:
+            constructor_id = CLASS_MAPPING[self.current_component_id]["constructor"].ID
 
+        df = self.input_data_objects[constructor_id].df
         # First, filter based on partition and dates
         df = self.filter_dataframe(df)
 

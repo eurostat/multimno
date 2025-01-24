@@ -47,3 +47,12 @@ class SemanticErrorType:
     INCORRECT_EVENT_LOCATION = 3
     SUSPICIOUS_EVENT_LOCATION = 4
     DIFFERENT_LOCATION_DUPLICATE = 5
+
+
+class UeGridIdType:
+
+    UNKNOWN = -99
+    DEVICE_OBSERVATION = -1
+    UKNOWN_STR = "unknown"
+    DEVICE_OBSERVATION_STR = "device_observation"
+    GRID_STR = "grid"

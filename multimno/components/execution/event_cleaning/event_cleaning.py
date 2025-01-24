@@ -28,6 +28,7 @@ from multimno.core.spark_session import (
 from multimno.core.settings import (
     CONFIG_BRONZE_PATHS_KEY,
     CONFIG_SILVER_PATHS_KEY,
+    GENERAL_CONFIG_KEY,
 )
 from multimno.core.constants.columns import ColNames
 from multimno.core.constants.error_types import ErrorTypes
@@ -45,9 +46,6 @@ class EventCleaning(Component):
 
     def __init__(self, general_config_path: str, component_config_path: str) -> None:
         super().__init__(general_config_path, component_config_path)
-
-        self.timestamp_format = self.config.get(self.COMPONENT_ID, "timestamp_format")
-        self.local_mcc = self.config.getint(self.COMPONENT_ID, "local_mcc")
 
         self.do_same_location_deduplication = self.config.getboolean(
             self.COMPONENT_ID,
@@ -73,8 +71,9 @@ class EventCleaning(Component):
             fallback=False,
         )
 
-        self.local_timezone = self.config.get(self.COMPONENT_ID, "local_timezone")
-
+        self.timestamp_format = self.config.get(self.COMPONENT_ID, "timestamp_format")
+        self.local_timezone = self.config.get(GENERAL_CONFIG_KEY, "local_timezone")
+        self.local_mcc = self.config.getint(GENERAL_CONFIG_KEY, "local_mcc")
         self.bbox = self.config.geteval(self.COMPONENT_ID, "bounding_box")
 
     def initalize_data_objects(self):

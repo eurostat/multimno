@@ -8,8 +8,10 @@ import calendar as cal
 
 import pyspark.sql.functions as F
 from pyspark.sql import DataFrame
+from pyspark.sql import SparkSession
 
 from multimno.core.component import Component
+from multimno.core.grid import InspireGridGenerator
 from multimno.core.data_objects.data_object import DataObject
 from multimno.core.data_objects.silver.silver_geozones_grid_map_data_object import (
     SilverGeozonesGridMapDataObject,
@@ -32,6 +34,7 @@ from multimno.core.settings import (
 )
 from multimno.core.constants.columns import ColNames
 from multimno.core.constants.period_names import SEASONS
+from multimno.core.constants.reserved_dataset_ids import ReservedDatasetIDs
 import multimno.core.utils as utils
 from multimno.core.log import get_execution_stats
 
@@ -76,6 +79,7 @@ class SpatialAggregation(Component):
     def initalize_data_objects(self):
 
         # inputs
+        self.input_data_objects_by_target = {}
         self.aggegation_targets = []
         if self.config.getboolean(SpatialAggregation.COMPONENT_ID, "present_population_execution"):
             self.aggegation_targets.append("PresentPopulation")
@@ -88,20 +92,29 @@ class SpatialAggregation(Component):
 
         # prepare input data objects to aggregate
 
-        inputs = {"geozones_grid_map_data_silver": SilverGeozonesGridMapDataObject}
+        inputs = {}
 
         for target in self.aggegation_targets:
+            self.input_data_objects_by_target[target] = {}  # initial value for later
+            inputs[target] = {}
             input_aggregation_do_params = CLASS_MAPPING[target]["input"]
-            inputs[input_aggregation_do_params[1]] = input_aggregation_do_params[0]
+            inputs[target][input_aggregation_do_params[1]] = input_aggregation_do_params[0]
 
-        self.input_data_objects = {}
-        for key, value in inputs.items():
-            path = self.config.get(CONFIG_SILVER_PATHS_KEY, key)
-            if check_if_data_path_exists(self.spark, path):
-                self.input_data_objects[value.ID] = value(self.spark, path)
-            else:
-                self.logger.warning(f"Expected path {path} to exist but it does not")
-                raise ValueError(f"Invalid path for {value.ID}: {path}")
+            # if dataset is not a reserved one, include grid-to-zone map data object as input
+            if (
+                not self.config.get(f"{SpatialAggregation.COMPONENT_ID}.{target}", "zoning_dataset_id")
+                in ReservedDatasetIDs()
+            ):
+                inputs[target]["geozones_grid_map_data_silver"] = SilverGeozonesGridMapDataObject
+
+        for target in self.aggegation_targets:
+            for key, value in inputs[target].items():
+                path = self.config.get(CONFIG_SILVER_PATHS_KEY, key)
+                if check_if_data_path_exists(self.spark, path):
+                    self.input_data_objects_by_target[target][value.ID] = value(self.spark, path)
+                else:
+                    self.logger.warning(f"Expected path {path} to exist but it does not")
+                    raise ValueError(f"Invalid path for {value.ID}: {path}")
 
         # prepare output data objects
 
@@ -110,7 +123,7 @@ class SpatialAggregation(Component):
             output_do_params = CLASS_MAPPING[target]["output"]
             output_do_path = self.config.get(CONFIG_SILVER_PATHS_KEY, output_do_params[1])
 
-            if self.config.get(f"{SpatialAggregation.COMPONENT_ID}.{target}", "clear_destination_directory"):
+            if self.config.getboolean(f"{SpatialAggregation.COMPONENT_ID}.{target}", "clear_destination_directory"):
                 delete_file_or_folder(self.spark, output_do_path)
             self.output_data_objects[output_do_params[0].ID] = output_do_params[0](self.spark, output_do_path)
             self.output_data_objects[output_do_params[0].ID].df = self.spark.createDataFrame(
@@ -173,12 +186,26 @@ class SpatialAggregation(Component):
 
         for target in self.aggegation_targets:
             self.logger.info(f"Starting spatial aggregation for {target} ...")
+            self.input_data_objects = self.input_data_objects_by_target[target]  # input DOs for this target
             self.input_aggregation_do = self.input_data_objects[CLASS_MAPPING[target]["input"][0].ID]
             self.output_aggregation_do = self.output_data_objects[CLASS_MAPPING[target]["output"][0].ID]
 
             self.zoning_dataset_id = self.config.get(f"{self.COMPONENT_ID}.{target}", "zoning_dataset_id")
-            levels = self.config.get(f"{self.COMPONENT_ID}.{target}", "hierarchical_levels")
-            levels = list(int(x.strip()) for x in levels.split(","))
+
+            if self.zoning_dataset_id == ReservedDatasetIDs.INSPIRE_100m:
+                self.logger.info(
+                    f"No spatial aggregation needed for zoning_dataset_id {self.zoning_dataset_id} -- skipping {target}"
+                )
+                continue
+
+            if self.zoning_dataset_id == ReservedDatasetIDs.INSPIRE_1km:
+                self.logger.info(
+                    f"{target}: zoning_dataset_id is {self.zoning_dataset_id} -- forcing hierarchical levels to `[1]`"
+                )
+                levels = [1]
+            else:
+                levels = self.config.get(f"{self.COMPONENT_ID}.{target}", "hierarchical_levels")
+                levels = list(int(x.strip()) for x in levels.split(","))
 
             self.read()
             self.current_input_sdf = self.filter_dataframe(target)
@@ -193,19 +220,79 @@ class SpatialAggregation(Component):
     def transform(self):
         self.logger.info(f"Transform method {self.COMPONENT_ID}...")
 
-        current_zoning_sdf = self.input_data_objects[SilverGeozonesGridMapDataObject.ID].df
-        current_zoning_sdf = current_zoning_sdf.filter(
-            current_zoning_sdf[ColNames.dataset_id].isin(self.zoning_dataset_id)
-        ).select(ColNames.grid_id, ColNames.hierarchical_id, ColNames.zone_id, ColNames.dataset_id)
+        if self.zoning_dataset_id == ReservedDatasetIDs.INSPIRE_1km:
+            aggregated_sdf = self.aggregate_to_coarser_grid(
+                self.spark,
+                self.current_input_sdf,
+                self.zoning_dataset_id,
+                self.current_level,
+                self.output_aggregation_do,
+            )
+        else:
+            current_zoning_sdf = self.input_data_objects[SilverGeozonesGridMapDataObject.ID].df
+            current_zoning_sdf = current_zoning_sdf.filter(
+                current_zoning_sdf[ColNames.dataset_id].isin(self.zoning_dataset_id)
+            ).select(ColNames.grid_id, ColNames.hierarchical_id, ColNames.zone_id, ColNames.dataset_id)
 
-        # do aggregation
-        aggregated_sdf = self.aggregate_to_zone(
-            self.current_input_sdf, current_zoning_sdf, self.current_level, self.output_aggregation_do
-        )
+            # do aggregation
+            aggregated_sdf = self.aggregate_to_zone(
+                self.current_input_sdf, current_zoning_sdf, self.current_level, self.output_aggregation_do
+            )
 
         aggregated_sdf = utils.apply_schema_casting(aggregated_sdf, self.output_aggregation_do.SCHEMA)
 
         self.output_data_objects[self.output_aggregation_do.ID].df = aggregated_sdf
+
+    @staticmethod
+    def aggregate_to_coarser_grid(
+        spark: SparkSession,
+        sdf_to_aggregate: DataFrame,
+        zoning_dataset_id: str,
+        hierarchical_level: int,
+        output_do: DataObject,
+    ) -> DataFrame:
+        """This method aggregates the data from the 100m reference grid to a coarser grid.
+
+        Args:
+            spark (SparkSession): sparkSession
+            sdf_to_aggregate (DataFrame): input data to aggregate
+            zoning_dataset_id (str): zoning dataset ID -- currently only accepted value is `ReservedDatasetIds.INSPIRE_1km`
+            hierarchical_level (int): hierarchical level that the output data will have in its `level` column
+            output_do (DataObject): output data object class
+
+        Raises:
+            NotImplementedError: whenever a zoning_dataset_id different to `ReservedDatasetIds.INSPIRE_1km` is passed
+
+        Returns:
+            sdf_to_aggregate: DataFrame - aggregated data
+        """
+
+        if zoning_dataset_id == ReservedDatasetIDs.INSPIRE_1km:
+            coarser_resolution = 1000
+        else:
+            raise NotImplementedError(
+                f"Unexpected Reserved dataset id -- implemented only for {ReservedDatasetIDs.INSPIRE_1km}"
+            )
+
+        grid_gen = InspireGridGenerator(spark=spark, resolution=100)
+
+        # Replace 100m grid_id for 1km grid_id
+        sdf_to_aggregate = grid_gen.get_parent_grid_ids(
+            sdf_to_aggregate, resolution=coarser_resolution, parent_col_name=ColNames.grid_id
+        )
+
+        # Transform grid_id to zone_id, add metadata dataset columns
+        sdf_to_aggregate = sdf_to_aggregate.withColumn(
+            ColNames.zone_id, F.lpad(F.col(ColNames.grid_id), grid_gen.PROJ_COORD_INT_SIZE * 2, "0")  # zone_id is str
+        ).drop(ColNames.grid_id)
+        sdf_to_aggregate = sdf_to_aggregate.withColumn(ColNames.dataset_id, F.lit(zoning_dataset_id))
+        sdf_to_aggregate = sdf_to_aggregate.withColumn(ColNames.level, F.lit(hierarchical_level))
+
+        # potentially different aggregation functions can be used
+        agg_expressions = [F.sum(F.col(col)).alias(col) for col in output_do.VALUE_COLUMNS]
+        aggregated_sdf = sdf_to_aggregate.groupBy(*output_do.AGGREGATION_COLUMNS).agg(*agg_expressions)
+
+        return aggregated_sdf
 
     @staticmethod
     def aggregate_to_zone(

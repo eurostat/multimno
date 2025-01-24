@@ -106,7 +106,7 @@ def generate_input_midterm_one_user_v1(user_id, start_month: dt.date, end_month:
         (workdays, working_hours, grid)
     """
     midterm_data = []
-    grid_id = "g1"
+    grid_id = 1
     user_id_modulo = 0
     one_month = start_month
     while one_month < end_month:
@@ -168,7 +168,7 @@ def generate_expected_output_one_user_v1(user_id) -> list[Row]:
 
     Variant 1.
     """
-    grid_id = "g1"
+    grid_id = 1
     user_id_modulo = 0
     expected_data = []
 

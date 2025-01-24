@@ -28,10 +28,12 @@ class SilverTimeSegmentsDataObject(ParquetDataObject):
     SCHEMA = StructType(
         [
             StructField(ColNames.user_id, BinaryType(), nullable=False),
-            StructField(ColNames.time_segment_id, IntegerType(), nullable=False),
+            StructField(ColNames.time_segment_id, StringType(), nullable=False),
             StructField(ColNames.start_timestamp, TimestampType(), nullable=False),
             StructField(ColNames.end_timestamp, TimestampType(), nullable=False),
             StructField(ColNames.mcc, ShortType(), nullable=False),
+            StructField(ColNames.mnc, StringType(), nullable=False),
+            StructField(ColNames.plmn, IntegerType(), nullable=True),
             StructField(ColNames.cells, ArrayType(StringType()), nullable=False),
             StructField(ColNames.state, StringType(), nullable=False),
             StructField(ColNames.is_last, BooleanType(), nullable=True),

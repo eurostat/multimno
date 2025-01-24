@@ -6,10 +6,10 @@ from pyspark.sql.types import (
     StructField,
     StructType,
     FloatType,
-    StringType,
     ByteType,
     ShortType,
     TimestampType,
+    LongType,
 )
 
 from multimno.core.data_objects.data_object import ParquetDataObject
@@ -24,7 +24,7 @@ class SilverPresentPopulationDataObject(ParquetDataObject):
     ID = "SilverPresentPopulationDO"
     SCHEMA = StructType(
         [
-            StructField(ColNames.grid_id, StringType(), nullable=False),
+            StructField(ColNames.grid_id, LongType(), nullable=False),
             StructField(ColNames.population, FloatType(), nullable=False),
             StructField(ColNames.timestamp, TimestampType(), nullable=False),
             # partition columns

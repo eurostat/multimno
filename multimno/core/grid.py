@@ -3,14 +3,17 @@ This module provides functionality for generating a grid based on the INSPIRE gr
 """
 
 from abc import ABCMeta, abstractmethod
-from typing import List, Union
+from typing import List, Tuple, Union
+from multimno.core.constants.columns import ColNames
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
-from pyspark.sql.types import IntegerType
+from pyspark.sql.types import IntegerType, StringType, LongType
 from pyproj import Transformer
 from sedona.sql import st_constructors as STC
 from sedona.sql import st_functions as STF
 from sedona.sql import st_predicates as STP
+
+from multimno.core.constants.columns import ColNames
 
 
 class GridGenerator(metaclass=ABCMeta):
@@ -38,7 +41,7 @@ class GridGenerator(metaclass=ABCMeta):
         """Get grid polygons from grid_ids with given coordinate system."""
 
     @abstractmethod
-    def get_parent_grid_id(self, sdf: DataFrame, resolution: int) -> DataFrame:
+    def get_parent_grid_ids(self, sdf: DataFrame, resolution: int) -> DataFrame:
         """Get parent grid_id on given resolution."""
 
     @abstractmethod
@@ -54,6 +57,7 @@ class InspireGridGenerator(GridGenerator):
     """
 
     GRID_CRS_EPSG_CODE = 3035
+    PROJ_COORD_INT_SIZE = 7
 
     def __init__(
         self,
@@ -124,7 +128,7 @@ class InspireGridGenerator(GridGenerator):
         )
 
     @staticmethod
-    def _project_bounding_box(extent: List[float], auxiliar_coords: List[float]) -> (List[float], List[float]):
+    def _project_bounding_box(extent: List[float], auxiliar_coords: List[float]) -> Tuple[List[float], List[float]]:
         """Returns the bottom-left and top-right coordinates of the rectangular bounding box in the projected CRS
         that covers the bounding box defined from the bottom-left and top-right corners in lat/lon.
 
@@ -342,13 +346,10 @@ class InspireGridGenerator(GridGenerator):
 
         sdf = sdf.withColumn(
             self.grid_id_col_name,
-            F.concat(
-                F.lit(self.resolution_str),
-                F.lit("N"),
-                (STF.ST_Y(sdf["geometry"]) - self.resolution / 2).cast(IntegerType()),
-                F.lit("E"),
-                (STF.ST_X(sdf["geometry"]) - self.resolution / 2).cast(IntegerType()),
-            ),
+            (
+                (STF.ST_Y(sdf["geometry"]) - (self.resolution / 2)).cast(LongType()) * 10**self.PROJ_COORD_INT_SIZE
+                + (STF.ST_X(sdf["geometry"]) - (self.resolution / 2)).cast(LongType())
+            ).cast(LongType()),
         )
 
         return sdf
@@ -421,13 +422,10 @@ class InspireGridGenerator(GridGenerator):
 
         sdf = sdf.withColumn(
             self.grid_id_col_name,
-            F.concat(
-                F.lit(self.resolution_str),
-                F.lit("N"),
-                STF.ST_XMin(sdf["geometry"]).cast(IntegerType()),
-                F.lit("E"),
-                STF.ST_YMin(sdf["geometry"]).cast(IntegerType()),
-            ),
+            (
+                STF.ST_XMin(sdf["geometry"]).cast(LongType()) * 10**self.PROJ_COORD_INT_SIZE
+                + STF.ST_YMin(sdf["geometry"])
+            ).cast(LongType()),
         )
 
         return sdf
@@ -449,7 +447,32 @@ class InspireGridGenerator(GridGenerator):
 
         return sdf
 
-    def grid_ids_to_centroids(self, sdf: DataFrame, to_crs: int = None) -> DataFrame:
+    def convert_internal_id_to_inspire_specs(self, sdf: DataFrame) -> DataFrame:
+        """
+        Converts the integer grid_id column in a DataFrame to the INSPIRE grid string format.
+
+        Args:
+            df (DataFrame): Input DataFrame with a column `grid_id` in integer format.
+            resolution (int): The resolution of the grid.
+
+        Returns:
+            DataFrame: A new DataFrame with the grid_id converted to string format.
+        """
+
+        sdf = sdf.withColumn(
+            self.grid_id_col_name,
+            F.concat(
+                F.lit(self.resolution_str),
+                F.lit("N"),
+                F.lpad(F.expr(f"grid_id DIV {10**self.PROJ_COORD_INT_SIZE}"), 7, "0"),
+                F.lit("E"),
+                F.lpad(F.expr(f"grid_id % {10**self.PROJ_COORD_INT_SIZE}"), 7, "0"),
+            ),
+        )
+
+        return sdf
+
+    def grid_ids_to_centroids(self, sdf: DataFrame, resolution: int = None, to_crs: int = None) -> DataFrame:
         """Converts grid IDs to centroids.
 
         Args:
@@ -460,11 +483,14 @@ class InspireGridGenerator(GridGenerator):
         Returns:
             DataFrame: The DataFrame containing the centroids.
         """
+        if resolution is None:
+            resolution = self.resolution
+
         sdf = sdf.withColumn(
             self.geometry_col_name,
             STC.ST_Point(
-                F.regexp_extract(sdf[self.grid_id_col_name], r"E(\d+)", 1) + self.resolution / 2,
-                F.regexp_extract(sdf[self.grid_id_col_name], r"N(\d+)", 1) + self.resolution / 2,
+                F.expr(f"INT({self.grid_id_col_name} % {10**self.PROJ_COORD_INT_SIZE})") + resolution / 2,
+                F.expr(f"INT({self.grid_id_col_name} DIV {10**self.PROJ_COORD_INT_SIZE})") + resolution / 2,
             ),
         )
 
@@ -479,8 +505,8 @@ class InspireGridGenerator(GridGenerator):
 
         return sdf
 
-    def grid_ids_to_tiles(self, sdf: DataFrame, to_crs: int = None) -> DataFrame:
-        """Converts grid IDs to tiles.
+    def grid_ids_to_tiles(self, sdf: DataFrame, resolution: int = None, to_crs: int = None) -> DataFrame:
+        """Converts grid IDs in INSPIRE format to tiles.
 
         Args:
             sdf (DataFrame): The DataFrame containing the grid IDs.
@@ -489,13 +515,17 @@ class InspireGridGenerator(GridGenerator):
         Returns:
             DataFrame: The DataFrame containing the tiles.
         """
+
+        if resolution is None:
+            resolution = self.resolution
+
         sdf = sdf.withColumn(
             self.geometry_col_name,
             STC.ST_PolygonFromEnvelope(
-                F.regexp_extract(sdf[self.grid_id_col_name], r"E(\d+)", 1),
-                F.regexp_extract(sdf[self.grid_id_col_name], r"N(\d+)", 1),
-                F.regexp_extract(sdf[self.grid_id_col_name], r"E(\d+)", 1) + self.resolution,
-                F.regexp_extract(sdf[self.grid_id_col_name], r"N(\d+)", 1) + self.resolution,
+                F.expr(f"{self.grid_id_col_name} % {10**self.PROJ_COORD_INT_SIZE}"),  # x/easting min
+                F.expr(f"{self.grid_id_col_name} DIV {10**self.PROJ_COORD_INT_SIZE}"),  # y/northing min
+                F.expr(f"{self.grid_id_col_name} % {10**self.PROJ_COORD_INT_SIZE}") + resolution,  # x/easting max
+                F.expr(f"{self.grid_id_col_name} DIV {10**self.PROJ_COORD_INT_SIZE}") + resolution,  # y/northing max
             ),
         )
 
@@ -510,10 +540,89 @@ class InspireGridGenerator(GridGenerator):
 
         return sdf
 
-    def get_children_grid_ids(self, grid_id, resolution):
-        # TODO: Implement this method
-        pass
+    def get_parent_grid_ids(self, sdf: DataFrame, resolution: int, parent_col_name: str = None) -> DataFrame:
+        """
+        Coarsens grid IDs to the specified resolution, snapping down to the nearest coarser grid cell.
 
-    def get_parent_grid_id(self, grid_id, resolution):
-        # TODO: Implement this method
-        pass
+        Args:
+            sdf (DataFrame): Input Spark DataFrame with a 14-digit grid ID column named 'grid_id'.
+            resolution (int): The desired coarser resolution (e.g., 200).
+            parent_col_name (str, optional): name of the column that will hold the parent grid IDs. If None, it will be
+                named f"parent_{ColNames.grid_id}". Defaults to None.
+
+        Returns:
+            DataFrame: DataFrame with coarsened grid IDs in new column.
+        """
+        if resolution % 100 != 0:
+            raise ValueError("Resolution must be a multiple of 100.")
+        if parent_col_name is None:
+            parent_col_name = f"parent_{ColNames.grid_id}"
+
+        # Extract `northing` and `easting` correctly
+        sdf = sdf.withColumn("northing", F.expr(f"{ColNames.grid_id} DIV {10**self.PROJ_COORD_INT_SIZE}")).withColumn(
+            "easting", F.col(ColNames.grid_id) % 10**self.PROJ_COORD_INT_SIZE
+        )
+
+        # Snap `northing` and `easting` down to the nearest coarser grid boundary
+        sdf = sdf.withColumn("northing_parent", F.col("northing") - (F.col("northing") % resolution)).withColumn(
+            "easting_parent", F.col("easting") - (F.col("easting") % resolution)
+        )
+
+        # Combine the coarsened `northing` and `easting` into `parent_grid_id`
+        sdf = sdf.withColumn(
+            parent_col_name,
+            (F.col("northing_parent").cast(LongType()) * 10**self.PROJ_COORD_INT_SIZE + F.col("easting_parent")),
+        ).drop("northing", "easting", "northing_parent", "easting_parent")
+
+        return sdf
+
+    def get_children_grid_ids(
+        self, sdf: DataFrame, resolution: int, child_resolution: int, child_col_name: str = None
+    ) -> DataFrame:
+        """
+        Expands coarsened grid IDs to generate all possible child grid IDs within the specified finer resolution.
+
+        Args:
+            sdf (DataFrame): Input Spark DataFrame with a 14-digit grid ID column named 'grid_id'.
+            resolution (int): The coarser resolution (e.g., 200).
+            child_resolution (int): The finer resolution for child grids (e.g., 100).
+            child_col_name (str, optional): name of the column that will hold the children grid IDs. If None, it will be
+                named f"child_{ColNames.grid_id}". Defaults to None.
+
+        Returns:
+            DataFrame: DataFrame with generated child grid IDs in new column.
+        """
+        if resolution % 100 != 0 or child_resolution % 100 != 0:
+            raise ValueError("Both resolutions must be multiples of 100.")
+        if child_resolution >= resolution:
+            raise ValueError("Child resolution must be finer than the parent resolution.")
+        if resolution % child_resolution != 0:
+            raise ValueError("Parent resolution must be a multiple of the child resolution.")
+        if child_col_name is None:
+            child_col_name = f"child_{ColNames.grid_id}"
+
+        factor = resolution // child_resolution
+
+        # Extract `northing` and `easting` from the parent grid ID
+        sdf = sdf.withColumn("northing", F.expr(f"{ColNames.grid_id} DIV {10**self.PROJ_COORD_INT_SIZE}")).withColumn(
+            "easting", F.col(ColNames.grid_id) % 10**self.PROJ_COORD_INT_SIZE
+        )
+
+        # Generate all possible offsets for child grids
+        offsets = [(i, j) for i in range(factor) for j in range(factor)]
+        spark = sdf.sparkSession  # Get the current Spark session
+        offsets_df = spark.createDataFrame(offsets, ["northing_offset", "easting_offset"])
+
+        # Cross join with the offsets to generate all child grid IDs
+        result = (
+            sdf.crossJoin(offsets_df)
+            .withColumn("child_northing", F.expr(f"northing + northing_offset * {child_resolution}"))
+            .withColumn("child_easting", F.expr(f"easting + easting_offset * {child_resolution}"))
+            .withColumn(
+                child_col_name,
+                (F.col("child_northing").cast(LongType()) * 10**self.PROJ_COORD_INT_SIZE + F.col("child_easting")),
+            )
+            .drop("child_northing", "child_easting", "northing", "easting")
+        )
+
+        return result

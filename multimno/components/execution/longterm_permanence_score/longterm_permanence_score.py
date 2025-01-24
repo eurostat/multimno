@@ -7,6 +7,7 @@ import datetime as dt
 import calendar as cal
 from functools import reduce
 
+from multimno.core.constants.error_types import UeGridIdType
 from pyspark.sql import DataFrame
 from pyspark.sql.types import FloatType, IntegerType
 import pyspark.sql.functions as F
@@ -309,7 +310,7 @@ class LongtermPermanenceScore(Component):
         unknown_df = unknown_df.select(
             ColNames.user_id_modulo,
             ColNames.user_id,
-            F.lit("unknown").alias(ColNames.grid_id),
+            F.lit(-99).alias(ColNames.grid_id),
             ColNames.lps,
             ColNames.total_frequency,
             ColNames.frequency_mean,
@@ -322,7 +323,7 @@ class LongtermPermanenceScore(Component):
         obs_df = obs_df.select(
             ColNames.user_id_modulo,
             ColNames.user_id,
-            F.lit("device_observation").alias(ColNames.grid_id),
+            F.lit(UeGridIdType.DEVICE_OBSERVATION).alias(ColNames.grid_id),
             ColNames.lps,
             ColNames.total_frequency,
             F.lit(None).cast(FloatType()).alias(ColNames.frequency_mean),
@@ -338,6 +339,10 @@ class LongtermPermanenceScore(Component):
         midterm_df = self.input_data_objects[SilverMidtermPermanenceScoreDataObject.ID].df
 
         df = self.filter_longterm_analysis_data(midterm_df)
+
+        # Filter partition chunk
+        if self.partition_chunk is not None:
+            df = df.filter(F.col(ColNames.user_id_modulo).isin(self.partition_chunk))
 
         longterm_df = self.compute_longterm_metrics(df)
 
@@ -368,17 +373,60 @@ class LongtermPermanenceScore(Component):
         self.longterm_analyses = self._check_midterm_data_exist()
         self.logger.info("... check successful!")
         self.logger.info("Starting long-term analyses...")
-        for lt_analysis in self.longterm_analyses:
-            self.current_lt_analysis = lt_analysis
-            self.logger.info(
-                f"Starting analysis for season `{self.current_lt_analysis['season']}`, "
-                f"{min(self.current_lt_analysis['months']).strftime('%Y-%m')} to "
-                f"{max(self.current_lt_analysis['months']).strftime('%Y-%m')}, "
-                f"day_type `{self.current_lt_analysis['day_type']}` and "
-                f"time_interval `{self.current_lt_analysis['time_interval']}`..."
-            )
-            self.transform()
-            self.write()
-            self.logger.info("... results saved")
+
+        partition_chunks = self._get_partition_chunks()
+        for i, partition_chunk in enumerate(partition_chunks):
+            self.partition_chunk = partition_chunk
+            self.logger.info(f"Processing partition chunk {i}")
+            self.logger.debug(f"Partition chunk {partition_chunk}")
+            for lt_analysis in self.longterm_analyses:
+                self.current_lt_analysis = lt_analysis
+                self.logger.info(
+                    f"Starting analysis for season `{self.current_lt_analysis['season']}`, "
+                    f"{min(self.current_lt_analysis['months']).strftime('%Y-%m')} to "
+                    f"{max(self.current_lt_analysis['months']).strftime('%Y-%m')}, "
+                    f"day_type `{self.current_lt_analysis['day_type']}` and "
+                    f"time_interval `{self.current_lt_analysis['time_interval']}`..."
+                )
+                self.transform()
+                self.write()
+                self.logger.info("... results saved")
 
         self.logger.info("... all analyses finished!")
+
+    # TODO: Refactor iterative processing as an Interface
+    def _get_partition_chunks(self) -> List[List[int]]:
+        """
+        Method that returns the partition chunks for the current date.
+
+        Returns:
+            List[List[int, int]]: list of partition chunks. If the partition_chunk_size is not defined in the config or
+                the number of partitions is less than the desired chunk size, it will return a list with a single None element.
+        """
+        # Get partitions desired
+        partition_chunk_size = self.config.getint(self.COMPONENT_ID, "partition_chunk_size", fallback=None)
+        number_of_partitions = self.config.getint(self.COMPONENT_ID, "number_of_partitions", fallback=None)
+
+        if partition_chunk_size is None or number_of_partitions is None or partition_chunk_size <= 0:
+            return [None]
+
+        if number_of_partitions <= partition_chunk_size:
+            self.logger.warning(
+                f"Available Partition number ({number_of_partitions}) is "
+                f"less than the desired chunk size ({partition_chunk_size}). "
+                f"Using all partitions."
+            )
+            return [None]
+        partition_chunks = [
+            list(range(i, min(i + partition_chunk_size, number_of_partitions)))
+            for i in range(0, number_of_partitions, partition_chunk_size)
+        ]
+        # NOTE: Generate chunks if partition_values were read for each day
+        # getting exactly the amount of partitions for that day
+
+        # partition_chunks = [
+        #     partition_values[i : i + partition_chunk_size]
+        #     for i in range(0, partition_values_size, partition_chunk_size)
+        # ]
+
+        return partition_chunks

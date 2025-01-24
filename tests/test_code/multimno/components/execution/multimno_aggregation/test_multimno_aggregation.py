@@ -10,6 +10,7 @@ from multimno.core.data_objects.silver.silver_present_population_zone_data_objec
 from multimno.core.data_objects.silver.silver_aggregated_usual_environments_zones_data_object import (
     SilverAggregatedUsualEnvironmentsZonesDataObject,
 )
+from multimno.core.data_objects.silver.silver_internal_migration_data_object import SilverInternalMigrationDataObject
 
 from tests.test_code.fixtures import spark_session as spark
 
@@ -20,6 +21,7 @@ from tests.test_code.multimno.components.execution.multimno_aggregation.aux_mult
     set_input_data,
     generate_expected_aggregated_ue_zone_data,
     generate_expected_present_population_zones_data,
+    generate_expected_internal_migration_zones_data,
 )
 
 # Dummy to avoid linting errors using pytest
@@ -125,6 +127,54 @@ def test_multimno_aggregated_usual_environment_zone(spark):
     expected_result = spark.createDataFrame(
         generate_expected_aggregated_ue_zone_data(date),
         SilverAggregatedUsualEnvironmentsZonesDataObject.SCHEMA,
+    )
+
+    # Assert equality of outputs
+    assertDataFrameEqual(output_do.df, expected_result)
+
+
+def test_multimno_internal_migration(spark):
+    """
+    Test the MultiMNO aggregation of internal migration.
+
+    DESCRIPTION:
+    This test verifies MultiMNO aggregation component for internal migration data. It initialises the necessary
+    configurations, sets up the input data, executes the aggregation porcess, and asserts that the output
+    DataFrame matches the expected result
+
+    INPUT:
+    - spark: Spark session fixture provided by pytest.
+
+    STEPS:
+    1. Initialise configuration path and configuration
+    3. Create input internal migration data using the test configuration
+    4. Initialise the MultiMNOAggregation component with the test configuration
+    5. Execute the aggregation component.
+    6. Read the output of the aggregation component.
+    7. Get the expected result of the execution.
+    8. Assert equality of component output and expected output.
+    """
+    component_config_path = (
+        f"{TEST_RESOURCES_PATH}/config/multimno_aggregation/multimno_aggregation_internal_migration.ini"
+    )
+    config = parse_configuration(TEST_GENERAL_CONFIG_PATH, component_config_path)
+    # Create input data
+    set_input_data(spark, config, "internal_migration")
+
+    # Initialise component
+    multimno_agg = MultiMNOAggregation(TEST_GENERAL_CONFIG_PATH, component_config_path)
+
+    # Execution
+    multimno_agg.execute()
+
+    # Read output
+    output_do = multimno_agg.output_data_objects[SilverInternalMigrationDataObject.ID]
+    output_do.read()
+
+    # Get expected result
+    expected_result = spark.createDataFrame(
+        generate_expected_internal_migration_zones_data(),
+        SilverInternalMigrationDataObject.SCHEMA,
     )
 
     # Assert equality of outputs

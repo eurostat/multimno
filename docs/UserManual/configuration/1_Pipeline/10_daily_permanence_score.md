@@ -38,6 +38,17 @@ Under  `[DailyPermanenceScore]` config section:
 
 - **event_error_flags_to_include** - set of integers, e.g. "{0}". It indicates the values of the "error_flag" column of the input event data that will be kept. Rows with "error_flag" values not included in this set will be discarded and will not be considered for any step of the daily permanence score component. Recommended value: {0}.
 
+**--- Optional configuration values ---**
+
+- **broadcast_footprints** - bool, default: False. If True, broadcast cell_footprints to each executor. **Only recommendeded for small countries like Luxembourg.**
+
+- **clear_destination_directory** - bool, default: False. if True, the component will clear all the data in output paths.
+
+- **partition_chunk_size** - int, default None. Number of ``user_id_modulo`` partitions. Should be the same value as `number_of_partitions` in `EventCleaning` component. If not given will process all ``user_id_modulo`` partitions at the same time.
+  
+- **number_of_partitions** - int, default None. Number of ``user_id_modulo`` partitions that will be processed at the same time. This value shall be lower than `partition_chunk_size`. If not given will process all ``user_id_modulo`` partitions at the same time.
+
+- **use_200m_grid** - bool, default: False. If True, the component will aggregate cell footprint data from 100m to 200m grid resolution for DPS calculations. If False, the component will use initial 100m resolution.
 
 ## Configuration example
 
@@ -61,4 +72,11 @@ max_time_thresh_night = 28_800  # 8 h
 max_speed_thresh = 13.88888889  # 50 km/h
 
 event_error_flags_to_include = {0}
+
+# Optional
+broadcast_footprints = False
+clear_destination_directory = False
+partition_chunk_size = 256
+number_of_partitions = 64
+
 ```

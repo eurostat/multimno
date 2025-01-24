@@ -7,11 +7,12 @@ from pyspark.sql.types import (
     StructField,
     TimestampType,
     BinaryType,
-    IntegerType,
+    StringType,
+    ArrayType,
+    LongType,
     ShortType,
     ByteType,
-    FloatType,
-    StringType,
+    IntegerType,
 )
 
 from multimno.core.data_objects.data_object import ParquetDataObject
@@ -27,10 +28,9 @@ class SilverDailyPermanenceScoreDataObject(ParquetDataObject):
     SCHEMA = StructType(
         [
             StructField(ColNames.user_id, BinaryType(), nullable=False),
-            StructField(ColNames.cell_id, StringType(), nullable=False),
             StructField(ColNames.time_slot_initial_time, TimestampType(), nullable=False),
             StructField(ColNames.time_slot_end_time, TimestampType(), nullable=False),
-            StructField(ColNames.stay_duration, FloatType(), nullable=False),
+            StructField(ColNames.dps, ArrayType(LongType()), nullable=False),
             # partition columns
             StructField(ColNames.year, ShortType(), nullable=False),
             StructField(ColNames.month, ByteType(), nullable=False),

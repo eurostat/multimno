@@ -3,7 +3,7 @@
 """
 
 from sedona.sql.types import GeometryType
-from pyspark.sql.types import StructType, StructField, StringType, FloatType
+from pyspark.sql.types import StructType, StructField, StringType, FloatType, LongType
 
 from multimno.core.data_objects.data_object import GeoParquetDataObject
 from multimno.core.constants.columns import ColNames
@@ -18,7 +18,7 @@ class SilverEnrichedGridDataObject(GeoParquetDataObject):
     SCHEMA = StructType(
         [
             StructField(ColNames.geometry, GeometryType(), nullable=False),
-            StructField(ColNames.grid_id, StringType(), nullable=False),
+            StructField(ColNames.grid_id, LongType(), nullable=False),
             StructField(ColNames.elevation, FloatType(), nullable=True),
             StructField(ColNames.prior_probability, FloatType(), nullable=True),
             StructField(ColNames.ple_coefficient, FloatType(), nullable=True),

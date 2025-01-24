@@ -9,10 +9,11 @@ from multimno.core.data_objects.silver.silver_present_population_zone_data_objec
 from multimno.core.data_objects.silver.silver_aggregated_usual_environments_zones_data_object import (
     SilverAggregatedUsualEnvironmentsZonesDataObject,
 )
+from multimno.core.data_objects.silver.silver_internal_migration_data_object import SilverInternalMigrationDataObject
 
 
 def generate_input_aggregated_ue_zone_data(start_date: str) -> list[Row]:
-    """Generate the input data of the test of present populatio estimation.
+    """Generate the input data of the test of present population kanonimity.
 
     Args:
         start_date (str): date to use for setting the `start_date` and `end_date` fields.
@@ -193,7 +194,7 @@ def generate_input_aggregated_ue_zone_data(start_date: str) -> list[Row]:
 
 
 def generate_expected_obfuscated_aggregated_ue_zone_data(start_date: str) -> list[Row]:
-    """Generate the expected output of the test of present population estimation, with obfuscation and k=15.
+    """Generate the expected output of the test of present population kanonimity, with obfuscation and k=15.
 
     Args:
         start_date (str): date to use for setting the `start_date` and `end_date` fields.
@@ -374,7 +375,7 @@ def generate_expected_obfuscated_aggregated_ue_zone_data(start_date: str) -> lis
 
 
 def generate_expected_deleted_aggregated_ue_zone_data(start_date: str) -> list[Row]:
-    """Generate the expected output of the test of present population estimation, with deletion and k=15.
+    """Generate the expected output of the test of present population kanonimity, with deletion and k=15.
 
     Args:
         start_date (str): date to use for setting the `start_date` and `end_date` fields.
@@ -585,7 +586,7 @@ def generate_input_present_population_zones_data(timestamp: str) -> list[Row]:
 
 
 def generate_expected_obfuscated_present_population_zones_data(timestamp: str) -> list[Row]:
-    """Generate the expected output of the test of present population estimation, with obfuscation and k=15.
+    """Generate the expected output of the test of present population kanonimity, with obfuscation and k=15.
 
     Args:
         timestamp (str): timestamp to use for setting the `timestamp` fields.
@@ -667,7 +668,7 @@ def generate_expected_obfuscated_present_population_zones_data(timestamp: str) -
 
 
 def generate_expected_deleted_present_population_zones_data(timestamp: str) -> list[Row]:
-    """Generate the expected output of the test of present population estimation, with deletion and k=15.
+    """Generate the expected output of the test of present population kanonimity, with deletion and k=15.
 
     Args:
         timestamp (str): timestamp to use for setting the `timestamp` fields.
@@ -737,6 +738,142 @@ def generate_expected_deleted_present_population_zones_data(timestamp: str) -> l
     ]
 
 
+def generate_input_internal_migration_data() -> list[Row]:
+    """Generates the test's input internal migration data
+
+    Returns:
+        list[Row]: list of rows that form the input data.
+    """
+    return [
+        {
+            "previous_zone": "2",
+            "new_zone": "3",
+            "migration": 20.4,
+            "dataset_id": "nuts",
+            "level": 1,
+            "start_date_previous": dt.date(2023, 1, 1),
+            "end_date_previous": dt.date(2023, 6, 30),
+            "season_previous": "all",
+            "start_date_new": dt.date(2023, 7, 1),
+            "end_date_new": dt.date(2023, 12, 31),
+            "season_new": "all",
+        },
+        {
+            "previous_zone": "1",
+            "new_zone": "3",
+            "migration": 1.5,
+            "dataset_id": "nuts",
+            "level": 1,
+            "start_date_previous": dt.date(2023, 1, 1),
+            "end_date_previous": dt.date(2023, 6, 30),
+            "season_previous": "all",
+            "start_date_new": dt.date(2023, 7, 1),
+            "end_date_new": dt.date(2023, 12, 31),
+            "season_new": "all",
+        },
+        {
+            "previous_zone": "2",
+            "new_zone": "1",
+            "migration": 16.0,
+            "dataset_id": "nuts",
+            "level": 1,
+            "start_date_previous": dt.date(2023, 1, 1),
+            "end_date_previous": dt.date(2023, 6, 30),
+            "season_previous": "all",
+            "start_date_new": dt.date(2023, 7, 1),
+            "end_date_new": dt.date(2023, 12, 31),
+            "season_new": "all",
+        },
+    ]
+
+
+def generate_expected_obfuscated_internal_migration_data() -> list[Row]:
+    """Generate the expected output of the test of internal migration kanonimity, with obfuscation and k=15.
+
+    Returns:
+        list[Row]: list of rows that form the expected output.
+    """
+
+    return [
+        {
+            "previous_zone": "2",
+            "new_zone": "3",
+            "migration": 20.4,
+            "dataset_id": "nuts",
+            "level": 1,
+            "start_date_previous": dt.date(2023, 1, 1),
+            "end_date_previous": dt.date(2023, 6, 30),
+            "season_previous": "all",
+            "start_date_new": dt.date(2023, 7, 1),
+            "end_date_new": dt.date(2023, 12, 31),
+            "season_new": "all",
+        },
+        {
+            "previous_zone": "1",
+            "new_zone": "3",
+            "migration": -1.0,
+            "dataset_id": "nuts",
+            "level": 1,
+            "start_date_previous": dt.date(2023, 1, 1),
+            "end_date_previous": dt.date(2023, 6, 30),
+            "season_previous": "all",
+            "start_date_new": dt.date(2023, 7, 1),
+            "end_date_new": dt.date(2023, 12, 31),
+            "season_new": "all",
+        },
+        {
+            "previous_zone": "2",
+            "new_zone": "1",
+            "migration": 16.0,
+            "dataset_id": "nuts",
+            "level": 1,
+            "start_date_previous": dt.date(2023, 1, 1),
+            "end_date_previous": dt.date(2023, 6, 30),
+            "season_previous": "all",
+            "start_date_new": dt.date(2023, 7, 1),
+            "end_date_new": dt.date(2023, 12, 31),
+            "season_new": "all",
+        },
+    ]
+
+
+def generate_expected_deleted_internal_migration_zones_data() -> list[Row]:
+    """Generate the expected output of the test of internal migration kanonimity, with deletion and k=15.
+
+    Returns:
+        list[Row]: list of rows that form the expected output.
+    """
+
+    return [
+        {
+            "previous_zone": "2",
+            "new_zone": "3",
+            "migration": 20.4,
+            "dataset_id": "nuts",
+            "level": 1,
+            "start_date_previous": dt.date(2023, 1, 1),
+            "end_date_previous": dt.date(2023, 6, 30),
+            "season_previous": "all",
+            "start_date_new": dt.date(2023, 7, 1),
+            "end_date_new": dt.date(2023, 12, 31),
+            "season_new": "all",
+        },
+        {
+            "previous_zone": "2",
+            "new_zone": "1",
+            "migration": 16.0,
+            "dataset_id": "nuts",
+            "level": 1,
+            "start_date_previous": dt.date(2023, 1, 1),
+            "end_date_previous": dt.date(2023, 6, 30),
+            "season_previous": "all",
+            "start_date_new": dt.date(2023, 7, 1),
+            "end_date_new": dt.date(2023, 12, 31),
+            "season_new": "all",
+        },
+    ]
+
+
 def set_input_data(
     spark: SparkSession, config: ConfigParser, kind: str, date: str = "2023-01-01", timestamp="2023-01-01T00:00:00"
 ):
@@ -746,7 +883,8 @@ def set_input_data(
     Args:
         spark (SparkSession)
         config (ConfigParser)
-        kind (str): what test is being performed. Must be either `usual_environment` or `present_population`.
+        kind (str): what test is being performed. Must be either `usual_environment`, `present_population`, or
+            `internal_migration`.
         date (str, optional): date value for input test data for usual_environment test. Defaults to "2023-01-01".
         timestamp (str, optional): timestamp value for input test data for present_population test. Defaults to
             "2023-01-01T00:00:00".
@@ -767,6 +905,13 @@ def set_input_data(
             spark, config["Paths.Silver"]["estimated_aggregated_usual_environments_zone_silver"]
         )
         input_do.df = spark.createDataFrame(input_rows, schema=SilverAggregatedUsualEnvironmentsZonesDataObject.SCHEMA)
+        input_do.write()
+    elif kind == "internal_migration":
+        input_rows = generate_input_internal_migration_data()
+        input_do = SilverInternalMigrationDataObject(
+            spark, config["Paths.Silver"]["estimated_internal_migration_silver"]
+        )
+        input_do.df = spark.createDataFrame(input_rows, schema=SilverInternalMigrationDataObject.SCHEMA)
         input_do.write()
     else:
         raise ValueError(kind)

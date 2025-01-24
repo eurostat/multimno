@@ -77,10 +77,6 @@
         {
             "component_id": "KAnonimity",
             "component_config_path": "pipe_configs/configurations/kanonimity/kanonimity.ini"
-        },
-        {
-            "component_id": "MultiMNOAggregation",
-            "component_config_path": "pipe_configs/configurations/multimno_aggregation/multimno_aggregation.ini"
         }
     ]
 }

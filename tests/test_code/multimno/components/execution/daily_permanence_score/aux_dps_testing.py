@@ -11,6 +11,9 @@ from pyspark.sql.types import (
     IntegerType,
     ShortType,
     ByteType,
+    BooleanType,
+    ArrayType,
+    LongType,
 )
 
 from multimno.core.constants.columns import ColNames
@@ -19,19 +22,25 @@ from multimno.core.data_objects.silver.silver_event_flagged_data_object import S
 from multimno.core.data_objects.silver.silver_daily_permanence_score_data_object import (
     SilverDailyPermanenceScoreDataObject,
 )
+from multimno.core.data_objects.silver.event_cache_data_object import EventCacheDataObject
 
 from tests.test_code.multimno.components.execution.daily_permanence_score.reference_data import (
     EVENTS,
+    CACHE_EVENTS,
     CELL_FOOTPRINT,
     DPS,
 )
 
 from tests.test_code.fixtures import spark_session as spark
+from datetime import datetime, timedelta
+
+from multimno.core.data_objects.silver.event_cache_data_object import EventCacheDataObject
+from tests.test_code.test_utils import get_user_id_hashed
 
 # Dummy to avoid linting errors using pytest
 fixtures = [spark]
 
-
+# TODO: Setup user_id in reference data to avoid using aux schemas
 EVENTS_AUX_SCHEMA = StructType(
     [
         StructField(ColNames.user_id, StringType(), nullable=False),
@@ -49,17 +58,34 @@ EVENTS_AUX_SCHEMA = StructType(
     ]
 )
 
-DPS_AUX_SCHEMA = StructType(
+CACHE_EVENTS_AUX_SCHEMA = StructType(
     [
-        StructField(ColNames.cell_id, StringType(), nullable=False),
-        StructField(ColNames.time_slot_initial_time, StringType(), nullable=False),
-        StructField(ColNames.time_slot_end_time, StringType(), nullable=False),
-        StructField(ColNames.stay_duration, FloatType(), nullable=False),
+        StructField(ColNames.user_id, StringType(), nullable=False),
+        StructField(ColNames.timestamp, StringType(), nullable=False),
+        StructField(ColNames.mcc, IntegerType(), nullable=False),
+        StructField(ColNames.cell_id, StringType(), nullable=True),
+        StructField(ColNames.latitude, FloatType(), nullable=True),
+        StructField(ColNames.longitude, FloatType(), nullable=True),
+        StructField(ColNames.loc_error, FloatType(), nullable=True),
+        StructField(ColNames.error_flag, IntegerType(), nullable=False),
         StructField(ColNames.year, ShortType(), nullable=False),
         StructField(ColNames.month, ByteType(), nullable=False),
         StructField(ColNames.day, ByteType(), nullable=False),
         StructField(ColNames.user_id_modulo, IntegerType(), nullable=False),
+        StructField(ColNames.is_last_event, BooleanType(), nullable=False),
+    ]
+)
+
+DPS_AUX_SCHEMA = StructType(
+    [
         StructField(ColNames.user_id, StringType(), nullable=False),
+        StructField(ColNames.dps, ArrayType(LongType()), nullable=False),
+        StructField(ColNames.time_slot_initial_time, StringType(), nullable=False),
+        StructField(ColNames.time_slot_end_time, StringType(), nullable=False),
+        StructField(ColNames.year, ShortType(), nullable=False),
+        StructField(ColNames.month, ByteType(), nullable=False),
+        StructField(ColNames.day, ByteType(), nullable=False),
+        StructField(ColNames.user_id_modulo, IntegerType(), nullable=False),
         StructField(ColNames.id_type, StringType(), nullable=True),
     ]
 )
@@ -107,14 +133,18 @@ def expected_data(spark: SparkSession):
     Args:
         spark (SparkSession): spark session.
     """
+    return get_expected_dps_df(spark)
+
+
+def get_expected_dps_df(spark: SparkSession):
     # Quick fix to add id_type to dummy DPS data
-    [x.update({ColNames.id_type: "cell"}) for x in DPS]
+    # [x.update({ColNames.id_type: "cell"}) for x in DPS]
     expected_df = spark.createDataFrame([Row(**el) for el in DPS], DPS_AUX_SCHEMA)
     expected_df = cast_timestamp_field(cast_user_id_to_binary(expected_df), ColNames.time_slot_initial_time)
     expected_df = cast_timestamp_field(expected_df, ColNames.time_slot_end_time)
     expected_df = expected_df.select(SilverDailyPermanenceScoreDataObject.SCHEMA.fieldNames())
     expected_df = spark.createDataFrame(expected_df.rdd, SilverDailyPermanenceScoreDataObject.SCHEMA)
-
+    expected_df = expected_df.withColumn(ColNames.dps, F.array_sort(ColNames.dps))
     return expected_df
 
 
@@ -130,14 +160,14 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
         spark (SparkSession): spark session.
         config (ConfigParser): component config.
     """
-    partition_columns = [ColNames.year, ColNames.month, ColNames.day]
+    # Cell footprint data
     test_data_path = config["Paths.Silver"]["cell_footprint_data_silver"]
     input_cells_df = get_cellfootprint_testing_df(spark)
     input_data = SilverCellFootprintDataObject(spark, test_data_path)
     input_data.df = input_cells_df
-    input_data.write(partition_columns=partition_columns)
+    input_data.write()
 
-    partition_columns = [ColNames.year, ColNames.month, ColNames.day, ColNames.user_id_modulo]
+    # Event data
     test_data_path = config["Paths.Silver"]["event_data_silver_flagged"]
     input_events_df = cast_timestamp_field(
         cast_user_id_to_binary(spark.createDataFrame([Row(**el) for el in EVENTS], EVENTS_AUX_SCHEMA)),
@@ -145,4 +175,98 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
     )
     input_data = SilverEventFlaggedDataObject(spark, test_data_path)
     input_data.df = input_events_df
-    input_data.write(partition_columns=partition_columns)
+    input_data.write()
+
+    # Event cache data
+    test_data_path = config["Paths.Silver"]["event_cache"]
+    input_events_df = cast_timestamp_field(
+        cast_user_id_to_binary(spark.createDataFrame([Row(**el) for el in CACHE_EVENTS], CACHE_EVENTS_AUX_SCHEMA)),
+        ColNames.timestamp,
+    )
+    input_data = EventCacheDataObject(spark, test_data_path)
+    input_data.df = input_events_df
+    input_data.write()
+
+
+# TEST DATA: EVENT LOADING
+def get_event_load_testing_data(spark: SparkSession):
+    # Test load data (only relevant columns)
+    users = ["1", "2", "3"]
+    n_events = 3
+    stimestamp = "2023-01-02T00:05:00"
+    timestamp = datetime.strptime(stimestamp, "%Y-%m-%dT%H:%M:%S")
+    cell_id = "106927944066972"
+    error_flag = 0
+
+    EVENT_DATA = [
+        {
+            ColNames.user_id: get_user_id_hashed(user),
+            ColNames.timestamp: timestamp + timedelta(minutes=i),
+            ColNames.cell_id: cell_id,
+            ColNames.error_flag: error_flag,
+            ColNames.year: timestamp.year,
+            ColNames.month: timestamp.month,
+            ColNames.day: timestamp.day,
+            ColNames.user_id_modulo: int(user),
+        }
+        for user in users
+        for i in range(n_events)
+    ]
+
+    CACHE_EVENT_DATA = []
+    for buffer_timestamp, is_last_event in zip(
+        [timestamp - timedelta(days=1), timestamp + timedelta(days=1)], [True, False]
+    ):
+        CACHE_EVENT_DATA.extend(
+            [
+                {
+                    ColNames.user_id: get_user_id_hashed(user),
+                    ColNames.timestamp: buffer_timestamp,
+                    ColNames.cell_id: cell_id,
+                    ColNames.error_flag: error_flag,
+                    ColNames.year: buffer_timestamp.year,
+                    ColNames.month: buffer_timestamp.month,
+                    ColNames.day: buffer_timestamp.day,
+                    ColNames.user_id_modulo: int(user),
+                    ColNames.is_last_event: is_last_event,
+                }
+                for user in users
+            ]
+        )
+
+    events_df = spark.createDataFrame(EVENT_DATA, schema=SilverEventFlaggedDataObject.SCHEMA)
+
+    cache_events_df = spark.createDataFrame(CACHE_EVENT_DATA, schema=EventCacheDataObject.SCHEMA)
+
+    return events_df, cache_events_df
+
+
+def set_event_load_testing_data(spark: SparkSession, config: ConfigParser):
+    """
+    Load input data (cell footprint and flagged events) and write to expected path.
+
+    Args:
+        spark (SparkSession): spark session.
+        config (ConfigParser): component config.
+    """
+    # Cell footprint data
+    input_cells_df = get_cellfootprint_testing_df(spark)
+    test_data_path = config["Paths.Silver"]["cell_footprint_data_silver"]
+    input_data = SilverCellFootprintDataObject(spark, test_data_path)
+    input_data.df = input_cells_df
+    input_data.write()
+
+    # Get event data
+    input_events_df, input_cache_df = get_event_load_testing_data(spark)
+
+    # Event data
+    test_data_path = config["Paths.Silver"]["event_data_silver_flagged"]
+    input_data = SilverEventFlaggedDataObject(spark, test_data_path)
+    input_data.df = input_events_df
+    input_data.write()
+
+    # Event cache data
+    test_data_path = config["Paths.Silver"]["event_cache"]
+    input_data = EventCacheDataObject(spark, test_data_path)
+    input_data.df = input_cache_df
+    input_data.write()

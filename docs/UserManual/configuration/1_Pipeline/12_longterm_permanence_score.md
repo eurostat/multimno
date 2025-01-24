@@ -58,7 +58,11 @@ The expected parameters in `longterm_permanence_score.ini` are as follows:
     | spring | workdays | working_hours   |
 
 
+**--- Optional configuration values ---**
 
+- **partition_chunk_size** - int, default None. Number of ``user_id_modulo`` partitions. Should be the same value as `number_of_partitions` in `EventCleaning` component. If not given will process all ``user_id_modulo`` partitions at the same time.
+  
+- **number_of_partitions** - int, default None. Number of ``user_id_modulo`` partitions that will be processed at the same time. This value shall be lower than `partition_chunk_size`. If not given will process all ``user_id_modulo`` partitions at the same time.
     
 
 
@@ -89,4 +93,8 @@ period_combinations = {
         "workdays": ["working_hours"]
     }
     }
+
+# Optional
+number_of_partitions = 8
+partition_chunk_size = 4
 ```

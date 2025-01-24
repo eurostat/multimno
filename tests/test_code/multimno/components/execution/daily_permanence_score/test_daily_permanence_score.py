@@ -1,4 +1,6 @@
+from datetime import timedelta
 from multimno.core.constants.columns import ColNames
+from multimno.core.data_objects.silver.event_cache_data_object import EventCacheDataObject
 from pyspark.testing.utils import assertDataFrameEqual
 from pyspark.sql import functions as F
 
@@ -10,6 +12,7 @@ from multimno.core.data_objects.silver.silver_daily_permanence_score_data_object
 
 from tests.test_code.fixtures import spark_session as spark
 from tests.test_code.multimno.components.execution.daily_permanence_score.aux_dps_testing import (
+    set_event_load_testing_data,
     set_input_data,
     expected_data,
 )
@@ -79,4 +82,37 @@ def test_daily_permanence_score(spark, expected_data):
     output_data_object.read()
 
     # assert read data == expected (Expected data only defined for known dps)
-    assertDataFrameEqual(output_data_object.df.filter(F.col(ColNames.id_type) == "cell"), expected_data)
+    assertDataFrameEqual(output_data_object.df, expected_data)
+
+
+def test_dps_load_data(spark):
+    ## Init configs & paths
+    component_config_path = f"{TEST_RESOURCES_PATH}/config/daily_aggregations/daily_permanence_score.ini"
+    config = parse_configuration(TEST_GENERAL_CONFIG_PATH, component_config_path)
+
+    ## Init component class
+    dps_component = DailyPermanenceScore(TEST_GENERAL_CONFIG_PATH, component_config_path)
+
+    ## Create Input data
+    set_event_load_testing_data(spark, config)
+
+    # Execution
+    dps_component.read()
+    dps_component.check_needed_dates()
+    current_date = dps_component.data_period_dates[0]
+    dps_component.build_day_data(current_date)
+
+    # Assertion
+
+    # Only two rows should be loaded in the event cache data object for each D-1, D+1
+    for delta_day, last_event in zip(
+        [current_date - timedelta(days=1), current_date + timedelta(days=1)], [True, False]
+    ):
+        assert (
+            dps_component.input_data_objects[EventCacheDataObject.ID]
+            .df.filter(
+                (F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day)) == F.lit(delta_day))
+            )
+            .filter(F.col(ColNames.is_last_event) == last_event)
+            .drop(ColNames.is_last_event)
+        ).count() == 3

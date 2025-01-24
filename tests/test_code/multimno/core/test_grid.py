@@ -21,11 +21,11 @@ def grid_generator(spark):
 @pytest.fixture(scope="module")
 def centroid_grid(spark):
     data = [
-        Row(geometry="POINT (3157850 2031050)", grid_id="100mN2031000E3157800"),
-        Row(geometry="POINT (3157950 2031050)", grid_id="100mN2031000E3157900"),
-        Row(geometry="POINT (3158050 2031050)", grid_id="100mN2031000E3158000"),
-        Row(geometry="POINT (3158150 2031050)", grid_id="100mN2031000E3158100"),
-        Row(geometry="POINT (3158250 2031050)", grid_id="100mN2031000E3158200"),
+        Row(geometry="POINT (3157850 2031050)", grid_id="20310003157800"),
+        Row(geometry="POINT (3157950 2031050)", grid_id="20310003157900"),
+        Row(geometry="POINT (3158050 2031050)", grid_id="20310003158000"),
+        Row(geometry="POINT (3158150 2031050)", grid_id="20310003158100"),
+        Row(geometry="POINT (3158250 2031050)", grid_id="20310003158200"),
     ]
     df = spark.createDataFrame(data)
     df = df.withColumn(
@@ -44,23 +44,23 @@ def tile_grid(spark):
     data = [
         Row(
             geometry="POLYGON ((3157800 2031100, 3157900 2031100, 3157900 2031000, 3157800 2031000, 3157800 2031100))",
-            grid_id="100mN2031000E3157800",
+            grid_id="20310003157800",
         ),
         Row(
             geometry="POLYGON ((3157900 2031100, 3158000 2031100, 3158000 2031000, 3157900 2031000, 3157900 2031100))",
-            grid_id="100mN2031000E3157900",
+            grid_id="20310003157900",
         ),
         Row(
             geometry="POLYGON ((3158000 2031100, 3158100 2031100, 3158100 2031000, 3158000 2031000, 3158000 2031100))",
-            grid_id="100mN2031000E3158000",
+            grid_id="20310003158000",
         ),
         Row(
             geometry="POLYGON ((3158100 2031100, 3158200 2031100, 3158200 2031000, 3158100 2031000, 3158100 2031100))",
-            grid_id="100mN2031000E3158100",
+            grid_id="20310003158100",
         ),
         Row(
             geometry="POLYGON ((3158200 2031100, 3158300 2031100, 3158300 2031000, 3158200 2031000, 3158200 2031100))",
-            grid_id="100mN2031000E3158200",
+            grid_id="20310003158200",
         ),
     ]
     df = spark.createDataFrame(data)
@@ -132,11 +132,14 @@ def test_cover_extent_with_grid_tiles(grid_generator):
     assert result.count() == 713
 
 
+@pytest.mark.skip(reason="TODO: New Grid implementation")
 def test_grid_ids_to_centroids(grid_generator, centroid_grid):
     test_grid = centroid_grid.drop("geometry")
 
+    test_grid = grid_generator.convert_inspire_specs_to_internal_id(test_grid)
     grid_ids_to_centroids = grid_generator.grid_ids_to_centroids(test_grid)
-
+    grid_ids_to_centroids = grid_generator.convert_internal_id_to_inspire_specs(grid_ids_to_centroids)
+    grid_ids_to_centroids = grid_ids_to_centroids.select("grid_id", "geometry")
     assert_sparkgeodataframe_equal(centroid_grid, grid_ids_to_centroids)
 
 

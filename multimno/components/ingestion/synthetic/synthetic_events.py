@@ -149,6 +149,7 @@ class SyntheticEvents(Component):
 
             self.transform()
             self.write()
+            self.spark.catalog.clearCache()
 
         self.logger.info(f"Finished {self.COMPONENT_ID}")
 

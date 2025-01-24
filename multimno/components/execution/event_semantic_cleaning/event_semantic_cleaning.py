@@ -4,9 +4,10 @@ Module that computes semantic checks on event data and adds error flags
 
 import datetime
 
+
 from pyspark import StorageLevel
 from pyspark.sql import Window, DataFrame, Row
-from pyspark.sql.types import LongType, ShortType, ByteType, StructField, StructType
+from pyspark.sql.types import LongType, ShortType, ByteType, IntegerType, StructType
 import pyspark.sql.functions as F
 import sedona.sql.st_functions as STF
 import sedona.sql.st_constructors as STC
@@ -20,13 +21,15 @@ from multimno.core.data_objects.silver.silver_network_data_object import (
 from multimno.core.data_objects.silver.silver_event_data_object import (
     SilverEventDataObject,
 )
+
 from multimno.core.data_objects.silver.silver_event_flagged_data_object import (
     SilverEventFlaggedDataObject,
 )
+from multimno.core.data_objects.silver.event_cache_data_object import EventCacheDataObject
 from multimno.core.data_objects.silver.silver_semantic_quality_metrics import (
     SilverEventSemanticQualityMetrics,
 )
-from multimno.core.settings import CONFIG_SILVER_PATHS_KEY
+from multimno.core.settings import CONFIG_SILVER_PATHS_KEY, GENERAL_CONFIG_KEY
 from multimno.core.spark_session import (
     check_if_data_path_exists,
     delete_file_or_folder,
@@ -86,6 +89,7 @@ class SemanticCleaning(Component):
         output_silver_semantic_metrics_path = self.config.get(
             CONFIG_SILVER_PATHS_KEY, "event_device_semantic_quality_metrics"
         )
+        output_event_cache_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "event_cache")
 
         input_silver_network = SilverNetworkDataObject(
             self.spark,
@@ -95,27 +99,30 @@ class SemanticCleaning(Component):
 
         if self.clear_destination_directory:
             delete_file_or_folder(self.spark, output_silver_event_path)
+            delete_file_or_folder(self.spark, output_event_cache_path)
 
         output_silver_event = SilverEventFlaggedDataObject(self.spark, output_silver_event_path)
         output_silver_semantic_metrics = SilverEventSemanticQualityMetrics(
             self.spark,
             output_silver_semantic_metrics_path,
         )
+        output_event_cache = EventCacheDataObject(self.spark, output_event_cache_path)
 
         self.input_data_objects = {
-            SilverEventDataObject.ID: input_silver_event,
             SilverNetworkDataObject.ID: input_silver_network,
+            SilverEventDataObject.ID: input_silver_event,
         }
         self.output_data_objects = {
             SilverEventFlaggedDataObject.ID: output_silver_event,
             SilverEventSemanticQualityMetrics.ID: output_silver_semantic_metrics,
+            EventCacheDataObject.ID: output_event_cache,
         }
 
     def transform(self):
         events_df = self.events_df
         cells_df = self.cells_df
 
-        # Pushup filter
+        # Partition filter
         events_df = events_df.filter(
             F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day)) == F.lit(self.date_of_study)
         )
@@ -144,8 +151,13 @@ class SemanticCleaning(Component):
         # Perform a left join between events and cell IDs. Non-existent cell IDs will be matched
         # with null values
         df = events_df.join(cells_df, on=ColNames.cell_id, how="left")
+        df = df.withColumn(ColNames.error_flag, F.lit(None))
 
-        # Create error flag column alongside the first error flag: non existent column
+        # Flag outbound records as NO_ERROR to omit them from checks.
+        # NOTE: Different location duplicates checking is still performed as normal.
+        df = self._flag_outbound(df)
+
+        # Error flag: Check rows for cell ids with no matching cell entry
         df = self._flag_non_existent_cell_ids(df)
 
         # Optional flagging of duplicates with different location info
@@ -158,6 +170,9 @@ class SemanticCleaning(Component):
         # Error flag: suspicious and incorrect events based on location change distance and speed
         df = self._flag_by_event_location(df)
 
+        # Set NO_ERROR flag for all unmarked records
+        df = self._flag_non_errors(df)
+
         # Keep only the necessary columns and remove auxiliar ones
         df = df.select(SilverEventFlaggedDataObject.SCHEMA.names)
 
@@ -168,8 +183,80 @@ class SemanticCleaning(Component):
         # Semantic metrics
         metrics_df = self._compute_semantic_metrics(df)
 
+        # Event cache: Calculate first and last events
+        cache_events_df = self._mark_first_last_events(df)
+
         self.output_data_objects[SilverEventFlaggedDataObject.ID].df = df
         self.output_data_objects[SilverEventSemanticQualityMetrics.ID].df = metrics_df
+        self.output_data_objects[EventCacheDataObject.ID].df = cache_events_df
+
+    def _mark_first_last_events(self, df: DataFrame) -> DataFrame:
+        """
+        Marks first and last event per user per day.
+        - False for first event
+        - True for last event
+
+        Args:
+            df: Input DataFrame with user_id, timestamp, and date-related columns.
+
+        Returns:
+            DataFrame in EventCacheDataObject format.
+        """
+        temp_column = "temp"
+
+        # Define window specification partitioned by user and day, ordered by timestamp
+        window_spec = Window.partitionBy(
+            [
+                ColNames.year,
+                ColNames.month,
+                ColNames.day,
+                ColNames.user_id_modulo,
+                ColNames.user_id,
+            ]
+        )
+        # Get the first and last event timestamps in the window
+        first_event_ts = F.first(ColNames.timestamp).over(window_spec)
+        last_event_ts = F.last(ColNames.timestamp).over(window_spec)
+
+        # Mark first and last events of event_error_flag = 0
+        df = df.filter(F.col(ColNames.error_flag) == SemanticErrorType.NO_ERROR).withColumn(
+            temp_column,
+            F.when(F.col(ColNames.timestamp) == first_event_ts, 1)  # First event
+            .when(F.col(ColNames.timestamp) == last_event_ts, 2)  # Last event
+            .otherwise(0),  # Other events
+        )
+
+        # Filter out events that are not first or last
+        df = df.filter(F.col(temp_column) > 0)
+        df = df.withColumn(ColNames.is_last_event, F.when(F.col(temp_column) == 2, True).otherwise(False)).drop(
+            temp_column
+        )
+
+        return df
+
+    def _flag_outbound(self, df: DataFrame) -> DataFrame:
+        """Method to mark all outbound records as valid.
+        Outbound records have a PLMN value where the MCC component differs from the MCC of the record.
+        Outbound records are exempt from other error checks (except same location duplicates).
+
+        Args:
+            df (DataFrame): Spark DataFrame of event records.
+
+        Returns:
+            DataFrame: Same DataFram with added error_flag column, with outbound records marked as NO_ERROR
+        """
+        local_mcc = self.config.getint(GENERAL_CONFIG_KEY, "local_mcc")
+
+        is_outbound_record_cond = (F.col(ColNames.plmn).isNotNull()) & (
+            F.substring(F.col(ColNames.plmn), 0, 3).cast(IntegerType()) != local_mcc
+        )
+        df = df.withColumn(
+            ColNames.error_flag,
+            F.when(F.col(ColNames.error_flag).isNotNull(), F.col(ColNames.error_flag)).when(
+                is_outbound_record_cond, F.lit(SemanticErrorType.NO_ERROR)
+            ),
+        )
+        return df
 
     def _flag_non_existent_cell_ids(self, df: DataFrame) -> DataFrame:
         """Method that creates a new integer column with the name of ColNames.error_flag, and
@@ -185,9 +272,8 @@ class SemanticCleaning(Component):
         """
         df = df.withColumn(
             ColNames.error_flag,
-            F.when(
-                F.col("geometry").isNull(),
-                F.lit(SemanticErrorType.CELL_ID_NON_EXISTENT),
+            F.when(F.col(ColNames.error_flag).isNotNull(), F.col(ColNames.error_flag)).when(
+                F.col("geometry").isNull(), F.lit(SemanticErrorType.CELL_ID_NON_EXISTENT)
             ),
         )
         return df
@@ -208,21 +294,20 @@ class SemanticCleaning(Component):
         df = df.withColumn(
             ColNames.error_flag,
             # Leave already flagged rows as is
-            F.when(F.col(ColNames.error_flag).isNotNull(), F.col(ColNames.error_flag)).otherwise(
-                # event happened before the cell was operational, or after the cell was operational
-                F.when(
+            F.when(
+                F.col(ColNames.error_flag).isNotNull(), F.col(ColNames.error_flag)
+            ).when(  # event happened before the cell was operational, or after the cell was operational
+                (
                     (
-                        (
-                            F.col(ColNames.valid_date_start).isNotNull()
-                            & (F.col(ColNames.timestamp) < F.col(ColNames.valid_date_start))
-                        )
-                        | (
-                            F.col(ColNames.valid_date_end).isNotNull()
-                            & (F.col(ColNames.timestamp) > F.col(ColNames.valid_date_end))
-                        )
-                    ),
-                    F.lit(SemanticErrorType.CELL_ID_NOT_VALID),
-                )
+                        F.col(ColNames.valid_date_start).isNotNull()
+                        & (F.col(ColNames.timestamp) < F.col(ColNames.valid_date_start))
+                    )
+                    | (
+                        F.col(ColNames.valid_date_end).isNotNull()
+                        & (F.col(ColNames.timestamp) > F.col(ColNames.valid_date_end))
+                    )
+                ),
+                F.lit(SemanticErrorType.CELL_ID_NOT_VALID),
             ),
         )
 
@@ -348,26 +433,34 @@ class SemanticCleaning(Component):
             (F.col("next_speed") > self.semantic_min_speed) & (F.col("next_distance") > self.semantic_min_distance),
             F.lit(False),
         )
-        # Set the error flags
+        # Set the error flags.
         # NOTE: it is assumed that this is the last flag to be computed. Thus, all non-flagged events
         # will be set to the code corresponding to no error flags. If new flags are to be added, one might
         # want to change this.
         df = df.withColumn(
             ColNames.error_flag,
-            F.when(
-                F.col(ColNames.error_flag).isNull(),  # for non-flagged events
-                F.when(
-                    incorrect_location_cond,
-                    F.lit(SemanticErrorType.INCORRECT_EVENT_LOCATION),
-                ).otherwise(
-                    F.when(
-                        suspicious_location_cond,
-                        F.lit(SemanticErrorType.SUSPICIOUS_EVENT_LOCATION),
-                    ).otherwise(F.lit(SemanticErrorType.NO_ERROR))
-                ),
-            ).otherwise(F.col(ColNames.error_flag)),
+            F.when(F.col(ColNames.error_flag).isNotNull(), F.col(ColNames.error_flag))
+            .when(incorrect_location_cond, F.lit(SemanticErrorType.INCORRECT_EVENT_LOCATION))
+            .when(suspicious_location_cond, F.lit(SemanticErrorType.SUSPICIOUS_EVENT_LOCATION)),
         )
 
+        return df
+
+    def _flag_non_errors(self, df: DataFrame) -> DataFrame:
+        """Marks all rows where error type is null as NO_ERROR.
+
+        Args:
+            df (DataFrame): Dataframe of event records with error_flag column.
+
+        Returns:
+            DataFrame: Same dataframe with error_flag set to NO_ERROR code where it was null before.
+        """
+        df = df.withColumn(
+            ColNames.error_flag,
+            F.when(F.col(ColNames.error_flag).isNull(), F.lit(SemanticErrorType.NO_ERROR)).otherwise(
+                F.col(ColNames.error_flag)
+            ),
+        )
         return df
 
     def _flag_different_location_duplicates(self, df: DataFrame) -> DataFrame:

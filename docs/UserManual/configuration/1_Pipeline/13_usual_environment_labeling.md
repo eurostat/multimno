@@ -47,6 +47,14 @@ The expected parameters in `usual_environment_labeling.ini` are as follows:
 
  - **ue_ndays_threshold**: float, percentage. It represents a frequency (number of days) threshold for the selection of tiles that may be tagged as work location. This threshold is relative (a percentage) to the total observed frequency for the device in the corresponding day type and time interval. The tiles associated to one device that have passed the work gap cut and which have a frequency higher than device_observation_frequency * work_ndays_threshold / 100 are tagged as work. Example: `70` (%).
 
+- **disaggregate_to_100m_grid**: bool, default: False. If True, disaggregate the usual environment labels from 200m to 100m grid resolution. If False, the component will use the initial resolution.
+
+**--- Optional configuration values ---**
+
+- **partition_chunk_size** - int, default None. Number of ``user_id_modulo`` partitions. Should be the same value as `number_of_partitions` in `EventCleaning` component. If not given will process all ``user_id_modulo`` partitions at the same time.
+  
+- **number_of_partitions** - int, default None. Number of ``user_id_modulo`` partitions that will be processed at the same time. This value shall be lower than `partition_chunk_size`. If not given will process all ``user_id_modulo`` partitions at the same time.
+
 ## Configuration example
 
 ```ini
@@ -72,4 +80,8 @@ work_ps_threshold = 80
 ue_ndays_threshold = 70
 home_ndays_threshold = 80
 work_ndays_threshold = 80
+
+# Optional
+number_of_partitions = 8
+partition_chunk_size = 4
 ```

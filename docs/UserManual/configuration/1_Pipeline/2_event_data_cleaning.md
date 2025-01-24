@@ -29,10 +29,6 @@ In event_cleaning.ini parameters are as follows:
 
 - **timestamp_format** - str, expected string format of timestamp column when converting it to timestamp type
 
-- **input_timezone** - str, timezone of data to use when converting to UTC, if you are sure that data was already changed to UTC or geographically in UTC, leave as “UTC“
-
-- **local_mcc**- int, MCC of the country where the data is from
-
 - **do_bounding_box_filtering**- boolean, True/False, decides whether to apply bounding box filtering
 
 
@@ -50,8 +46,6 @@ data_period_end = 2023-01-05
 data_folder_date_format = %Y%m%d
 spark_data_folder_date_format = yyyyMMdd
 timestamp_format = yyyy-MM-dd'T'HH:mm:ss
-input_timezone = America/Los_Angeles
-local_mcc = 214  
 do_bounding_box_filtering = True
 do_same_location_deduplication = True
 bounding_box = {

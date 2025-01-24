@@ -1,7 +1,7 @@
 from pyspark.testing.utils import assertDataFrameEqual
 import pyspark.sql.functions as F
 from multimno.core.configuration import parse_configuration
-
+import datetime as dt
 from multimno.core.data_objects.silver.silver_midterm_permanence_score_data_object import (
     SilverMidtermPermanenceScoreDataObject,
 )
@@ -15,6 +15,7 @@ from multimno.core.constants.columns import ColNames
 from tests.test_code.fixtures import spark_session as spark
 from tests.test_code.multimno.components.execution.midterm_permanence_score.aux_midterm_permanence_score import (
     expected_midterm_ps,
+    get_metrics_calculation_input_and_expected,
     set_input_data,
 )
 from tests.test_code.test_common import TEST_RESOURCES_PATH, TEST_GENERAL_CONFIG_PATH
@@ -82,9 +83,58 @@ def test_midterm_ps(spark, expected_midterm_ps):
     # TODO: more specific comparison
     comparison_df = (
         output_events_data_object.df.filter(F.col(ColNames.user_id) == get_user_id_hashed("1"))
-        .filter(F.col(ColNames.grid_id) == "100mN100E100")
+        .filter(F.col(ColNames.grid_id) == 10000001000000)
         .filter(F.col(ColNames.time_interval) == "all")
         .filter(F.col(ColNames.day_type) == "all")
     )
 
     assertDataFrameEqual(comparison_df, expected_midterm_ps)
+
+
+def test_midterm_metrics_calculation(spark):
+    """
+
+
+    INPUT:
+        - Two days in study month
+        - One day in study month, one day in before buffer and one day in after buffer
+    +--------------+--------------------+--------------+---+--------------------+
+    |user_id_modulo|             user_id|       grid_id|mps|               dates|
+    +--------------+--------------------+--------------+---+--------------------+
+    |             1|[6B 86 B2 73 FF 3...|10000001000000|  1|[2021-02-02, 2021...|
+    |             1|[6B 86 B2 73 FF 3...|10000001000001|  2|[2021-01-30, 2021...|
+    +--------------+--------------------+--------------+---+--------------------+
+
+
+    Expected:
+    +--------------+--------------------+--------------+---+---------+------------------+------------------+
+    |user_id_modulo|             user_id|       grid_id|mps|frequency|   regularity_mean|    regularity_std|
+    +--------------+--------------------+--------------+---+---------+------------------+------------------+
+    |             1|[6B 86 B2 73 FF 3...|10000001000000|  1|        2|19.666666666666668|19.553345834749955|
+    |             1|[6B 86 B2 73 FF 3...|10000001000001|  2|        3|              15.0| 16.97056274847714|
+    +--------------+--------------------+--------------+---+---------+------------------+------------------+
+
+    """
+    # Setup
+    component_config_path = f"{TEST_RESOURCES_PATH}/config/midterm_analysis/testing_midterm_permanence_score.ini"
+    midterm_ps = MidtermPermanenceScore(TEST_GENERAL_CONFIG_PATH, component_config_path)
+
+    # Set testing params
+    midterm_ps.current_mt_period = dict()
+    midterm_ps.current_mt_period["month_start"] = dt.date(2021, 2, 1)
+    midterm_ps.current_mt_period["month_end"] = dt.date(2021, 2, 28)
+    midterm_ps.current_mt_period["extended_month_start"] = dt.date(2021, 1, 15)
+    midterm_ps.current_mt_period["extended_month_end"] = dt.date(2021, 3, 15)
+
+    # Input
+    study_df, expected_df = get_metrics_calculation_input_and_expected(spark)
+
+    # Execution
+    result_df = midterm_ps._calculate_midterm_metrics(study_df)
+
+    # Assertion
+    assert_result_df = result_df.withColumn(ColNames.regularity_mean, F.round(ColNames.regularity_mean, 2)).withColumn(
+        ColNames.regularity_std, F.round(ColNames.regularity_std, 2)
+    )
+
+    assertDataFrameEqual(assert_result_df, expected_df)

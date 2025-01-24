@@ -87,4 +87,5 @@ def test_continuous_time_segmentation(spark, get_test_data):
     # assert read data == expected
     expected_time_segments = get_expected_output_df(spark, test_data_dict[expected_output_time_segments_id])
 
+    # May need to explicitly sort "cells" for equality checks
     assertDataFrameEqual(output_df, expected_time_segments)

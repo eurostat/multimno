@@ -2,16 +2,28 @@
 Module that implements the Daily Permanence Score functionality
 """
 
-import re
-import itertools
 from typing import List, Tuple, Set
 
 from datetime import datetime, timedelta, date
+from multimno.core.data_objects.silver.event_cache_data_object import EventCacheDataObject
+from multimno.core.spark_session import delete_file_or_folder
 from pyspark.sql import DataFrame, Window
-
+from pyspark import StorageLevel
 import pyspark.sql.functions as F
 from sedona.sql import st_functions as STF
-from pyspark.sql.types import StructType, StructField, TimestampType, FloatType, IntegerType, ShortType, ByteType
+from pyspark.sql.types import (
+    StructType,
+    StructField,
+    TimestampType,
+    FloatType,
+    IntegerType,
+    ShortType,
+    ByteType,
+    ArrayType,
+    LongType,
+    StringType,
+)
+
 from multimno.core.component import Component
 
 from multimno.core.data_objects.silver.silver_event_flagged_data_object import (
@@ -23,8 +35,10 @@ from multimno.core.data_objects.silver.silver_daily_permanence_score_data_object
 )
 from multimno.core.settings import CONFIG_SILVER_PATHS_KEY
 from multimno.core.constants.columns import ColNames
+from multimno.core.constants.error_types import UeGridIdType
 from multimno.core.grid import InspireGridGenerator
 from multimno.core.log import get_execution_stats
+from multimno.core.utils import apply_schema_casting
 
 
 class DailyPermanenceScore(Component):
@@ -57,6 +71,8 @@ class DailyPermanenceScore(Component):
         self.max_time_thresh_day = timedelta(seconds=self.config.getint(self.COMPONENT_ID, "max_time_thresh_day"))
         self.max_time_thresh_night = timedelta(seconds=self.config.getint(self.COMPONENT_ID, "max_time_thresh_night"))
         self.max_speed_thresh = self.config.getfloat(self.COMPONENT_ID, "max_speed_thresh")
+        self.broadcast_footprints = self.config.getboolean(self.COMPONENT_ID, "broadcast_footprints", fallback=False)
+        self.use_200m_grid = self.config.getboolean(self.COMPONENT_ID, "use_200m_grid", fallback=False)
 
         self.event_error_flags_to_include = self.config.geteval(self.COMPONENT_ID, "event_error_flags_to_include")
 
@@ -66,30 +82,38 @@ class DailyPermanenceScore(Component):
         ]
 
         self.grid_gen = InspireGridGenerator(self.spark)
+        self.events = None
+        self.cell_footprint = None
+        self.time_slots = None
         self.current_date = None
-        self.previous_date = None
-        self.next_date = None
-
-        self.current_events = None
-        self.previous_events = None
-        self.next_events = None
-
-        self.current_cell_footprint = None
-        self.previous_cell_footprint = None
-        self.next_cell_footprint = None
 
     def initalize_data_objects(self):
+        # Get paths
         input_events_silver_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "event_data_silver_flagged")
+        input_events_cache_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "event_cache")
         input_cell_footprint_silver_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "cell_footprint_data_silver")
         output_dps_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "daily_permanence_score_data_silver")
 
-        silver_events = SilverEventFlaggedDataObject(self.spark, input_events_silver_path)
+        # Clear destination directory if needed
+        clear_destination_directory = self.config.getboolean(
+            self.COMPONENT_ID, "clear_destination_directory", fallback=False
+        )
+        if clear_destination_directory:
+            self.logger.warning(f"Deleting: {output_dps_path}")
+            delete_file_or_folder(self.spark, output_dps_path)
 
+        # ------------------ Data objects ------------------
+        silver_events = SilverEventFlaggedDataObject(self.spark, input_events_silver_path)
         silver_cell_footprint = SilverCellFootprintDataObject(self.spark, input_cell_footprint_silver_path)
+        events_cache = EventCacheDataObject(self.spark, input_events_cache_path)
 
         silver_dps = SilverDailyPermanenceScoreDataObject(self.spark, output_dps_path)
 
-        self.input_data_objects = {silver_events.ID: silver_events, silver_cell_footprint.ID: silver_cell_footprint}
+        self.input_data_objects = {
+            silver_events.ID: silver_events,
+            silver_cell_footprint.ID: silver_cell_footprint,
+            events_cache.ID: events_cache,
+        }
 
         self.output_data_objects = {silver_dps.ID: silver_dps}
 
@@ -113,10 +137,35 @@ class DailyPermanenceScore(Component):
         )
         self.logger.info(needed_dates)
         # Assert needed dates in event data:
-        self.assert_needed_dates_data_object(SilverEventFlaggedDataObject.ID, needed_dates)
+        self.assert_needed_dates_events()
 
         # Assert needed dates in cell footprint data:
         self.assert_needed_dates_data_object(SilverCellFootprintDataObject.ID, needed_dates)
+
+    def assert_needed_dates_events(self):
+        extended_dates = {d + timedelta(days=1) for d in self.data_period_dates} | {
+            d - timedelta(days=1) for d in self.data_period_dates
+        }
+
+        for dates_to_check, event_type_do in zip(
+            [self.data_period_dates, extended_dates], [SilverEventFlaggedDataObject, EventCacheDataObject]
+        ):
+            # Check event data for data_period_dates
+            missing_dates = [
+                date for date in dates_to_check if not self.input_data_objects[event_type_do.ID].is_data_available(date)
+            ]
+            # Report missing dates
+            if missing_dates:
+                error_msg = f"Missing {event_type_do.ID} data for dates {sorted(list(missing_dates))}"
+                self.logger.error(error_msg)
+                raise ValueError(error_msg)
+
+        # Check event cache data for extended_dates
+        missing_dates = [
+            date
+            for date in extended_dates
+            if not self.input_data_objects[EventCacheDataObject.ID].is_data_available(date)
+        ]
 
     def assert_needed_dates_data_object(self, data_object_id: str, needed_dates: List[datetime]):
         """
@@ -149,7 +198,7 @@ class DailyPermanenceScore(Component):
             self.logger.error(error_msg)
             raise ValueError(error_msg)
 
-    def filter_events(self, current_date: date) -> DataFrame:
+    def filter_events(self, current_date: date, partition_chunk=None) -> DataFrame:
         """
         Load events with no errors for a specific date.
 
@@ -159,12 +208,62 @@ class DailyPermanenceScore(Component):
         Returns:
             DataFrame: filtered events dataframe.
         """
-        return self.input_data_objects[SilverEventFlaggedDataObject.ID].df.filter(
-            (F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day)) == F.lit(current_date))
-            & (F.col(ColNames.error_flag).isin(self.event_error_flags_to_include))
+        df = (
+            self.input_data_objects[SilverEventFlaggedDataObject.ID]
+            .df.filter(
+                (F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day)) == F.lit(current_date))
+                & (F.col(ColNames.error_flag).isin(self.event_error_flags_to_include))
+            )
+            .select(
+                ColNames.user_id,
+                ColNames.cell_id,
+                ColNames.timestamp,
+                ColNames.year,
+                ColNames.month,
+                ColNames.day,
+                ColNames.user_id_modulo,
+            )
         )
 
-    def filter_cell_footprint(self, current_date: date) -> DataFrame:
+        if partition_chunk is not None:
+            df = df.filter(F.col(ColNames.user_id_modulo).isin(partition_chunk))
+
+        return df
+
+    def get_cache_events(self, current_date: date, partition_chunk=None, last_event: bool = True) -> DataFrame:
+        """
+        Load cache events with for a specific date.
+
+        Args:
+            current_date (date): current date.
+            last_event (bool): flag to get last event or first.
+
+        Returns:
+            DataFrame: filtered events dataframe.
+        """
+        df = (
+            self.input_data_objects[EventCacheDataObject.ID]
+            .df.filter(
+                (F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day)) == F.lit(current_date))
+            )
+            .filter(F.col(ColNames.is_last_event) == last_event)
+            .drop(ColNames.is_last_event)
+        ).select(
+            ColNames.user_id,
+            ColNames.cell_id,
+            ColNames.timestamp,
+            ColNames.year,
+            ColNames.month,
+            ColNames.day,
+            ColNames.user_id_modulo,
+        )
+
+        if partition_chunk is not None:
+            df = df.filter(F.col(ColNames.user_id_modulo).isin(partition_chunk))
+
+        return df
+
+    def filter_cell_footprint(self, current_date: date, cells: DataFrame = None) -> DataFrame:
         """
         Load cell footprints for a specific date.
 
@@ -174,9 +273,14 @@ class DailyPermanenceScore(Component):
         Returns:
             DataFrame: filtered cell footprint dataframe.
         """
-        return self.input_data_objects[SilverCellFootprintDataObject.ID].df.filter(
+        df = self.input_data_objects[SilverCellFootprintDataObject.ID].df.filter(
             (F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day)) == F.lit(current_date))
         )
+
+        if cells is not None:
+            df = df.join(cells, ColNames.cell_id, "inner")
+
+        return df
 
     # ------------------ Execute ------------------
     @get_execution_stats
@@ -184,111 +288,127 @@ class DailyPermanenceScore(Component):
         self.logger.info(f"Starting {self.COMPONENT_ID}...")
         self.read()
         self.check_needed_dates()
+        partition_chunks = self._get_partition_chunks()
+
         for current_date in self.data_period_dates:
-            self.logger.info(current_date)
+            self.current_date = current_date  # for use in other methods
             self.logger.info(f"Processing events for {current_date.strftime('%Y-%m-%d')}")
+            self.build_time_slots_table(current_date)
 
-            self.current_date = current_date
-            self.previous_date = current_date - timedelta(days=1)
-            self.next_date = current_date + timedelta(days=1)
+            for i, partition_chunk in enumerate(partition_chunks):
+                self.logger.info(f"Processing partition chunk {i}")
+                self.logger.debug(f"Partition chunk: {partition_chunk}")
 
-            self.current_events = self.filter_events(self.current_date)
-            self.previous_events = self.filter_events(self.previous_date)
-            self.next_events = self.filter_events(self.next_date)
+                # Build input data
+                self.build_day_data(current_date, partition_chunk)
 
-            self.current_cell_footprint = self.filter_cell_footprint(self.current_date)
-            self.previous_cell_footprint = self.filter_cell_footprint(self.previous_date)
-            self.next_cell_footprint = self.filter_cell_footprint(self.next_date)
+                # Transform
+                self.transform()
 
-            self.transform()
-
-            self.write()
+                # Write
+                self.write()
+                self.spark.catalog.clearCache()
+                self.logger.info(f"Finished partition chunk {i}")
 
         self.logger.info(f"Finished {self.COMPONENT_ID}")
 
-    def transform(self):
-        self.logger.info(f"Transform method {self.COMPONENT_ID}")
+    def _get_partition_chunks(self) -> List[List[int]]:
+        """
+        Method that returns the partition chunks for the current date.
 
-        # load users events (dates D-1, D, D+1):
-        events = self.build_events_table()
+        Returns:
+            List[List[int, int]]: list of partition chunks. If the partition_chunk_size is not defined in the config or
+                the number of partitions is less than the desired chunk size, it will return a list with a single None element.
+        """
+        # Get partitions desired
+        partition_chunk_size = self.config.getint(self.COMPONENT_ID, "partition_chunk_size", fallback=None)
+        number_of_partitions = self.config.getint(self.COMPONENT_ID, "number_of_partitions", fallback=None)
 
-        # load cell footprint (dates D-1, D, D+1):
-        cell_footprint = self.build_cell_footprint_table()
+        if partition_chunk_size is None or number_of_partitions is None or partition_chunk_size <= 0:
+            return [None]
 
-        # build time slots dataframe (date D):
-        time_slots = self.build_time_slots_table()
+        if number_of_partitions <= partition_chunk_size:
+            self.logger.warning(
+                f"Available Partition number ({number_of_partitions}) is "
+                f"less than the desired chunk size ({partition_chunk_size}). "
+                f"Using all partitions."
+            )
+            return [None]
+        partition_chunks = [
+            list(range(i, min(i + partition_chunk_size, number_of_partitions)))
+            for i in range(0, number_of_partitions, partition_chunk_size)
+        ]
+        # NOTE: Generate chunks if partition_values were read for each day
+        # getting exactly the amount of partitions for that day
 
-        # differentiate 'move' events:
-        events = self.detect_move_events(events, cell_footprint)
+        # partition_chunks = [
+        #     partition_values[i : i + partition_chunk_size]
+        #     for i in range(0, partition_values_size, partition_chunk_size)
+        # ]
 
-        # Determine stay durations:
-        stays = self.determine_stay_durations(events)
+        return partition_chunks
 
-        # Assign stay time slot, assign duration to time slots and map to calculate DPS:
-        dps = self.calculate_dps(stays, time_slots)
-
-        dps = dps.repartition(*SilverDailyPermanenceScoreDataObject.PARTITION_COLUMNS)
-
-        self.output_data_objects[SilverDailyPermanenceScoreDataObject.ID].df = dps
-
-    # ------------------ Prepare view tables ------------------
-    def build_events_table(self) -> DataFrame:
+    def build_day_data(self, current_date, partition_chunk=None):
         """
         Load events data for date D, also adding last event of each
         user from date D-1 and first event of each user from D+1.
 
+        Args:
+            current_date (date): current date.
+
         Returns:
             DataFrame: events dataframe.
         """
-        # reach last event from previous day:
-        window = Window.partitionBy(ColNames.user_id).orderBy(F.desc(ColNames.timestamp))
-        self.previous_events = (
-            self.previous_events.withColumn("row_number", F.row_number().over(window))
-            .filter(F.col("row_number") == 1)
-            .drop("row_number")
-        )
+        previous_date = current_date - timedelta(days=1)
+        next_date = current_date + timedelta(days=1)
 
-        # reach first event from next day:
-        window = Window.partitionBy(ColNames.user_id).orderBy(ColNames.timestamp)
-        self.next_events = (
-            self.next_events.withColumn("row_number", F.row_number().over(window))
-            .filter(F.col("row_number") == 1)
-            .drop("row_number")
-        )
+        current_events = self.filter_events(current_date, partition_chunk)
+        previous_events = self.get_cache_events(previous_date, partition_chunk, last_event=True)
+        next_events = self.get_cache_events(next_date, partition_chunk, last_event=False)
 
         # concat all events together (last of D-1 + all D + first of D+1):
         events = (
-            self.previous_events.union(self.current_events)
-            .union(self.next_events)
+            previous_events.union(current_events)
+            .union(next_events)
             .drop(ColNames.longitude, ColNames.latitude, ColNames.loc_error, ColNames.error_flag)
         )
 
-        return events
+        # Get distinct cell_ids for previous and next events for filtering footprints
+        previous_cells = previous_events.select(ColNames.cell_id).distinct()
+        next_cells = next_events.select(ColNames.cell_id).distinct()
 
-    def build_cell_footprint_table(self) -> DataFrame:
-        """
-        Load cell footprint data for dates D-1, D and D+1.
+        current_cell_footprint = self.filter_cell_footprint(current_date)
+        previous_cell_footprint = self.filter_cell_footprint(previous_date, previous_cells)
+        next_cell_footprint = self.filter_cell_footprint(next_date, next_cells)
 
-        Returns:
-            DataFrame: cell footprint dataframe.
-        """
-        cell_footprint = self.previous_cell_footprint.union(self.current_cell_footprint).union(self.next_cell_footprint)
+        cell_footprint = previous_cell_footprint.union(current_cell_footprint).union(next_cell_footprint)
 
         cell_footprint = self.grid_gen.grid_ids_to_centroids(cell_footprint)
 
+        if self.use_200m_grid:
+            self.logger.info("Using 200m grid for DPS calculation")
+            cell_footprint = self.grid_gen.get_parent_grid_ids(cell_footprint, 200, parent_col_name=ColNames.grid_id)
+
         cell_footprint = cell_footprint.groupBy([ColNames.cell_id, ColNames.year, ColNames.month, ColNames.day]).agg(
             F.collect_list(ColNames.geometry).alias(ColNames.geometry),
-            # F.collect_list(ColNames.grid_id).alias("grid_ids"),
+            F.array_sort(F.collect_set(ColNames.grid_id)).alias("grid_ids"),
         )
 
         cell_footprint = cell_footprint.withColumn(
             ColNames.geometry,
-            STF.ST_ConcaveHull(STF.ST_Collect(F.col(ColNames.geometry)), 0.5),
+            STF.ST_ConcaveHull(STF.ST_Collect(F.col(ColNames.geometry)), 0.8),
         )
 
-        return cell_footprint
+        # Load class attributes
+        self.events = events
 
-    def build_time_slots_table(self) -> DataFrame:
+        # TODO: This is questionable, use with care
+        if self.broadcast_footprints:
+            cell_footprint = F.broadcast(cell_footprint)
+
+        self.cell_footprint = cell_footprint.persist(StorageLevel.MEMORY_AND_DISK)
+
+    def build_time_slots_table(self, current_date) -> DataFrame:
         """
         Build a dataframe with the specified time slots for the current date.
 
@@ -299,15 +419,15 @@ class DailyPermanenceScore(Component):
 
         time_slots_list = []
         previous_end_time = datetime(
-            year=self.current_date.year,
-            month=self.current_date.month,
-            day=self.current_date.day,
+            year=current_date.year,
+            month=current_date.month,
+            day=current_date.day,
             hour=0,
             minute=0,
             second=0,
         )
 
-        while previous_end_time.date() == self.current_date:
+        while previous_end_time.date() == current_date:
             init_time = previous_end_time
             end_time = init_time + time_slot_length
             time_slot = (init_time, end_time)
@@ -321,9 +441,48 @@ class DailyPermanenceScore(Component):
             ]
         )
 
-        return self.spark.createDataFrame(time_slots_list, schema=schema)
+        self.time_slots = self.spark.createDataFrame(time_slots_list, schema=schema)
 
     # ------------------ Main transformations ------------------
+    def transform(self):
+        self.logger.info(f"Transform method {self.COMPONENT_ID}")
+
+        # differentiate 'move' events:
+        events = self.detect_move_events(self.events, self.cell_footprint)
+
+        # Determine stay durations:
+        stays = self.determine_stay_durations(events)
+
+        # generate time slots per user
+        # TODO: this might be an issue with big countries, probably will need to rethink
+        unique_users = stays.select(ColNames.user_id, ColNames.user_id_modulo).distinct()
+        unique_users = unique_users.repartition(ColNames.user_id_modulo)
+        user_time_slots = unique_users.crossJoin(F.broadcast(self.time_slots))
+
+        # Assign stay time slot, assign duration to time slots:
+        stays_slots = self.calculate_time_slots_durations(stays, user_time_slots)
+
+        # Filter out durations that would result in 0 DPS
+        stays_slots = self.filter_zero_dps_durations(stays_slots)
+        stays_slots = stays_slots.persist(StorageLevel.MEMORY_AND_DISK)
+        stays_slots.count()  # for some reason better to force computation
+
+        # collect grid_ids where DPS is 1
+        dps = self.calculate_dps(stays_slots, self.cell_footprint)
+
+        dps = (
+            dps
+            # since some stays may come from events in previous date, fix and always set current date:
+            .withColumn(ColNames.year, F.lit(self.current_date.year).cast(ShortType()))
+            .withColumn(ColNames.month, F.lit(self.current_date.month).cast(ByteType()))
+            .withColumn(ColNames.day, F.lit(self.current_date.day).cast(ByteType()))
+        )
+
+        dps = apply_schema_casting(dps, SilverDailyPermanenceScoreDataObject.SCHEMA)
+
+        dps = dps.repartition(*SilverDailyPermanenceScoreDataObject.PARTITION_COLUMNS)
+        self.output_data_objects[SilverDailyPermanenceScoreDataObject.ID].df = dps
+
     def detect_move_events(self, events: DataFrame, cell_footprint: DataFrame) -> DataFrame:
         """
         Detect which of the events are associated to moves according to the
@@ -352,7 +511,7 @@ class DailyPermanenceScore(Component):
         )
 
         # Add lags of timestamp, cell_id and grid_ids:
-        window = Window.partitionBy(ColNames.user_id).orderBy(ColNames.timestamp)
+        window = Window.partitionBy(ColNames.user_id_modulo, ColNames.user_id).orderBy(ColNames.timestamp)
         lag_fields = [ColNames.timestamp, ColNames.cell_id, ColNames.geometry]
         for lf in lag_fields:
             events = events.withColumn(f"{lf}_+1", F.lag(lf, -1).over(window)).withColumn(
@@ -477,75 +636,238 @@ class DailyPermanenceScore(Component):
 
         return stays
 
-    def calculate_dps(self, stays: DataFrame, time_slots: DataFrame) -> DataFrame:
-        """
-        Temporally intersect each stay interval with the specified time slots. Then
-        calculate the number of seconds that each user stays at each grid tile within
-        each of these time slots according to the stay intervals and the grid tiles
-        associated to each stay.
+    def calculate_time_slots_durations(self, stays: DataFrame, user_time_slots: DataFrame) -> DataFrame:
+        """Calculates duration of user stays within defined time slots.
+
+        Joins stay records with time slot definitions and computes overlapping durations.
+        For time slots with no stays, assigns a default duration of time_slot_number (1/24th day).
+        Finally aggregates total stay duration per user, cell and time slot.
 
         Args:
-            stays (DataFrame): stays dataframe.
-            time_slots (DataFrame): time slots dataframe.
+            stays (DataFrame): User mobility stay records
+            user_time_slots (DataFrame): User time slot definitions
 
         Returns:
-            DataFrame: daily permanence score dataframe.
+            DataFrame: Aggregated stay durations per time slot
         """
-        dps = (
-            stays.crossJoin(time_slots)
-            .withColumn("int_init_time", F.greatest(F.col("init_time"), F.col(ColNames.time_slot_initial_time)))
-            .withColumn("int_end_time", F.least(F.col("end_time"), F.col(ColNames.time_slot_end_time)))
+        stays = (
+            stays.join(
+                user_time_slots.select(
+                    F.col(ColNames.user_id).alias("time_slot_user_id"),
+                    F.col(ColNames.user_id_modulo).alias("time_slot_user_id_modulo"),
+                    ColNames.time_slot_end_time,
+                    ColNames.time_slot_initial_time,
+                ),
+                (
+                    (F.col("init_time") < F.col(ColNames.time_slot_end_time))
+                    & (
+                        F.col("end_time")
+                        > F.col(
+                            ColNames.time_slot_initial_time,
+                        )
+                    )
+                    & (F.col(ColNames.user_id) == F.col("time_slot_user_id"))
+                    & (F.col(ColNames.user_id_modulo) == F.col("time_slot_user_id_modulo"))
+                ),
+                how="right",
+            )
+            .withColumn("init_time", F.greatest(F.col("init_time"), F.col(ColNames.time_slot_initial_time)))
+            .withColumn("end_time", F.least(F.col("end_time"), F.col(ColNames.time_slot_end_time)))
             .withColumn(
                 ColNames.stay_duration,
                 F.when(
-                    F.col("int_init_time") < F.col("int_end_time"),
-                    F.unix_timestamp(F.col("int_end_time")) - F.unix_timestamp(F.col("int_init_time")),
-                ).otherwise(0),
+                    F.col(ColNames.cell_id).isNotNull(),
+                    F.unix_timestamp(F.col("end_time")) - F.unix_timestamp(F.col("init_time")),
+                ).otherwise(F.lit((timedelta(days=1) / self.time_slot_number).total_seconds()).cast(IntegerType())),
             )
-            .drop("int_init_time", "int_end_time", "init_time", "end_time")
-        )
-
-        unknown_dps = (
-            dps.groupby(
-                ColNames.user_id_modulo, ColNames.user_id, ColNames.time_slot_initial_time, ColNames.time_slot_end_time
-            )
-            .agg(
-                (
-                    F.lit((timedelta(days=1) / self.time_slot_number).total_seconds()).cast(IntegerType())
-                    - F.sum(ColNames.stay_duration).cast(FloatType())
-                ).alias(ColNames.stay_duration)
-            )
-            .filter(F.col(ColNames.stay_duration) > 0.0)
             .select(
-                ColNames.user_id,
-                ColNames.user_id_modulo,
-                F.lit("unknown").alias(ColNames.cell_id),
+                F.coalesce(ColNames.user_id, "time_slot_user_id").alias(ColNames.user_id),
+                F.coalesce(ColNames.cell_id, F.lit(UeGridIdType.UNKNOWN)).alias(ColNames.cell_id),
                 ColNames.time_slot_initial_time,
                 ColNames.time_slot_end_time,
                 ColNames.stay_duration,
-                F.lit("unknown").alias(ColNames.id_type),
+                ColNames.year,
+                ColNames.month,
+                ColNames.day,
+                F.coalesce(ColNames.user_id_modulo, "time_slot_user_id_modulo").alias(ColNames.user_id_modulo),
             )
         )
 
-        known_dps = (
-            dps.filter(F.col(ColNames.stay_duration) > 0.0)
-            .groupby(
+        stays = stays.groupBy(
+            ColNames.user_id,
+            ColNames.cell_id,
+            ColNames.time_slot_initial_time,
+            ColNames.time_slot_end_time,
+            ColNames.year,
+            ColNames.month,
+            ColNames.day,
+            ColNames.user_id_modulo,
+        ).agg((F.sum(ColNames.stay_duration).cast(FloatType()).alias(ColNames.stay_duration)))
+
+        return stays
+
+    def filter_zero_dps_durations(self, stays: DataFrame) -> DataFrame:
+        """Filters out stay records that would result in zero Daily Permanence Score.
+
+        Removes records where the total stay duration is less than half of a time slot's
+        duration (1/24th of a day). This pre-filtering step optimizes performance by
+        eliminating records that would not contribute to the final score.
+
+        Args:
+            stays (DataFrame): DataFrame containing stay records with durations
+
+        Returns:
+            DataFrame: Filtered stay records above minimum duration threshold
+        """
+        window_spec = Window.partitionBy(
+            ColNames.user_id,
+            ColNames.user_id_modulo,
+            ColNames.time_slot_initial_time,
+        )
+
+        # Count distinct cell_id within each window
+        stays = stays.withColumn(
+            "distinct_cell_count", F.size(F.collect_set(ColNames.cell_id).over(window_spec))
+        ).withColumn("duration_sum", F.sum(ColNames.stay_duration).over(window_spec))
+
+        # remove all records where DPS will be 0
+        stays = stays.filter(
+            F.col("duration_sum") >= F.lit(int((timedelta(days=1) / self.time_slot_number).total_seconds() / 2))
+        ).drop("duration_sum")
+
+        return stays
+
+    def calculate_dps(self, stay_intervals: DataFrame, cell_footprint: DataFrame) -> DataFrame:
+        """Calculate Daily Permanence Score (DPS) from user stay intervals.
+
+        Processes stay intervals to determine user's presence in grid locations:
+        - For multiple cell stays: explodes footprints and aggregates overlapping areas
+        - For single cell stays: directly maps to corresponding grid IDs
+        - For unknown locations: assigns special unknown identifier
+
+        Args:
+            stay_intervals (DataFrame): User stay intervals with duration and cell information
+            cell_footprint (DataFrame): Mapping between cells and their grid coverage areas
+
+        Returns:
+            DataFrame: Daily Permanence Score results with grid IDs and type identification
+        """
+
+        # for intervals with multiple cells, we have to explode footprints to calculate sum of durations for grids
+        # in case if there is overalap in coverage areas.
+        # TODO: this is the most expensive part
+        stay_intervals_multiple_cells = stay_intervals.filter(F.col("distinct_cell_count") > 1)
+
+        stay_intervals_multiple_cells = self.join_footprint_grids(stay_intervals_multiple_cells, cell_footprint)
+
+        stay_intervals_multiple_cells = (
+            stay_intervals_multiple_cells.withColumn(ColNames.grid_id, F.explode(F.col("grid_ids")))
+            .drop("grid_ids")
+            .groupBy(
                 ColNames.user_id,
-                ColNames.user_id_modulo,
-                ColNames.cell_id,
                 ColNames.time_slot_initial_time,
                 ColNames.time_slot_end_time,
+                ColNames.grid_id,
+                ColNames.user_id_modulo,
             )
-            .agg(F.sum(ColNames.stay_duration).cast(FloatType()).alias(ColNames.stay_duration))
-            .withColumn(ColNames.id_type, F.lit("cell"))
+            .agg(F.sum(ColNames.stay_duration).alias(ColNames.stay_duration))
+            .filter(
+                F.col(ColNames.stay_duration)
+                >= F.lit(int((timedelta(days=1) / self.time_slot_number).total_seconds() / 2))
+            )
         )
 
-        dps = (
-            known_dps.union(unknown_dps)
-            # since some stays may come from events in previous date, fix and always set current date:
-            .withColumn(ColNames.year, F.lit(self.current_date.year).cast(ShortType()))
-            .withColumn(ColNames.month, F.lit(self.current_date.month).cast(ByteType()))
-            .withColumn(ColNames.day, F.lit(self.current_date.day).cast(ByteType()))
+        stay_intervals_multiple_cells = (
+            stay_intervals_multiple_cells.groupBy(
+                ColNames.user_id,
+                ColNames.time_slot_initial_time,
+                ColNames.time_slot_end_time,
+                ColNames.user_id_modulo,
+            )
+            .agg(F.array_sort(F.collect_set("grid_id")).alias(ColNames.dps))
+            .select(
+                ColNames.user_id,
+                ColNames.dps,
+                ColNames.time_slot_initial_time,
+                ColNames.time_slot_end_time,
+                ColNames.user_id_modulo,
+            )
+        )
+
+        # For intervals with single cell no need to explode, just join grid ids as is
+        stay_intervals_single_cell = stay_intervals.filter(
+            (F.col("distinct_cell_count") == 1)
+            & (F.col(ColNames.cell_id) != F.lit(UeGridIdType.UNKNOWN).cast(StringType()))
+        )
+        stay_intervals_single_cell = self.join_footprint_grids(stay_intervals_single_cell, cell_footprint)
+
+        stay_intervals_single_cell = stay_intervals_single_cell.select(
+            ColNames.user_id,
+            F.col("grid_ids").alias(ColNames.dps),
+            ColNames.time_slot_initial_time,
+            ColNames.time_slot_end_time,
+            ColNames.user_id_modulo,
+        )
+
+        uknown_intervals = stay_intervals.filter(F.col(ColNames.cell_id) == F.lit(UeGridIdType.UNKNOWN))
+
+        uknown_intervals = uknown_intervals.withColumn(
+            ColNames.dps,
+            F.array(F.lit(UeGridIdType.UNKNOWN).cast(LongType())),
+        ).select(
+            ColNames.user_id,
+            ColNames.dps,
+            ColNames.time_slot_initial_time,
+            ColNames.time_slot_end_time,
+            ColNames.user_id_modulo,
+        )
+
+        # uknown_intervals = uknown_intervals.persist(StorageLevel.MEMORY_AND_DISK)
+
+        dps = stay_intervals_single_cell.union(stay_intervals_multiple_cells).union(uknown_intervals)
+
+        dps = dps.withColumn(
+            ColNames.id_type,
+            F.when(
+                F.col(ColNames.dps) == F.array(F.lit(UeGridIdType.UNKNOWN).cast(LongType())),
+                F.lit(UeGridIdType.UKNOWN_STR),
+            ).otherwise(F.lit(UeGridIdType.GRID_STR)),
         )
 
         return dps
+
+    def join_footprint_grids(self, stay_intervals: DataFrame, cell_footprint: DataFrame) -> DataFrame:
+        """
+        Join the stay_intervals dataframe with the cell_footprint dataframe.
+
+        Args:
+            stay_intervals (DataFrame): stay_intervals dataframe.
+            cell_footprint (DataFrame): cell_footprint dataframe.
+
+        Returns:
+            DataFrame: stay_intervals dataframe with the grid_ids column.
+        """
+        stay_intervals = stay_intervals.join(
+            cell_footprint.select(
+                F.col(ColNames.cell_id).alias("footprints_cell_id"),
+                F.col(ColNames.year).alias("footprints_year"),
+                F.col(ColNames.month).alias("footprints_month"),
+                F.col(ColNames.day).alias("footprints_day"),
+                ("grid_ids"),
+            ),
+            (F.col(ColNames.cell_id) == F.col("footprints_cell_id"))
+            & (F.col(ColNames.year) == F.col("footprints_year"))
+            & (F.col(ColNames.month) == F.col("footprints_month"))
+            & (F.col(ColNames.day) == F.col("footprints_day")),
+        ).drop(
+            "footprints_cell_id",
+            "footprints_year",
+            "footprints_month",
+            "footprints_day",
+            ColNames.cell_id,
+            ColNames.year,
+            ColNames.month,
+            ColNames.day,
+        )
+
+        return stay_intervals

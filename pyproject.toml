@@ -10,7 +10,7 @@ include = ["multimno*"]
 # Project metadata
 [project]
 name = "multimno"
-version = "0.5.1"
+version = "0.6.0"
 description = "Big data pipeline software for mobility and sociodemographic analysis from MNO Data."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -29,7 +29,7 @@ classifiers = ["Programming Language :: Python"]
 requires-python = ">= 3.9"
 dependencies = [
     # ------ Project ------
-    "numpy~=1.26", # 1.X version due to pyspark.testing(v3.5.1) needing numpy < 2.X
+    "numpy~=1.26",      # 1.X version due to pyspark.testing(v3.5.1) needing numpy < 2.X
     "pandas>=2.0,<2.3",
     "pyarrow~=17.0",
     "requests~=2.31",

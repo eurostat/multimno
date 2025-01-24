@@ -2,6 +2,7 @@
 Silver MNO Event data module with flags computed in Semantic Checks
 """
 
+from multimno.core.spark_session import check_if_data_path_exists
 from pyspark.sql.types import (
     StructType,
     StructField,
@@ -47,3 +48,10 @@ class SilverEventFlaggedDataObject(ParquetDataObject):
     )
 
     PARTITION_COLUMNS = [ColNames.year, ColNames.month, ColNames.day, ColNames.user_id_modulo]
+
+    def is_data_available(self, date):
+        path = (
+            f"{self.default_path}/{ColNames.year}={date.year}/{ColNames.month}={date.month}/{ColNames.day}={date.day}"
+        )
+
+        return check_if_data_path_exists(self.spark, path)

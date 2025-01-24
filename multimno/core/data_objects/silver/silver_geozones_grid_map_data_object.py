@@ -2,7 +2,7 @@
 
 """
 
-from pyspark.sql.types import StructType, StructField, StringType, ShortType, ByteType
+from pyspark.sql.types import StructType, StructField, StringType, ShortType, ByteType, LongType
 
 from multimno.core.data_objects.data_object import ParquetDataObject
 from multimno.core.constants.columns import ColNames
@@ -16,7 +16,7 @@ class SilverGeozonesGridMapDataObject(ParquetDataObject):
     ID = "SilverGeozonesGridMapDO"
     SCHEMA = StructType(
         [
-            StructField(ColNames.grid_id, StringType(), nullable=False),
+            StructField(ColNames.grid_id, LongType(), nullable=False),
             StructField(ColNames.zone_id, StringType(), nullable=False),
             StructField(ColNames.hierarchical_id, StringType(), nullable=False),
             # partition columns

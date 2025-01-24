@@ -17,6 +17,10 @@ present_population_zone_silver = ${Paths:silver_dir}/present_population_zone
 ...
 ```
 
+The `geozones_grid_map_data_silver` dataset may not be needed for the execution in the case that the zoning dataset that is provided via configuration file (defined below) is one of the reserved dataset names:
+ - `INSPIRE_100m`: no operations for an execution need to be performed by this component when this zoning dataset is selected for an execution.
+ - `INSPIRE_1km`: no `geozones_grid_map_data_silver` needs to be provided when executing a component with this zoning dataset. The mapping to this grid is performed directly and no external mapping dataset is needed.
+
 ## General section
 The specific component configuration file, `spatial_aggregation.ini`, has three different sections. The general section `[SpatialAggregation]` is used to indicate on what UC outputs the spatial aggregation process should be executed. Its expected parameters are:
  - **present_population_execution**: boolean, it indicates whether the spatial aggregation process should be executed on the gridded present population output. Example: `True`.
@@ -25,16 +29,16 @@ The specific component configuration file, `spatial_aggregation.ini`, has three 
  ## Present Population section
  If the configuration parameter **present_population_execution** has been set to `True`, the component will read the section related to Present Population, `[SpatialAggregation.PresentPopulation]`. The expected parameters in this section are as follows:
  - **clear_destination_directory**: boolean, whether to delete all previous results in the output directory before running the component.
- - **zoning_dataset_id**: string, ID of the zones dataset to use to aggregate the data from grid level to zone level.
- - **hierarchical_levels**: comma-separated list of positive integers, they are the hierarchical levels of the zones dataset used that should be processed by this component. If the zones dataset was not hierarchical, this should just take the value `1`. Example: `1,2,3`.
+ - **zoning_dataset_id**: string, ID of the zones dataset to use to aggregate the data from grid level to zone level. The user may also specify one of the reserved dataset names `INSPIRE_100m` and `INSPIRE_1km`, in which case no `geozones_grid_map_data_silver` needs to be read. See above for the execution behaviour under these dataset names.
+ - **hierarchical_levels**: comma-separated list of positive integers, they are the hierarchical levels of the zones dataset used that should be processed by this component. If the zones dataset was not hierarchical, this should just take the value `1`. The list of levels is ignored and set to be `1` if a different value is encountered when **zoning_dataset_id** is one of the reserved dataset names. Example: `1,2,3`.
  - **start_date**: string, in `YYYY-MM-DD` format, indicates the starting date (inclusive) for which the present population data should be processed by this component. Example: `2023-01-01`.
  - **end_date**: string, in `YYYY-MM-DD` format, indicates the ending date (inclusive) for which the present population data should be processed by this component. Example: `2023-01-01`.
 
  ## Usual Environment section
  If the configuration parameter **usual_environment_execution** has been set to `True`, the component will read the section related to Usual Environment, `[SpatialAggregation.UsualEnvironment]`. The expected parameters in this section are as follows:
  - **clear_destination_directory**: boolean, whether to delete all previous results in the output directory before running the component.
- - **zoning_dataset_id**: string, ID of the zones dataset to use to aggregate the data from grid level to zone level.
- - **hierarchical_levels**: comma-separated list of positive integers, they are the hierarchical levels of the zones dataset used that should be processed by this component. If the zones dataset was not hierarchical, this should just take the value `1`. Example: `1,2,3`.
+ - **zoning_dataset_id**: string, ID of the zones dataset to use to aggregate the data from grid level to zone level. The user may also specify one of the reserved dataset names `INSPIRE_100m` and `INSPIRE_1km`, in which case no `geozones_grid_map_data_silver` needs to be read. See above for the execution behaviour under these dataset names.
+ - **hierarchical_levels**: comma-separated list of positive integers, they are the hierarchical levels of the zones dataset used that should be processed by this component. If the zones dataset was not hierarchical, this should just take the value `1`. The list of levels is ignored and set to be `1` if a different value is encountered when **zoning_dataset_id** is one of the reserved dataset names. Example: `1,2,3`.
  - **labels**: comma-separated list of strings, they indicate what usual environment labels should be processed by this component. Allowed values are `home`, `work`, `ue`. Example: `ue, home, work`.
  - **start_month**: string, in `YYYY-MM` format, it indicates the first month of the period used to compute a specific usual environment dataset that the user desires to process through this component. Example: `2023-01`.
  - **end_month**: string, in `YYYY-MM` format, it indicates the last month of the period used to compute a specific usual environment dataset that the user desires to process through this component. Example: `2023-03`.

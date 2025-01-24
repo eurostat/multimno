@@ -4,13 +4,7 @@ from datetime import datetime, timedelta, date
 from multimno.core.constants.columns import ColNames
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.types import Row
-from pyspark.sql.types import (
-    StructType,
-    StructField,
-    StringType,
-    FloatType,
-    IntegerType,
-)
+from pyspark.sql.types import StructType, StructField, StringType, FloatType, IntegerType, LongType
 
 import pyspark.sql.functions as F
 
@@ -91,7 +85,7 @@ def set_input_data(
     grid_schema = StructType(
         [
             StructField(ColNames.geometry, StringType(), nullable=False),
-            StructField(ColNames.grid_id, StringType(), nullable=False),
+            StructField(ColNames.grid_id, LongType(), nullable=False),
             StructField(ColNames.elevation, FloatType(), nullable=True),
             StructField(ColNames.land_use, StringType(), nullable=True),
             StructField(ColNames.prior_probability, FloatType(), nullable=True),

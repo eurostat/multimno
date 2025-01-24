@@ -1,4 +1,5 @@
 import pytest
+import datetime as dt
 from configparser import ConfigParser
 import datetime
 from multimno.core.data_objects.silver.silver_cell_footprint_data_object import SilverCellFootprintDataObject
@@ -9,11 +10,11 @@ from pyspark.sql.types import (
     StructField,
     StructType,
     IntegerType,
-    TimestampType,
-    ShortType,
-    ByteType,
+    LongType,
+    ArrayType,
     DateType,
     BinaryType,
+    DoubleType,
 )
 import pyspark.sql.functions as F
 
@@ -28,10 +29,10 @@ from multimno.core.data_objects.silver.silver_daily_permanence_score_data_object
 from multimno.core.data_objects.silver.silver_midterm_permanence_score_data_object import (
     SilverMidtermPermanenceScoreDataObject,
 )
+from multimno.core.constants.error_types import UeGridIdType
 
 from tests.test_code.fixtures import spark_session as spark
 from tests.test_code.multimno.components.execution.daily_permanence_score.aux_dps_testing import (
-    DPS_AUX_SCHEMA,
     get_cellfootprint_testing_df,
 )
 from tests.test_code.test_utils import get_user_id_hashed
@@ -48,63 +49,58 @@ def get_dps_testing_df(spark: SparkSession):
     dps_data = [
         {
             ColNames.user_id: get_user_id_hashed("1"),
-            ColNames.cell_id: "106927944066972",
             ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 2, 8, 0, 0),
             ColNames.time_slot_end_time: datetime.datetime(2023, 1, 2, 9, 0, 0),
-            ColNames.stay_duration: 30.0 * 60,
+            ColNames.dps: [10000001000000],
             ColNames.year: 2023,
             ColNames.month: 1,
             ColNames.day: 2,
             ColNames.user_id_modulo: 1,
-            ColNames.id_type: "cell",
+            ColNames.id_type: UeGridIdType.GRID_STR,
         },
         {
             ColNames.user_id: get_user_id_hashed("1"),
-            ColNames.cell_id: "106927944066972",
             ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 2, 9, 0, 0),
             ColNames.time_slot_end_time: datetime.datetime(2023, 1, 2, 10, 0, 0),
-            ColNames.stay_duration: 15.0 * 60,
+            ColNames.dps: [10000001000000],
             ColNames.year: 2023,
             ColNames.month: 1,
             ColNames.day: 2,
             ColNames.user_id_modulo: 1,
-            ColNames.id_type: "cell",
+            ColNames.id_type: UeGridIdType.GRID_STR,
         },
         {
             ColNames.user_id: get_user_id_hashed("1"),
-            ColNames.cell_id: "106927944066972",
             ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 2, 9, 0, 0),
             ColNames.time_slot_end_time: datetime.datetime(2023, 1, 2, 10, 0, 0),
-            ColNames.stay_duration: 20.0 * 60,
+            ColNames.dps: [10000001000000],
             ColNames.year: 2023,
             ColNames.month: 1,
             ColNames.day: 2,
             ColNames.user_id_modulo: 1,
-            ColNames.id_type: "cell",
+            ColNames.id_type: UeGridIdType.GRID_STR,
         },
         {
             ColNames.user_id: get_user_id_hashed("1"),
-            ColNames.cell_id: "106927944066972",
             ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 3, 17, 0, 0),
             ColNames.time_slot_end_time: datetime.datetime(2023, 1, 3, 18, 0, 0),
-            ColNames.stay_duration: 45.0 * 60,
+            ColNames.dps: [10000001000000],
             ColNames.year: 2023,
             ColNames.month: 1,
             ColNames.day: 3,
             ColNames.user_id_modulo: 1,
-            ColNames.id_type: "cell",
+            ColNames.id_type: UeGridIdType.GRID_STR,
         },  # next day
         {
             ColNames.user_id: get_user_id_hashed("1"),
-            ColNames.cell_id: "106927944066972",
             ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 3, 18, 0, 0),
             ColNames.time_slot_end_time: datetime.datetime(2023, 1, 3, 19, 0, 0),
-            ColNames.stay_duration: 10.0 * 60,
+            ColNames.dps: [10000001000000],
             ColNames.year: 2023,
             ColNames.month: 1,
             ColNames.day: 3,
             ColNames.user_id_modulo: 1,
-            ColNames.id_type: "cell",
+            ColNames.id_type: UeGridIdType.GRID_STR,
         },  # next day
     ]
 
@@ -141,8 +137,8 @@ def get_expected_midterm_df(spark):
     expected_midterm_ps_data = [
         {
             ColNames.user_id: get_user_id_hashed("1"),
-            ColNames.grid_id: "100mN100E100",
-            ColNames.mps: 2,
+            ColNames.grid_id: 10000001000000,
+            ColNames.mps: 5,
             ColNames.frequency: 2,
             ColNames.regularity_mean: 14.666667,
             ColNames.regularity_std: 17.953644,
@@ -150,7 +146,7 @@ def get_expected_midterm_df(spark):
             ColNames.month: 1,
             ColNames.day_type: "all",
             ColNames.time_interval: "all",
-            ColNames.id_type: "grid",
+            ColNames.id_type: UeGridIdType.GRID_STR,
             ColNames.user_id_modulo: 1,
         }
     ]
@@ -200,3 +196,86 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
 @pytest.fixture
 def expected_midterm_ps(spark):
     return get_expected_midterm_df(spark)
+
+
+# --------- Metrics calculation Testing Data ---------
+def get_metrics_calculation_input_and_expected(spark: SparkSession):
+    # Col names
+    dates_col = "dates"
+
+    # ------- Input -------
+    # Data
+    user_id = "1"
+    user_id_modulo = 1
+    grid_ids = [10000001000000, 10000001000001]
+    mps_values = [1, 2]
+    dates_vales = [
+        [dt.date(2021, 2, 2), dt.date(2021, 2, 3)],  # Two days in study month
+        [
+            dt.date(2021, 1, 30),
+            dt.date(2021, 2, 2),
+            dt.date(2021, 3, 1),
+        ],  # One day in study month, one day in before buffer and one day in after buffer
+    ]
+
+    data = [
+        {
+            ColNames.user_id_modulo: user_id_modulo,
+            ColNames.user_id: get_user_id_hashed(user_id),
+            ColNames.grid_id: grid_id,
+            ColNames.mps: mps,
+            dates_col: dates,
+        }
+        for grid_id, mps, dates in zip(grid_ids, mps_values, dates_vales)
+    ]
+
+    schema = StructType(
+        [
+            StructField(ColNames.user_id_modulo, IntegerType(), True),
+            StructField(ColNames.user_id, BinaryType(), True),
+            StructField(ColNames.grid_id, LongType(), True),
+            StructField(ColNames.mps, IntegerType(), True),
+            StructField(dates_col, ArrayType(DateType()), True),
+        ]
+    )
+
+    input_df = spark.createDataFrame(data, schema=schema)
+
+    # -------- Expected --------
+    frequency = [2, 3]
+    regularity_mean = [19.67, 15.0]
+    regularity_std = [19.55, 16.97]
+    id_type = UeGridIdType.GRID_STR
+
+    data = [
+        {
+            ColNames.user_id_modulo: user_id_modulo,
+            ColNames.user_id: get_user_id_hashed(user_id),
+            ColNames.grid_id: grid_id,
+            ColNames.mps: mps,
+            ColNames.frequency: frequency,
+            ColNames.regularity_mean: regularity_mean,
+            ColNames.regularity_std: regularity_std,
+            ColNames.id_type: id_type,
+        }
+        for grid_id, mps, frequency, regularity_mean, regularity_std in zip(
+            grid_ids, mps_values, frequency, regularity_mean, regularity_std
+        )
+    ]
+
+    expected_schema = StructType(
+        [
+            StructField(ColNames.user_id_modulo, IntegerType(), True),
+            StructField(ColNames.user_id, BinaryType(), True),
+            StructField(ColNames.grid_id, LongType(), True),
+            StructField(ColNames.mps, IntegerType(), True),
+            StructField(ColNames.frequency, IntegerType(), False),
+            StructField(ColNames.regularity_mean, DoubleType(), True),
+            StructField(ColNames.regularity_std, DoubleType(), True),
+            StructField(ColNames.id_type, StringType(), False),
+        ]
+    )
+
+    expected_df = spark.createDataFrame(data, schema=expected_schema)
+
+    return input_df, expected_df

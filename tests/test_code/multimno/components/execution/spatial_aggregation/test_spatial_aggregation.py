@@ -29,6 +29,8 @@ from tests.test_code.multimno.components.execution.spatial_aggregation.aux_spati
     generate_zone_to_grid_map_data,
     generate_expected_population_zone_data,
     generate_expected_ue_zone_data,
+    generate_expected_population_1km_grid_data,
+    generate_expected_ue_1km_grid_data,
 )
 
 from tests.test_code.test_common import TEST_RESOURCES_PATH, TEST_GENERAL_CONFIG_PATH
@@ -187,6 +189,100 @@ def test_ue_spatial_aggregation(spark):
 
     # assert read data == expected
     expected_result = generate_expected_ue_zone_data("2023-01", "2023-03")
+    expected_result = spark.createDataFrame(
+        expected_result, schema=SilverAggregatedUsualEnvironmentsZonesDataObject.SCHEMA
+    )
+
+    assertDataFrameEqual(output_data_object.df, expected_result)
+
+
+def test_present_population_spatial_aggregation_1km_grid(spark):
+    """
+    Test the spatial aggregation of present population data to 1km INSPIRE grid as zoning dataset.
+
+    DESCRIPTION:
+    This test verifies the spatial aggregation component for present population data.
+    It initializes the necessary configurations, sets up the input data, executes the
+    spatial aggregation process, and asserts that the output DataFrame matches the
+    expected result.
+
+    INPUT:
+    - spark: Spark session fixture provided by pytest.
+
+    STEPS:
+    1. Initialize configuration paths.
+    2. Create input data by setting up population test data.
+    3. Initialize the SpatialAggregation component with the general and specific configuration paths.
+    4. Execute the spatial aggregation process.
+    5. Read the output DataFrame from the spatial aggregation component.
+    6. Retrieve the expected output DataFrame using the predefined schema and path.
+    7. Assert that the output DataFrame is equal to the expected output DataFrame.
+    """
+    ## Init configs & paths
+    component_config_path = (
+        f"{TEST_RESOURCES_PATH}/config/spatial_aggregation/spatial_aggregation_population_1km_grid.ini"
+    )
+    ## Create Input data
+    set_population_test_data(spark)
+
+    ## Init component class
+    spatial_aggregation = SpatialAggregation(TEST_GENERAL_CONFIG_PATH, component_config_path)
+
+    # Execution
+    spatial_aggregation.execute()
+
+    # Assertion
+    # read from test data output
+    output_data_object = spatial_aggregation.output_data_objects[SilverPresentPopulationZoneDataObject.ID]
+    output_data_object.read()
+
+    # assert read data == expected
+    expected_result = generate_expected_population_1km_grid_data("2023-01-01T00:00:00")
+    expected_result = spark.createDataFrame(expected_result, schema=SilverPresentPopulationZoneDataObject.SCHEMA)
+
+    assertDataFrameEqual(output_data_object.df, expected_result)
+
+
+def test_ue_spatial_aggregation_1km_grid(spark):
+    """
+    Test the spatial aggregation of usual environments (UE) data to 1km INSPIRE grid as zoning dataset.
+
+    DESCRIPTION:
+    This test verifies the spatial aggregation component for usual environments data.
+    It initializes the necessary configurations, sets up the input data, executes the
+    spatial aggregation process, and asserts that the output DataFrame matches the
+    expected result.
+
+    INPUT:
+    - spark: Spark session fixture provided by pytest.
+
+    STEPS:
+    1. Initialize configuration paths.
+    2. Create input data by setting up usual environments test data.
+    3. Initialize the SpatialAggregation component with the general and specific configuration paths.
+    4. Execute the spatial aggregation process.
+    5. Read the output DataFrame from the spatial aggregation component.
+    6. Retrieve the expected output DataFrame using the predefined schema and path.
+    7. Assert that the output DataFrame is equal to the expected output DataFrame.
+    """
+    ## Init configs & paths
+    component_config_path = f"{TEST_RESOURCES_PATH}/config/spatial_aggregation/spatial_aggregation_ue_1km_grid.ini"
+    ## Create Input data
+    set_ue_test_data(spark)
+
+    ## Init component class
+    spatial_aggregation = SpatialAggregation(TEST_GENERAL_CONFIG_PATH, component_config_path)
+
+    # Execution
+    spatial_aggregation.execute()
+
+    # Assertion
+    # read from test data output
+    output_data_object = spatial_aggregation.output_data_objects[SilverAggregatedUsualEnvironmentsZonesDataObject.ID]
+    output_data_object.read()
+
+    # assert read data == expected
+    expected_result = generate_expected_ue_1km_grid_data("2023-01", "2023-03")
     expected_result = spark.createDataFrame(
         expected_result, schema=SilverAggregatedUsualEnvironmentsZonesDataObject.SCHEMA
     )

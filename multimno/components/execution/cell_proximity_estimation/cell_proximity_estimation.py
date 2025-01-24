@@ -113,6 +113,9 @@ class CellProximityEstimation(Component):
         )
         # For each cell, calculate the geometry from grid (concave hull of grid centroids, with buffer zone).
         df_with_geom = self.calculate_cell_geometry_with_buffer(df)
+        # Repartition to avoid exploding partition count on following self join.
+        # Note: using a partition count other than the output partition count may be desirable.
+        df_with_geom = df_with_geom.repartition(self.n_output_partitions, ColNames.cell_id)
 
         # Perform dataframe self join to get cell pairs where distance is below max distance threshold.
         df = self.calculate_nearby_cell_pairs(df_with_geom)

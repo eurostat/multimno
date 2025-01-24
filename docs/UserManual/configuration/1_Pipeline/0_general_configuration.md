@@ -7,11 +7,18 @@ weight: 0
 
 The general configuration file contains transversal settings for all the pipeline. It is an INI file composed of three main sections:
 
+**General**: Section containing configuration values which are pipeline wide. 
+
 **Logging**: Section which contains the logger settings.
 
 **Paths**: Section containing the definition of all paths to be used.
 
 **Spark**: Apache Spark configuration values. 
+
+## General section
+- **local_timezone:** str, Specifies the time zone in IANA format (e.g., Europe/Madrid) to represent regional time settings.
+- **local_mcc:** int, MCC code of the country of study.
+
 
 ## Logging Section
 
@@ -47,6 +54,10 @@ Parameters defined in this section will be used to create the spark session. Val
 Example:
 
 ```ini
+[General]
+local_timezone = Europe/Madrid
+local_mcc = 214
+
 [Logging]
 level = INFO
 format= %(asctime)-20s %(message)s

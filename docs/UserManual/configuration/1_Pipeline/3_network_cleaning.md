@@ -32,6 +32,7 @@ The expected parameters in `network_cleaning.ini` are as follows:
 - **valid_date_timestamp_format**: string, the timestamp format that is expected to be in the input network data and that will be parsed with PySpark using thiis format. Example: `yyyy-MM-dd'T'HH:mm:ss`
 - **frequent_error_criterion**: string, criterion to use when computing the most frequent errors encountered. It can take two values: `absolute` if one wants to find the top *k* most frequent errors (e.g., `k=10`); or `percentage` if one wants to find the most frequent errors that represent `k` percentage of all errors found. Example: `percentage`.
 - **top_k_errors**: integer if `frequent_error_criterion=absolute` or float if `top_k_errors` if `frequent_error_criterion=percentage`, represents what portion of the most frequent errors to save. Example: `10`.
+- **do_cell_cgi_check:** boolean, default: False. If set to True, cell_id's that do not follow the CGI format will be removed.
 
 ## Configuration example
 
@@ -56,4 +57,5 @@ valid_date_timestamp_format = yyyy-MM-dd'T'HH:mm:ss
 
 frequent_error_criterion = percentage  # allowed values: `absolute`, `percentage`
 top_k_errors = 40.5
+do_cell_cgi_check = False
 ```

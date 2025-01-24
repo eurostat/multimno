@@ -4,7 +4,7 @@ import datetime
 ENRICHED_GRID_DATA = [
     {
         "geometry": Point(-141.796, -18.476),
-        "grid_id": "grid_9",
+        "grid_id": 9,
         "elevation": 84.04550170898438,
         "prior_probability": 0.05415670946240425,
         "environment_ple_coefficient": 0.008561171591281891,
@@ -12,7 +12,7 @@ ENRICHED_GRID_DATA = [
     },
     {
         "geometry": Point(-68.455, 6.427),
-        "grid_id": "grid_10",
+        "grid_id": 10,
         "elevation": 402.59814453125,
         "prior_probability": 0.05810287594795227,
         "environment_ple_coefficient": 0.004859074018895626,
@@ -20,7 +20,7 @@ ENRICHED_GRID_DATA = [
     },
     {
         "geometry": Point(140.126, -47.796),
-        "grid_id": "grid_11",
+        "grid_id": 11,
         "elevation": 648.5670166015625,
         "prior_probability": 0.03991455212235451,
         "environment_ple_coefficient": 0.002790621481835842,
@@ -28,7 +28,7 @@ ENRICHED_GRID_DATA = [
     },
     {
         "geometry": Point(160.244, -89.8),
-        "grid_id": "grid_6",
+        "grid_id": 6,
         "elevation": 340.48297119140625,
         "prior_probability": 0.024976853281259537,
         "environment_ple_coefficient": 0.004370642825961113,
@@ -36,7 +36,7 @@ ENRICHED_GRID_DATA = [
     },
     {
         "geometry": Point(-168.221, -6.643),
-        "grid_id": "grid_7",
+        "grid_id": 7,
         "elevation": 451.17510986328125,
         "prior_probability": 0.03913573548197746,
         "environment_ple_coefficient": 0.001696920138783753,
@@ -44,7 +44,7 @@ ENRICHED_GRID_DATA = [
     },
     {
         "geometry": Point(-117.024, 3.741),
-        "grid_id": "grid_8",
+        "grid_id": 8,
         "elevation": 96.8154525756836,
         "prior_probability": 0.052027732133865356,
         "environment_ple_coefficient": 0.007175744511187077,
@@ -52,7 +52,7 @@ ENRICHED_GRID_DATA = [
     },
     {
         "geometry": Point(111.318, -26.048),
-        "grid_id": "grid_0",
+        "grid_id": 100,
         "elevation": 269.9496154785156,
         "prior_probability": 0.018028022721409798,
         "environment_ple_coefficient": 0.002907731104642153,
@@ -60,7 +60,7 @@ ENRICHED_GRID_DATA = [
     },
     {
         "geometry": Point(-112.541, 24.031),
-        "grid_id": "grid_1",
+        "grid_id": 1,
         "elevation": 35.197444915771484,
         "prior_probability": 0.021579332649707794,
         "environment_ple_coefficient": 0.00993623211979866,
@@ -68,7 +68,7 @@ ENRICHED_GRID_DATA = [
     },
     {
         "geometry": Point(133.138, -82.87),
-        "grid_id": "grid_2",
+        "grid_id": 2,
         "elevation": 288.2874450683594,
         "prior_probability": 0.09761355072259903,
         "environment_ple_coefficient": 0.00665059732273221,
@@ -76,7 +76,7 @@ ENRICHED_GRID_DATA = [
     },
     {
         "geometry": Point(4.735, -21.636),
-        "grid_id": "grid_3",
+        "grid_id": 3,
         "elevation": 972.9405517578125,
         "prior_probability": 0.07087550312280655,
         "environment_ple_coefficient": 0.0012626543175429106,
@@ -84,7 +84,7 @@ ENRICHED_GRID_DATA = [
     },
     {
         "geometry": Point(170.771, -85.591),
-        "grid_id": "grid_4",
+        "grid_id": 4,
         "elevation": 54.216922760009766,
         "prior_probability": 0.08846274018287659,
         "environment_ple_coefficient": 0.001502891886048019,
@@ -92,7 +92,7 @@ ENRICHED_GRID_DATA = [
     },
     {
         "geometry": Point(40.83, -29.741),
-        "grid_id": "grid_5",
+        "grid_id": 5,
         "elevation": 797.78369140625,
         "prior_probability": 0.08083664625883102,
         "environment_ple_coefficient": 0.0028728360775858164,
@@ -104,7 +104,7 @@ ENRICHED_GRID_DATA = [
 USUAL_ENVIRONMENT_LABELS_DATA = [
     {
         "user_id": bytearray(b"~"),
-        "grid_id": "grid_3",
+        "grid_id": 3,
         "label": "work",
         "ue_label_rule": "ue_na",
         "location_label_rule": "w_1",
@@ -115,7 +115,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"~"),
-        "grid_id": "grid_4",
+        "grid_id": 4,
         "label": "home",
         "ue_label_rule": "ue_na",
         "location_label_rule": "h_1",
@@ -126,7 +126,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"~"),
-        "grid_id": "grid_5",
+        "grid_id": 5,
         "label": "home",
         "ue_label_rule": "ue_1",
         "location_label_rule": "h_1",
@@ -137,7 +137,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"~"),
-        "grid_id": "grid_6",
+        "grid_id": 6,
         "label": "no_label",
         "ue_label_rule": "ue_1",
         "location_label_rule": "loc_na",
@@ -148,7 +148,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"~"),
-        "grid_id": "grid_7",
+        "grid_id": 7,
         "label": "home",
         "ue_label_rule": "ue_1",
         "location_label_rule": "h_1",
@@ -159,7 +159,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"~"),
-        "grid_id": "grid_8",
+        "grid_id": 8,
         "label": "home",
         "ue_label_rule": "ue_1",
         "location_label_rule": "h_1",
@@ -170,7 +170,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"~"),
-        "grid_id": "grid_8",
+        "grid_id": 8,
         "label": "work",
         "ue_label_rule": "ue_1",
         "location_label_rule": "w_1",
@@ -181,7 +181,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"~"),
-        "grid_id": "grid_9",
+        "grid_id": 9,
         "label": "no_label",
         "ue_label_rule": "ue_1",
         "location_label_rule": "loc_na",
@@ -192,7 +192,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"~"),
-        "grid_id": "grid_10",
+        "grid_id": 10,
         "label": "home",
         "ue_label_rule": "ue_1",
         "location_label_rule": "h_1",
@@ -203,7 +203,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"K"),
-        "grid_id": "grid_10",
+        "grid_id": 10,
         "label": "home",
         "ue_label_rule": "ue_na",
         "location_label_rule": "h_1",
@@ -214,7 +214,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"K"),
-        "grid_id": "grid_10",
+        "grid_id": 10,
         "label": "work",
         "ue_label_rule": "ue_na",
         "location_label_rule": "w_1",
@@ -225,7 +225,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"K"),
-        "grid_id": "grid_11",
+        "grid_id": 11,
         "label": "no_label",
         "ue_label_rule": "ue_1",
         "location_label_rule": "loc_na",
@@ -236,7 +236,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"~"),
-        "grid_id": "grid_0",
+        "grid_id": 100,
         "label": "home",
         "ue_label_rule": "ue_na",
         "location_label_rule": "loc_na",
@@ -247,7 +247,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"~"),
-        "grid_id": "grid_1",
+        "grid_id": 1,
         "label": "work",
         "ue_label_rule": "ue_na",
         "location_label_rule": "w_1",
@@ -258,7 +258,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"~"),
-        "grid_id": "grid_2",
+        "grid_id": 2,
         "label": "no_label",
         "ue_label_rule": "ue_1",
         "location_label_rule": "loc_na",
@@ -269,7 +269,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"K"),
-        "grid_id": "grid_5",
+        "grid_id": 5,
         "label": "home",
         "ue_label_rule": "ue_na",
         "location_label_rule": "h_1",
@@ -280,7 +280,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"K"),
-        "grid_id": "grid_5",
+        "grid_id": 5,
         "label": "work",
         "ue_label_rule": "ue_na",
         "location_label_rule": "w_1",
@@ -291,7 +291,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"K"),
-        "grid_id": "grid_6",
+        "grid_id": 6,
         "label": "home",
         "ue_label_rule": "ue_na",
         "location_label_rule": "h_1",
@@ -302,7 +302,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"K"),
-        "grid_id": "grid_7",
+        "grid_id": 7,
         "label": "home",
         "ue_label_rule": "ue_1",
         "location_label_rule": "h_1",
@@ -313,7 +313,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"K"),
-        "grid_id": "grid_8",
+        "grid_id": 8,
         "label": "no_label",
         "ue_label_rule": "ue_1",
         "location_label_rule": "loc_na",
@@ -324,7 +324,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"K"),
-        "grid_id": "grid_9",
+        "grid_id": 9,
         "label": "work",
         "ue_label_rule": "ue_1",
         "location_label_rule": "w_1",
@@ -335,7 +335,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"K"),
-        "grid_id": "grid_0",
+        "grid_id": 100,
         "label": "home",
         "ue_label_rule": "ue_1",
         "location_label_rule": "h_1",
@@ -346,7 +346,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"K"),
-        "grid_id": "grid_1",
+        "grid_id": 1,
         "label": "home",
         "ue_label_rule": "ue_na",
         "location_label_rule": "h_1",
@@ -357,7 +357,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"K"),
-        "grid_id": "grid_1",
+        "grid_id": 1,
         "label": "work",
         "ue_label_rule": "ue_na",
         "location_label_rule": "w_1",
@@ -368,7 +368,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"K"),
-        "grid_id": "grid_3",
+        "grid_id": 3,
         "label": "home",
         "ue_label_rule": "ue_1",
         "location_label_rule": "h_1",
@@ -379,7 +379,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"K"),
-        "grid_id": "grid_3",
+        "grid_id": 3,
         "label": "work",
         "ue_label_rule": "ue_1",
         "location_label_rule": "w_1",
@@ -390,7 +390,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
     },
     {
         "user_id": bytearray(b"K"),
-        "grid_id": "grid_4",
+        "grid_id": 4,
         "label": "home",
         "ue_label_rule": "ue_na",
         "location_label_rule": "h_1",
@@ -404,7 +404,7 @@ USUAL_ENVIRONMENT_LABELS_DATA = [
 
 AGGREGATED_USUAL_ENVIRONMENT_DATA = [
     {
-        "grid_id": "grid_7",
+        "grid_id": 7,
         "weighted_device_count": 0.23895114660263062,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -412,7 +412,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_2",
+        "grid_id": 2,
         "weighted_device_count": 0.2399251013994217,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -420,7 +420,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_0",
+        "grid_id": 100,
         "weighted_device_count": 0.06576251983642578,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -428,7 +428,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_8",
+        "grid_id": 8,
         "weighted_device_count": 0.31766584515571594,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -436,7 +436,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_9",
+        "grid_id": 9,
         "weighted_device_count": 0.330664724111557,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -444,7 +444,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_10",
+        "grid_id": 10,
         "weighted_device_count": 0.14281150698661804,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -452,7 +452,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_11",
+        "grid_id": 11,
         "weighted_device_count": 0.1456000804901123,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -460,7 +460,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_3",
+        "grid_id": 3,
         "weighted_device_count": 0.25853925943374634,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -468,7 +468,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_6",
+        "grid_id": 6,
         "weighted_device_count": 0.061390798538923264,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -476,7 +476,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_5",
+        "grid_id": 5,
         "weighted_device_count": 0.19868901371955872,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -484,7 +484,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_7",
+        "grid_id": 7,
         "weighted_device_count": 0.22020292282104492,
         "label": "home",
         "start_date": datetime.date(2023, 1, 1),
@@ -492,7 +492,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_0",
+        "grid_id": 100,
         "weighted_device_count": 0.04484608396887779,
         "label": "home",
         "start_date": datetime.date(2023, 1, 1),
@@ -500,7 +500,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_8",
+        "grid_id": 8,
         "weighted_device_count": 0.1633186787366867,
         "label": "home",
         "start_date": datetime.date(2023, 1, 1),
@@ -508,7 +508,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_10",
+        "grid_id": 10,
         "weighted_device_count": 0.32692432403564453,
         "label": "home",
         "start_date": datetime.date(2023, 1, 1),
@@ -516,7 +516,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_4",
+        "grid_id": 4,
         "weighted_device_count": 0.4977485239505768,
         "label": "home",
         "start_date": datetime.date(2023, 1, 1),
@@ -524,7 +524,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_1",
+        "grid_id": 1,
         "weighted_device_count": 0.053680237382650375,
         "label": "home",
         "start_date": datetime.date(2023, 1, 1),
@@ -532,7 +532,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_6",
+        "grid_id": 6,
         "weighted_device_count": 0.06213182955980301,
         "label": "home",
         "start_date": datetime.date(2023, 1, 1),
@@ -540,7 +540,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_3",
+        "grid_id": 3,
         "weighted_device_count": 0.17630822956562042,
         "label": "home",
         "start_date": datetime.date(2023, 1, 1),
@@ -548,7 +548,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_5",
+        "grid_id": 5,
         "weighted_device_count": 0.45483919978141785,
         "label": "home",
         "start_date": datetime.date(2023, 1, 1),
@@ -556,7 +556,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_8",
+        "grid_id": 8,
         "weighted_device_count": 0.3600969612598419,
         "label": "work",
         "start_date": datetime.date(2023, 1, 1),
@@ -564,7 +564,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_9",
+        "grid_id": 9,
         "weighted_device_count": 0.1896568238735199,
         "label": "work",
         "start_date": datetime.date(2023, 1, 1),
@@ -572,7 +572,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_10",
+        "grid_id": 10,
         "weighted_device_count": 0.20347630977630615,
         "label": "work",
         "start_date": datetime.date(2023, 1, 1),
@@ -580,7 +580,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_1",
+        "grid_id": 1,
         "weighted_device_count": 0.22492679953575134,
         "label": "work",
         "start_date": datetime.date(2023, 1, 1),
@@ -588,7 +588,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_3",
+        "grid_id": 3,
         "weighted_device_count": 0.7387531399726868,
         "label": "work",
         "start_date": datetime.date(2023, 1, 1),
@@ -596,7 +596,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
         "season": "all",
     },
     {
-        "grid_id": "grid_5",
+        "grid_id": 5,
         "weighted_device_count": 0.2830899953842163,
         "label": "work",
         "start_date": datetime.date(2023, 1, 1),
@@ -608,7 +608,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA = [
 
 AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
     {
-        "grid_id": "grid_7",
+        "grid_id": 7,
         "weighted_device_count": 0.3095238208770752,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -616,7 +616,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_2",
+        "grid_id": 2,
         "weighted_device_count": 0.1428571492433548,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -624,7 +624,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_0",
+        "grid_id": 100,
         "weighted_device_count": 0.1666666716337204,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -632,7 +632,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_8",
+        "grid_id": 8,
         "weighted_device_count": 0.3095238208770752,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -640,7 +640,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_9",
+        "grid_id": 9,
         "weighted_device_count": 0.3095238208770752,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -648,7 +648,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_10",
+        "grid_id": 10,
         "weighted_device_count": 0.1428571492433548,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -656,7 +656,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_11",
+        "grid_id": 11,
         "weighted_device_count": 0.1666666716337204,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -664,7 +664,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_3",
+        "grid_id": 3,
         "weighted_device_count": 0.1666666716337204,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -672,7 +672,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_6",
+        "grid_id": 6,
         "weighted_device_count": 0.1428571492433548,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -680,7 +680,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_5",
+        "grid_id": 5,
         "weighted_device_count": 0.1428571492433548,
         "label": "ue",
         "start_date": datetime.date(2023, 1, 1),
@@ -688,7 +688,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_7",
+        "grid_id": 7,
         "weighted_device_count": 0.32499998807907104,
         "label": "home",
         "start_date": datetime.date(2023, 1, 1),
@@ -696,7 +696,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_0",
+        "grid_id": 100,
         "weighted_device_count": 0.125,
         "label": "home",
         "start_date": datetime.date(2023, 1, 1),
@@ -704,7 +704,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_8",
+        "grid_id": 8,
         "weighted_device_count": 0.20000000298023224,
         "label": "home",
         "start_date": datetime.date(2023, 1, 1),
@@ -712,7 +712,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_10",
+        "grid_id": 10,
         "weighted_device_count": 0.32499998807907104,
         "label": "home",
         "start_date": datetime.date(2023, 1, 1),
@@ -720,7 +720,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_4",
+        "grid_id": 4,
         "weighted_device_count": 0.32499998807907104,
         "label": "home",
         "start_date": datetime.date(2023, 1, 1),
@@ -728,7 +728,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_1",
+        "grid_id": 1,
         "weighted_device_count": 0.125,
         "label": "home",
         "start_date": datetime.date(2023, 1, 1),
@@ -736,7 +736,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_6",
+        "grid_id": 6,
         "weighted_device_count": 0.125,
         "label": "home",
         "start_date": datetime.date(2023, 1, 1),
@@ -744,7 +744,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_3",
+        "grid_id": 3,
         "weighted_device_count": 0.125,
         "label": "home",
         "start_date": datetime.date(2023, 1, 1),
@@ -752,7 +752,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_5",
+        "grid_id": 5,
         "weighted_device_count": 0.32499998807907104,
         "label": "home",
         "start_date": datetime.date(2023, 1, 1),
@@ -760,7 +760,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_8",
+        "grid_id": 8,
         "weighted_device_count": 0.3333333432674408,
         "label": "work",
         "start_date": datetime.date(2023, 1, 1),
@@ -768,7 +768,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_9",
+        "grid_id": 9,
         "weighted_device_count": 0.20000000298023224,
         "label": "work",
         "start_date": datetime.date(2023, 1, 1),
@@ -776,7 +776,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_10",
+        "grid_id": 10,
         "weighted_device_count": 0.20000000298023224,
         "label": "work",
         "start_date": datetime.date(2023, 1, 1),
@@ -784,7 +784,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_1",
+        "grid_id": 1,
         "weighted_device_count": 0.5333333611488342,
         "label": "work",
         "start_date": datetime.date(2023, 1, 1),
@@ -792,7 +792,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_3",
+        "grid_id": 3,
         "weighted_device_count": 0.5333333611488342,
         "label": "work",
         "start_date": datetime.date(2023, 1, 1),
@@ -800,7 +800,7 @@ AGGREGATED_USUAL_ENVIRONMENT_DATA_UNIFORM = [
         "season": "all",
     },
     {
-        "grid_id": "grid_5",
+        "grid_id": 5,
         "weighted_device_count": 0.20000000298023224,
         "label": "work",
         "start_date": datetime.date(2023, 1, 1),

@@ -2,7 +2,7 @@
 Cell connection probabilities.
 """
 
-from pyspark.sql.types import StructType, StructField, StringType, FloatType, ShortType, ByteType
+from pyspark.sql.types import StructType, StructField, StringType, FloatType, ShortType, ByteType, LongType
 
 from multimno.core.data_objects.data_object import ParquetDataObject
 from multimno.core.constants.columns import ColNames
@@ -15,7 +15,7 @@ class SilverCellConnectionProbabilitiesDataObject(ParquetDataObject):
     SCHEMA = StructType(
         [
             StructField(ColNames.cell_id, StringType(), nullable=True),
-            StructField(ColNames.grid_id, StringType(), nullable=True),
+            StructField(ColNames.grid_id, LongType(), nullable=True),
             # StructField(ColNames.valid_date_start, DateType(), nullable=True),
             # StructField(ColNames.valid_date_end, DateType(), nullable=True),
             StructField(ColNames.cell_connection_probability, FloatType(), nullable=True),

@@ -54,6 +54,14 @@ The expected parameters in `midterm_permanence_score.ini` are as follows:
      - `"working_hours"`: time slots of the day contained in the hour interval defined by **working_hours_start** and **working_hours_end**.
      - `"evening_time"`: time slots of the day contained in the hour interval defined by **evening_time_start** and **evening_time_end**.
 
+**--- Optional configuration values ---**
+
+- **clear_destination_directory** - bool, default: False. if True, the component will clear all the data in output paths.
+
+- **partition_chunk_size** - int, default None. Number of ``user_id_modulo`` partitions. Should be the same value as `number_of_partitions` in `EventCleaning` component. If not given will process all ``user_id_modulo`` partitions at the same time.
+  
+- **number_of_partitions** - int, default None. Number of ``user_id_modulo`` partitions that will be processed at the same time. This value shall be lower than `partition_chunk_size`. If not given will process all ``user_id_modulo`` partitions at the same time.
+
 ## Time interval additional information
 There are some nuances and restrictions related to the definition of the different time intervals and the **day_start_hour** parameter:
  - By definition, a time interval will belong to the date that contains its start hour. See the following example:
@@ -116,4 +124,9 @@ period_combinations = {
     "weekends": ["all", "night_time"],
     "mondays": ["all"]
     }
+
+# Optional
+clear_destination_directory = True
+number_of_partitions = 8
+partition_chunk_size = 4
 ```

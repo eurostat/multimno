@@ -15,6 +15,7 @@ python multimno/main.py <component_id> <general_config_path> <component_config_p
 import argparse
 
 # Synthetic
+from multimno.components.execution.tourism_stays_estimation.tourism_stays_estimation import TourismStaysEstimation
 from multimno.components.ingestion.synthetic.synthetic_network import SyntheticNetwork
 from multimno.components.ingestion.synthetic.synthetic_diaries import SyntheticDiaries
 from multimno.components.ingestion.synthetic.synthetic_events import SyntheticEvents
@@ -76,6 +77,7 @@ from multimno.components.execution.usual_environment_labeling.usual_environment_
 from multimno.components.execution.usual_environment_aggregation.usual_environment_aggregation import (
     UsualEnvironmentAggregation,
 )
+from multimno.components.execution.internal_migration.internal_migration import InternalMigration
 
 # Postprocessing
 from multimno.components.execution.spatial_aggregation.spatial_aggregation import SpatialAggregation
@@ -130,6 +132,7 @@ CONSTRUCTORS = {
     LongtermPermanenceScore.COMPONENT_ID: LongtermPermanenceScore,
     UsualEnvironmentLabeling.COMPONENT_ID: UsualEnvironmentLabeling,
     UsualEnvironmentAggregation.COMPONENT_ID: UsualEnvironmentAggregation,
+    InternalMigration.COMPONENT_ID: InternalMigration,
     # Postprocessing
     SpatialAggregation.COMPONENT_ID: SpatialAggregation,
     Estimation.COMPONENT_ID: Estimation,
@@ -139,6 +142,8 @@ CONSTRUCTORS = {
     EventQualityWarnings.COMPONENT_ID: EventQualityWarnings,
     SemanticQualityWarnings.COMPONENT_ID: SemanticQualityWarnings,
     NetworkQualityWarnings.COMPONENT_ID: NetworkQualityWarnings,
+    # Tourism
+    TourismStaysEstimation.COMPONENT_ID: TourismStaysEstimation,
 }
 
 

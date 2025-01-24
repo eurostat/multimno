@@ -11,6 +11,7 @@ from multimno.components.execution.present_population.present_population_estimat
 from multimno.components.execution.usual_environment_aggregation.usual_environment_aggregation import (
     UsualEnvironmentAggregation,
 )
+from multimno.components.execution.internal_migration.internal_migration import InternalMigration
 
 from multimno.core.data_objects.silver.silver_present_population_zone_data_object import (
     SilverPresentPopulationZoneDataObject,
@@ -18,6 +19,7 @@ from multimno.core.data_objects.silver.silver_present_population_zone_data_objec
 from multimno.core.data_objects.silver.silver_aggregated_usual_environments_zones_data_object import (
     SilverAggregatedUsualEnvironmentsZonesDataObject,
 )
+from multimno.core.data_objects.silver.silver_internal_migration_data_object import SilverInternalMigrationDataObject
 
 from multimno.core.spark_session import check_if_data_path_exists, delete_file_or_folder
 from multimno.core.component import Component
@@ -38,6 +40,12 @@ CLASS_MAPPING = {
         "input_path_config_key": "estimated_aggregated_usual_environments_zone_silver",
         "output_path_config_key": "kanonimity_aggregated_usual_environments_zone_gold",
         "target_column": ColNames.weighted_device_count,
+    },
+    InternalMigration.COMPONENT_ID: {
+        "constructor": SilverInternalMigrationDataObject,
+        "input_path_config_key": "estimated_internal_migration_silver",
+        "output_path_config_key": "kanonimity_internal_migration_gold",
+        "target_column": ColNames.migration,
     },
 }
 
@@ -63,6 +71,7 @@ class KAnonimity(Component):
 
         self.execute_present_population = self.config.getboolean(self.COMPONENT_ID, "present_population_execution")
         self.execute_usual_environment = self.config.getboolean(self.COMPONENT_ID, "usual_environment_execution")
+        self.execute_internal_migration = self.config.getboolean(self.COMPONENT_ID, "internal_migration_execution")
 
         self.data_objects = {}
 
@@ -123,6 +132,33 @@ class KAnonimity(Component):
             )
 
             self.data_objects[UsualEnvironmentAggregation.COMPONENT_ID] = {"input": input_do, "output": output_do}
+
+        if self.execute_internal_migration:
+            input_do_path = self.config.get(
+                CONFIG_SILVER_PATHS_KEY,
+                CLASS_MAPPING[InternalMigration.COMPONENT_ID]["input_path_config_key"],
+            )
+            output_do_path = self.config.get(
+                CONFIG_GOLD_PATHS_KEY,
+                CLASS_MAPPING[InternalMigration.COMPONENT_ID]["output_path_config_key"],
+            )
+
+            if not check_if_data_path_exists(self.spark, input_do_path):
+                self.logger.warning(f"Expected path {input_do_path} to exist but it does not")
+                raise ValueError(
+                    f"Invalid path for {CLASS_MAPPING[InternalMigration.COMPONENT_ID]['constructor'].ID}: {input_do_path}"
+                )
+
+            clear_destination_directory = self.config.getboolean(
+                f"{self.COMPONENT_ID}.InternalMigration", "clear_destination_directory"
+            )
+            if clear_destination_directory:
+                delete_file_or_folder(self.spark, output_do_path)
+
+            input_do = CLASS_MAPPING[InternalMigration.COMPONENT_ID]["constructor"](self.spark, input_do_path)
+            output_do = CLASS_MAPPING[InternalMigration.COMPONENT_ID]["constructor"](self.spark, output_do_path)
+
+            self.data_objects[InternalMigration.COMPONENT_ID] = {"input": input_do, "output": output_do}
 
     @get_execution_stats
     def execute(self):
@@ -216,6 +252,47 @@ class KAnonimity(Component):
                 .where(F.col(ColNames.season) == season)
             )
 
+        if self.current_component_id == InternalMigration.COMPONENT_ID:
+            zoning_dataset = self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "zoning_dataset_id")
+            levels = self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "hierarchical_levels")
+            levels = list(int(x.strip()) for x in levels.split(","))
+
+            start_date_prev = dt.datetime.strptime(
+                self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "start_month_previous"), "%Y-%m"
+            )
+            end_date_prev = dt.datetime.strptime(
+                self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "end_month_previous"), "%Y-%m"
+            )
+            end_date_prev = end_date_prev + dt.timedelta(
+                days=cal.monthrange(end_date_prev.year, end_date_prev.month)[1] - 1
+            )
+            season_prev = self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "season_previous")
+            if season_prev not in SEASONS:
+                raise ValueError(f"Unknown season {season_prev} -- valid values are {SEASONS}")
+
+            start_date_new = dt.datetime.strptime(
+                self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "start_month_new"), "%Y-%m"
+            )
+            end_date_new = dt.datetime.strptime(
+                self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "end_month_new"), "%Y-%m"
+            )
+            end_date_new = end_date_new + dt.timedelta(
+                days=cal.monthrange(end_date_new.year, end_date_new.month)[1] - 1
+            )
+            season_new = self.config.get(f"{self.COMPONENT_ID}.{self.current_component_id}", "season_new")
+            if season_new not in SEASONS:
+                raise ValueError(f"Unknown season {season_new} -- valid values are {SEASONS}")
+
+            df = (
+                df.where(F.col(ColNames.dataset_id) == zoning_dataset)
+                .where(F.col(ColNames.level).isin(levels))
+                .where(F.col(ColNames.start_date_previous) == start_date_prev)
+                .where(F.col(ColNames.end_date_previous) == end_date_prev)
+                .where(F.col(ColNames.season_previous) == season_prev)
+                .where(F.col(ColNames.start_date_new) == start_date_new)
+                .where(F.col(ColNames.end_date_new) == end_date_new)
+                .where(F.col(ColNames.season_new) == season_new)
+            )
         return df
 
     def apply_anonimity_obfuscation(self, df: DataFrame) -> DataFrame:

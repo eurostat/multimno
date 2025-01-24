@@ -26,6 +26,7 @@ from multimno.core.data_objects.silver.silver_usual_environment_labeling_quality
     SilverUsualEnvironmentLabelingQualityMetricsDataObject,
 )
 from multimno.core.log import get_execution_stats
+from multimno.core.grid import InspireGridGenerator
 
 
 class UsualEnvironmentLabeling(Component):
@@ -101,6 +102,10 @@ class UsualEnvironmentLabeling(Component):
         self.ltps_df: DataFrame = None
         self.rare_devices_count = 0
         self.discontinuous_devices_count = 0
+        self.disaggregate_to_100m_grid = self.config.getboolean(
+            self.COMPONENT_ID, "disaggregate_to_100m_grid", fallback=False
+        )
+        self.grid_gen = InspireGridGenerator(self.spark)
 
     def initalize_data_objects(self):
         # Load paths from configuration file:
@@ -131,11 +136,16 @@ class UsualEnvironmentLabeling(Component):
         self.ltps_df = self.filter_ltps_by_target_dates(full_ltps_df, self.start_date, self.end_date, self.season)
         # assert that all the needed day type and interval times are available in the main dataset:
         self.check_needed_day_and_interval_types(self.ltps_df, self.day_and_interval_type_combinations)
-        # main transformations of this method:
-        self.transform()
-        # write output data objects:
-        self.write()
-        self.logger.info(f"Finished {self.COMPONENT_ID}")
+        partition_chunks = self._get_partition_chunks()
+        for i, partition_chunk in enumerate(partition_chunks):
+            self.logger.info(f"Processing partition chunk: {i}")
+            self.logger.debug(f"Partition chunk: {partition_chunk}")
+            self.partition_chunk = partition_chunk
+            # main transformations of this method:
+            self.transform()
+            # write output data objects:
+            self.write()
+            self.logger.info(f"Finished {self.COMPONENT_ID}")
 
     @staticmethod
     def filter_ltps_by_target_dates(
@@ -811,6 +821,9 @@ class UsualEnvironmentLabeling(Component):
     def transform(self):
         self.logger.info(f"Transform method {self.COMPONENT_ID}")
 
+        if self.partition_chunk is not None:
+            self.ltps_df = self.ltps_df.filter(F.col(ColNames.user_id_modulo).isin(self.partition_chunk))
+
         # discard devices that will not be analysed ('rarely observed' or 'discontinuously observed'):
         self.ltps_df = self.discard_devices(self.ltps_df)
 
@@ -830,6 +843,9 @@ class UsualEnvironmentLabeling(Component):
         labeling_quality_metrics_df = self.generate_quality_metrics(labeled_tiles_df)
 
         # Repartition
+        if self.disaggregate_to_100m_grid:
+            self.logger.info("Dissagregating 200m to 100m grid")
+            labeled_tiles_df = self.grid_gen.get_children_grid_ids(labeled_tiles_df, 200, 100)
         labeled_tiles_df = labeled_tiles_df.repartition(*SilverUsualEnvironmentLabelsDataObject.PARTITION_COLUMNS)
         labeling_quality_metrics_df = labeling_quality_metrics_df.repartition(
             *SilverUsualEnvironmentLabelingQualityMetricsDataObject.PARTITION_COLUMNS
@@ -840,3 +856,39 @@ class UsualEnvironmentLabeling(Component):
         self.output_data_objects[SilverUsualEnvironmentLabelingQualityMetricsDataObject.ID].df = (
             labeling_quality_metrics_df
         )
+
+    def _get_partition_chunks(self) -> List[List[int]]:
+        """
+        Method that returns the partition chunks for the current date.
+
+        Returns:
+            List[List[int, int]]: list of partition chunks. If the partition_chunk_size is not defined in the config or
+                the number of partitions is less than the desired chunk size, it will return a list with a single None element.
+        """
+        # Get partitions desired
+        partition_chunk_size = self.config.getint(self.COMPONENT_ID, "partition_chunk_size", fallback=None)
+        number_of_partitions = self.config.getint(self.COMPONENT_ID, "number_of_partitions", fallback=None)
+
+        if partition_chunk_size is None or number_of_partitions is None or partition_chunk_size <= 0:
+            return [None]
+
+        if number_of_partitions <= partition_chunk_size:
+            self.logger.warning(
+                f"Available Partition number ({number_of_partitions}) is "
+                f"less than the desired chunk size ({partition_chunk_size}). "
+                f"Using all partitions."
+            )
+            return [None]
+        partition_chunks = [
+            list(range(i, min(i + partition_chunk_size, number_of_partitions)))
+            for i in range(0, number_of_partitions, partition_chunk_size)
+        ]
+        # NOTE: Generate chunks if partition_values were read for each day
+        # getting exactly the amount of partitions for that day
+
+        # partition_chunks = [
+        #     partition_values[i : i + partition_chunk_size]
+        #     for i in range(0, partition_values_size, partition_chunk_size)
+        # ]
+
+        return partition_chunks
