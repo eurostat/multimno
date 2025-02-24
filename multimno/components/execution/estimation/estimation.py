@@ -230,14 +230,12 @@ class Estimation(Component):
             df = df.where(F.make_date(ColNames.year, ColNames.month, ColNames.day).between(start_date, end_date))
 
             if self.zoning_dataset == ReservedDatasetIDs.INSPIRE_100m:
-                df = (
-                    df.withColumn(ColNames.dataset_id, F.lit(ReservedDatasetIDs.INSPIRE_100m))
-                    .withColumn(ColNames.level, F.lit(1))
-                    .withColumn(
-                        ColNames.zone_id, F.lpad(ColNames.grid_id, InspireGridGenerator.PROJ_COORD_INT_SIZE * 2, "0")
-                    )
-                    .drop(ColNames.group_id)
+                df = df.withColumn(ColNames.dataset_id, F.lit(ReservedDatasetIDs.INSPIRE_100m)).withColumn(
+                    ColNames.level, F.lit(1)
                 )
+                grid_gen = InspireGridGenerator(spark=self.spark)
+                df = grid_gen.convert_internal_id_to_inspire_specs(df, resolution=100, grid_id_col=ColNames.grid_id)
+                df = df.withColumnRenamed(ColNames.grid_id, ColNames.zone_id)
             else:
                 df = df.where(F.col(ColNames.dataset_id) == F.lit(self.zoning_dataset)).where(
                     F.col(ColNames.level).isin(self.levels)
@@ -265,14 +263,13 @@ class Estimation(Component):
                 .where(F.col(ColNames.season) == season)
             )
             if self.zoning_dataset == ReservedDatasetIDs.INSPIRE_100m:
-                df = (
-                    df.withColumn(ColNames.dataset_id, F.lit(ReservedDatasetIDs.INSPIRE_100m))
-                    .withColumn(ColNames.level, F.lit(1))
-                    .withColumn(
-                        ColNames.zone_id, F.lpad(ColNames.grid_id, InspireGridGenerator.PROJ_COORD_INT_SIZE * 2, "0")
-                    )
-                    .drop(ColNames.group_id)
+                df = df.withColumn(ColNames.dataset_id, F.lit(ReservedDatasetIDs.INSPIRE_100m)).withColumn(
+                    ColNames.level, F.lit(1)
                 )
+
+                grid_gen = InspireGridGenerator(spark=self.spark)
+                df = grid_gen.convert_internal_id_to_inspire_specs(df, resolution=100, grid_id_col=ColNames.grid_id)
+                df = df.withColumnRenamed(ColNames.grid_id, ColNames.zone_id)
             else:
                 df = df.where(F.col(ColNames.dataset_id) == self.zoning_dataset).where(
                     F.col(ColNames.level).isin(self.levels)

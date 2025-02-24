@@ -2,6 +2,7 @@
 This module provides functionality for generating a grid based on the INSPIRE grid system specification.
 """
 
+from math import log10
 from abc import ABCMeta, abstractmethod
 from typing import List, Tuple, Union
 from multimno.core.constants.columns import ColNames
@@ -100,10 +101,12 @@ class InspireGridGenerator(GridGenerator):
         Returns:
             str: The formatted distance value.
         """
-        if value <= 1000:
+        if value < 1000:
             return f"{value}m"
         else:
-            return f"{value/1000}km"
+            if value % 1000 != 0:
+                raise ValueError(f"Distance to be formatted not multiple of 1000: {value}")
+            return f"{value // 1000}km"
 
     def _project_latlon_extent(self, extent: List[float]) -> Union[List[float], List[float]]:
         """Projects the given extent from lat/lon to the grid's CRS.
@@ -447,26 +450,43 @@ class InspireGridGenerator(GridGenerator):
 
         return sdf
 
-    def convert_internal_id_to_inspire_specs(self, sdf: DataFrame) -> DataFrame:
+    def convert_internal_id_to_inspire_specs(
+        self, sdf: DataFrame, resolution: int = None, grid_id_col: str = None
+    ) -> DataFrame:
         """
-        Converts the integer grid_id column in a DataFrame to the INSPIRE grid string format.
+        Converts the integer grid id column in a DataFrame to the INSPIRE grid string format.
 
         Args:
-            df (DataFrame): Input DataFrame with a column `grid_id` in integer format.
-            resolution (int): The resolution of the grid.
+            sdf (DataFrame): Input DataFrame with a column grid_id_col in integer format.
+            resolution (int, optional): The resolution of the grid. If None, it is equal to self.resolution. Defaults
+                to None
+            grid_id_col (str, optional): name of the column containing the integer grid id column. If None, it is
+                equal to self.grid_id_col_name. Defaults to None.
 
         Returns:
             DataFrame: A new DataFrame with the grid_id converted to string format.
         """
+        if resolution is None:
+            resolution = self.resolution
+            resolution_str = self.resolution_str
+        else:
+            if resolution % 100 != 0:
+                raise ValueError(f"Invalid resolution value not divisible by 100: {resolution}")
+            resolution_str = self._format_distance(resolution)
+
+        if grid_id_col is None:
+            grid_id_col = self.grid_id_col_name
+
+        trailing_zeros = int(log10(resolution))
 
         sdf = sdf.withColumn(
-            self.grid_id_col_name,
+            grid_id_col,
             F.concat(
-                F.lit(self.resolution_str),
+                F.lit(resolution_str),
                 F.lit("N"),
-                F.lpad(F.expr(f"grid_id DIV {10**self.PROJ_COORD_INT_SIZE}"), 7, "0"),
+                (F.expr(f"grid_id DIV {10**(self.PROJ_COORD_INT_SIZE + trailing_zeros)}")),
                 F.lit("E"),
-                F.lpad(F.expr(f"grid_id % {10**self.PROJ_COORD_INT_SIZE}"), 7, "0"),
+                (F.expr(f"(grid_id % {10**self.PROJ_COORD_INT_SIZE}) DIV {10 ** trailing_zeros}")),
             ),
         )
 

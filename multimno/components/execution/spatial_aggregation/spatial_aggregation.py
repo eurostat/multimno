@@ -281,10 +281,12 @@ class SpatialAggregation(Component):
             sdf_to_aggregate, resolution=coarser_resolution, parent_col_name=ColNames.grid_id
         )
 
-        # Transform grid_id to zone_id, add metadata dataset columns
-        sdf_to_aggregate = sdf_to_aggregate.withColumn(
-            ColNames.zone_id, F.lpad(F.col(ColNames.grid_id), grid_gen.PROJ_COORD_INT_SIZE * 2, "0")  # zone_id is str
-        ).drop(ColNames.grid_id)
+        # Transform integer ID representation to INSPIRE representation, store in zone_id
+        sdf_to_aggregate = grid_gen.convert_internal_id_to_inspire_specs(
+            sdf=sdf_to_aggregate, resolution=1000, grid_id_col=ColNames.grid_id
+        ).withColumnRenamed(ColNames.grid_id, ColNames.zone_id)
+
+        # Add metadata column
         sdf_to_aggregate = sdf_to_aggregate.withColumn(ColNames.dataset_id, F.lit(zoning_dataset_id))
         sdf_to_aggregate = sdf_to_aggregate.withColumn(ColNames.level, F.lit(hierarchical_level))
 

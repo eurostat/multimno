@@ -478,7 +478,7 @@ def generate_expected_population_1km_grid_data(timestamp: str) -> list[Row]:
 
     return [
         Row(
-            zone_id="15200001896000",
+            zone_id="1kmN1520E1896",
             population=14.0,
             timestamp=t1,
             dataset_id=dataset_id,
@@ -488,7 +488,7 @@ def generate_expected_population_1km_grid_data(timestamp: str) -> list[Row]:
             day=day,
         ),
         Row(
-            zone_id="15210001896000",
+            zone_id="1kmN1521E1896",
             population=6.0,
             timestamp=t1,
             dataset_id=dataset_id,
@@ -513,7 +513,7 @@ def generate_expected_ue_1km_grid_data(start_date: str, end_date: str) -> list[R
 
     expected_output_data = [
         Row(
-            zone_id="15200001896000",
+            zone_id="1kmN1520E1896",
             weighted_device_count=1.0,
             dataset_id=dataset_id,
             level=1,
@@ -523,7 +523,7 @@ def generate_expected_ue_1km_grid_data(start_date: str, end_date: str) -> list[R
             season=season,
         ),
         Row(
-            zone_id="15200001896000",
+            zone_id="1kmN1520E1896",
             weighted_device_count=14.0,
             dataset_id=dataset_id,
             level=1,
@@ -533,7 +533,7 @@ def generate_expected_ue_1km_grid_data(start_date: str, end_date: str) -> list[R
             season=season,
         ),
         Row(
-            zone_id="15200001896000",
+            zone_id="1kmN1520E1896",
             weighted_device_count=13.0,
             dataset_id=dataset_id,
             level=1,
@@ -543,7 +543,7 @@ def generate_expected_ue_1km_grid_data(start_date: str, end_date: str) -> list[R
             season=season,
         ),
         Row(
-            zone_id="15210001896000",
+            zone_id="1kmN1521E1896",
             weighted_device_count=2.0,
             dataset_id=dataset_id,
             level=1,
@@ -553,7 +553,7 @@ def generate_expected_ue_1km_grid_data(start_date: str, end_date: str) -> list[R
             season=season,
         ),
         Row(
-            zone_id="15210001896000",
+            zone_id="1kmN1521E1896",
             weighted_device_count=6.0,
             dataset_id=dataset_id,
             level=1,
@@ -563,7 +563,7 @@ def generate_expected_ue_1km_grid_data(start_date: str, end_date: str) -> list[R
             season=season,
         ),
         Row(
-            zone_id="15210001896000",
+            zone_id="1kmN1521E1896",
             weighted_device_count=4.0,
             dataset_id=dataset_id,
             level=1,

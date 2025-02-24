@@ -544,7 +544,7 @@ def generate_expected_estimated_aggregated_ue_100m_data(start_date: str) -> list
 
     expected_output_data = [
         Row(
-            zone_id="11111112222222",
+            zone_id="100mN11111E22222",
             weighted_device_count=15.0,
             dataset_id=dataset_id,
             level=1,
@@ -554,7 +554,7 @@ def generate_expected_estimated_aggregated_ue_100m_data(start_date: str) -> list
             season=season,
         ),
         Row(
-            zone_id="11111112222222",
+            zone_id="100mN11111E22222",
             weighted_device_count=85.0,
             dataset_id=dataset_id,
             level=1,
@@ -564,7 +564,7 @@ def generate_expected_estimated_aggregated_ue_100m_data(start_date: str) -> list
             season=season,
         ),
         Row(
-            zone_id="11111112222222",
+            zone_id="100mN11111E22222",
             weighted_device_count=100.0,
             dataset_id=dataset_id,
             level=1,
@@ -574,7 +574,7 @@ def generate_expected_estimated_aggregated_ue_100m_data(start_date: str) -> list
             season=season,
         ),
         Row(
-            zone_id="11111113333333",
+            zone_id="100mN11111E33333",
             weighted_device_count=5.0,
             dataset_id=dataset_id,
             level=1,
@@ -584,7 +584,7 @@ def generate_expected_estimated_aggregated_ue_100m_data(start_date: str) -> list
             season=season,
         ),
         Row(
-            zone_id="11111113333333",
+            zone_id="100mN11111E33333",
             weighted_device_count=65.0,
             dataset_id=dataset_id,
             level=1,
@@ -594,7 +594,7 @@ def generate_expected_estimated_aggregated_ue_100m_data(start_date: str) -> list
             season=season,
         ),
         Row(
-            zone_id="11111113333333",
+            zone_id="100mN11111E33333",
             weighted_device_count=70.0,
             dataset_id=dataset_id,
             level=1,
@@ -604,7 +604,7 @@ def generate_expected_estimated_aggregated_ue_100m_data(start_date: str) -> list
             season=season,
         ),
         Row(
-            zone_id="11111114444444",
+            zone_id="100mN11111E44444",
             weighted_device_count=10.0,
             dataset_id=dataset_id,
             level=1,
@@ -614,7 +614,7 @@ def generate_expected_estimated_aggregated_ue_100m_data(start_date: str) -> list
             season=season,
         ),
         Row(
-            zone_id="11111114444444",
+            zone_id="100mN11111E44444",
             weighted_device_count=20.0,
             dataset_id=dataset_id,
             level=1,
@@ -624,7 +624,7 @@ def generate_expected_estimated_aggregated_ue_100m_data(start_date: str) -> list
             season=season,
         ),
         Row(
-            zone_id="11111114444444",
+            zone_id="100mN11111E44444",
             weighted_device_count=30.0,
             dataset_id=dataset_id,
             level=1,
@@ -634,7 +634,7 @@ def generate_expected_estimated_aggregated_ue_100m_data(start_date: str) -> list
             season=season,
         ),
         Row(
-            zone_id="11111115555555",
+            zone_id="100mN11111E55555",
             weighted_device_count=5.0,
             dataset_id=dataset_id,
             level=1,
@@ -644,7 +644,7 @@ def generate_expected_estimated_aggregated_ue_100m_data(start_date: str) -> list
             season=season,
         ),
         Row(
-            zone_id="11111115555555",
+            zone_id="100mN11111E55555",
             weighted_device_count=5.0,
             dataset_id=dataset_id,
             level=1,
@@ -654,7 +654,7 @@ def generate_expected_estimated_aggregated_ue_100m_data(start_date: str) -> list
             season=season,
         ),
         Row(
-            zone_id="11111116666666",
+            zone_id="100mN11111E66666",
             weighted_device_count=65.0,
             dataset_id=dataset_id,
             level=1,
@@ -664,7 +664,7 @@ def generate_expected_estimated_aggregated_ue_100m_data(start_date: str) -> list
             season=season,
         ),
         Row(
-            zone_id="11111116666666",
+            zone_id="100mN11111E66666",
             weighted_device_count=65.0,
             dataset_id=dataset_id,
             level=1,
@@ -674,7 +674,7 @@ def generate_expected_estimated_aggregated_ue_100m_data(start_date: str) -> list
             season=season,
         ),
         Row(
-            zone_id="11111117777777",
+            zone_id="100mN11111E77777",
             weighted_device_count=10.0,
             dataset_id=dataset_id,
             level=1,
@@ -684,7 +684,7 @@ def generate_expected_estimated_aggregated_ue_100m_data(start_date: str) -> list
             season=season,
         ),
         Row(
-            zone_id="11111117777777",
+            zone_id="100mN11111E77777",
             weighted_device_count=20.0,
             dataset_id=dataset_id,
             level=1,
@@ -694,7 +694,7 @@ def generate_expected_estimated_aggregated_ue_100m_data(start_date: str) -> list
             season=season,
         ),
         Row(
-            zone_id="11111117777777",
+            zone_id="100mN11111E77777",
             weighted_device_count=30.0,
             dataset_id=dataset_id,
             level=1,
@@ -954,7 +954,7 @@ def generate_expected_estimated_present_population_100m_data(timestamp: str) -> 
 
     return [
         Row(
-            zone_id="11111112222222",
+            zone_id="100mN11111E22222",
             population=100.0,
             timestamp=t1,
             dataset_id=dataset_id,
@@ -964,7 +964,7 @@ def generate_expected_estimated_present_population_100m_data(timestamp: str) -> 
             day=day,
         ),
         Row(
-            zone_id="11111113333333",
+            zone_id="100mN11111E33333",
             population=70.0,
             timestamp=t1,
             dataset_id=dataset_id,
@@ -974,7 +974,7 @@ def generate_expected_estimated_present_population_100m_data(timestamp: str) -> 
             day=day,
         ),
         Row(
-            zone_id="11111114444444",
+            zone_id="100mN11111E44444",
             population=30.0,
             timestamp=t1,
             dataset_id=dataset_id,
@@ -984,7 +984,7 @@ def generate_expected_estimated_present_population_100m_data(timestamp: str) -> 
             day=day,
         ),
         Row(
-            zone_id="11111115555555",
+            zone_id="100mN11111E55555",
             population=5.0,
             timestamp=t1,
             dataset_id=dataset_id,
@@ -994,7 +994,7 @@ def generate_expected_estimated_present_population_100m_data(timestamp: str) -> 
             day=day,
         ),
         Row(
-            zone_id="11111116666666",
+            zone_id="100mN11111E66666",
             population=65.0,
             timestamp=t1,
             dataset_id=dataset_id,
@@ -1004,7 +1004,7 @@ def generate_expected_estimated_present_population_100m_data(timestamp: str) -> 
             day=day,
         ),
         Row(
-            zone_id="11111117777777",
+            zone_id="100mN11111E77777",
             population=30.0,
             timestamp=t1,
             dataset_id=dataset_id,

@@ -95,8 +95,4 @@ def test_present_population_grid(spark, get_test_data):
         schema=SilverPresentPopulationDataObject.SCHEMA,
     )
 
-    # TODO debug remove
-    output_df.show()
-    expected_result.show()
-
     assertDataFrameEqual(output_df, expected_result)

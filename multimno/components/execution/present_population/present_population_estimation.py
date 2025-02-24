@@ -17,7 +17,7 @@ from multimno.core.utils import apply_schema_casting
 from multimno.core.spark_session import delete_file_or_folder
 from multimno.core.component import Component
 from multimno.core.constants.columns import ColNames
-from multimno.core.settings import CONFIG_SILVER_PATHS_KEY
+from multimno.core.settings import CONFIG_SILVER_PATHS_KEY, GENERAL_CONFIG_KEY
 from multimno.core.data_objects.silver.silver_event_flagged_data_object import (
     SilverEventFlaggedDataObject,
 )
@@ -115,7 +115,10 @@ class PresentPopulationEstimation(Component):
             self.time_point = time_point
             self.transform()
             self.write()
+            # Cleanup
             self.spark.catalog.clearCache()
+            tmp_pp_path = self.config.get(GENERAL_CONFIG_KEY, "tmp_present_population_path")
+            delete_file_or_folder(self.spark, tmp_pp_path)
             self.logger.info(f"Present Population: Finished time point {time_point}")
         # TODO: optimizing when to write.
         # As time points are independent, it seems reasonable to write each out separately.
@@ -260,36 +263,76 @@ class PresentPopulationEstimation(Component):
         # Fields: year, month, day, cell_id, grid_id, cell_connection_probability, device_count(in the cell)
         master_df = cell_conn_prob_df.join(
             devices_per_cell_df, on=[ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id]
-        ).withColumn(ColNames.population, F.lit(initial_prior_value))
+        )
+
+        # Add prior
+        master_df = master_df.withColumn(ColNames.population, F.lit(initial_prior_value))
+
+        # Persist static information
+        master_df.cache()
 
         niter = 0
         diff = sys.float_info.max
 
         normalisation_window = Window().partitionBy(ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id)
 
-        master_df.cache()
+        # First iteration
+        # Calculate population using bayes
+        pop_df = (
+            master_df.withColumn(
+                ColNames.population, F.col(ColNames.population) * F.col(ColNames.cell_connection_probability)
+            )
+            .withColumn(
+                ColNames.population,
+                (
+                    F.col(ColNames.device_count)
+                    * F.col(ColNames.population)
+                    / F.sum(ColNames.population).over(normalisation_window)
+                ),
+            )
+            .groupby(ColNames.grid_id)
+            .agg(F.sum(ColNames.population).alias(ColNames.population))
+        )
 
-        # Declare variables here for clarity: they store the result of the previous and the current iterations
-        pop_df = None
-        new_pop_df = None
-        new_master_df = None
+        # Calculate difference with initial prior
+        diff_df = pop_df.select(
+            F.sum(F.abs(F.col(ColNames.population) - F.lit(initial_prior_value))).alias("difference")
+        )
 
-        while niter < self.max_iterations and diff >= self.min_difference_threshold:
-            # If this is not the first iteration, we need to update the population value used as prior
-            if new_pop_df is not None:
-                pop_df = new_pop_df
+        # Cache the population dataframe before getting the difference
+        pop_df.cache()
 
-            if pop_df is not None:
-                new_master_df = master_df.drop(ColNames.population).join(pop_df, on=ColNames.grid_id)
-            else:
-                new_master_df = master_df
+        diff = diff_df.collect()[0]["difference"]
 
-            new_master_df = (
-                new_master_df.withColumn(  # numerator of Bayes' rule
+        # Persist the population dataframe in disk
+        tmp_pp_path = self.config.get(GENERAL_CONFIG_KEY, "tmp_present_population_path")
+        pop_df.write.parquet(tmp_pp_path, mode="overwrite")
+
+        # unpersist in ram
+        pop_df.unpersist()
+
+        # If the difference is None, set it to 0
+        if diff is None:
+            diff = 0
+        # Increment the number of iterations and finish first iteration
+        niter += 1
+        self.logger.info(f"Finished iteration {niter}, diff {diff} vs threshold {self.min_difference_threshold}")
+
+        if diff < self.min_difference_threshold:
+            return pop_df.withColumn(ColNames.population, F.col(ColNames.population).cast(FloatType()))
+
+        while niter < self.max_iterations:
+            # Load the population dataframe from disk
+            pop_df = self.spark.read.parquet(tmp_pp_path)
+            # pop_df.cache()
+
+            # Calculate the new population dataframe using the cached master dataframe
+            new_pop_df = (
+                master_df.drop(ColNames.population)
+                .join(pop_df, on=ColNames.grid_id)
+                .withColumn(
                     ColNames.population, F.col(ColNames.population) * F.col(ColNames.cell_connection_probability)
                 )
-                # nb of devices in cell i TIMES prob(tile j | cell i)
-                # i.e. Devices in cell i * proportion of devices of cell i that belong to tile j
                 .withColumn(
                     ColNames.population,
                     (
@@ -298,39 +341,44 @@ class PresentPopulationEstimation(Component):
                         / F.sum(ColNames.population).over(normalisation_window)
                     ),
                 )
+                .groupby(ColNames.grid_id)
+                .agg(F.sum(ColNames.population).alias(ColNames.population))
             )
 
-            # Compute new population estimation
-            new_pop_df = new_master_df.groupby(ColNames.grid_id).agg(
-                F.sum(ColNames.population).alias(ColNames.population)
-            )
-
+            # Cache the new population dataframe
             new_pop_df.cache()
 
-            if pop_df is None:
-                diff_df = new_pop_df.select(
-                    F.sum(F.abs(F.col(ColNames.population) - F.lit(initial_prior_value))).alias("difference")
-                )
-            else:
-                diff_df = (
-                    new_pop_df.withColumnRenamed(ColNames.population, "new_population")
-                    .join(pop_df, on=ColNames.grid_id)
-                    .select(F.sum(F.abs(F.col(ColNames.population) - F.col("new_population"))).alias("difference"))
-                )
+            # Calculate the difference between the new population dataframe and the previous one
+            diff_df = (
+                new_pop_df.withColumnRenamed(ColNames.population, "new_population")
+                .join(pop_df, on=ColNames.grid_id)
+                .select(F.sum(F.abs(F.col(ColNames.population) - F.col("new_population"))).alias("difference"))
+            )
+
+            # Get the difference
             diff = diff_df.collect()[0]["difference"]
             if diff is None:
                 diff = 0
 
-            if pop_df is not None:
-                pop_df.unpersist()
-
             niter += 1
             self.logger.info(f"Finished iteration {niter}, diff {diff} vs threshold {self.min_difference_threshold}")
+
+            if diff < self.min_difference_threshold:
+                break
+
+            # Overwrite in disk the new population dataframe & Unpersist the new population dataframe
+            new_pop_df.write.parquet(tmp_pp_path, mode="overwrite")
+            new_pop_df.unpersist()
+            # pop_df = new_pop_df
 
         if diff < self.min_difference_threshold:
             self.logger.info(f"Algorithm convergence for tolerance {self.min_difference_threshold}!")
         else:
             self.logger.info(f"Stopped iterations after reaching max iterations {self.max_iterations}")
+
+        # Cleanup
+        master_df.unpersist()
+
         # At the end of the iteration, we have our population estimation over the grid tiles
         return new_pop_df.withColumn(ColNames.population, F.col(ColNames.population).cast(FloatType()))
 
