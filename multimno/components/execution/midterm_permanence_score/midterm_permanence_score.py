@@ -25,7 +25,7 @@ from multimno.core.data_objects.silver.silver_midterm_permanence_score_data_obje
 from multimno.core.data_objects.silver.silver_cell_footprint_data_object import SilverCellFootprintDataObject
 from multimno.core.settings import CONFIG_BRONZE_PATHS_KEY, CONFIG_SILVER_PATHS_KEY
 from multimno.core.constants.columns import ColNames
-from multimno.core.constants.period_names import TIME_INTERVALS, DAY_TYPES
+from multimno.core.constants.period_names import TimeIntervals, DayTypes, Seasons
 from multimno.core.log import get_execution_stats
 
 
@@ -84,8 +84,8 @@ class MidtermPermanenceScore(Component):
         # Set to keep track of the minutes in each the intervals start/end, which must be compared with
         # daily permanence score to verify compatibility
         self.midterm_minutes = set()
-        for time_interval in TIME_INTERVALS:  # night, work, evening, all
-            if time_interval == "all":
+        for time_interval in TimeIntervals.values():  # night, work, evening, all
+            if time_interval == TimeIntervals.ALL:
                 continue
             interval_start = self.config.get(self.COMPONENT_ID, f"{time_interval}_start")
             interval_start = self._check_time_interval(interval_start, name=f"{time_interval}_start")
@@ -154,7 +154,7 @@ class MidtermPermanenceScore(Component):
         period_combinations = self.config.geteval(self.COMPONENT_ID, "period_combinations")
         self.period_combinations = {}
         for key, vals in period_combinations.items():
-            if key.lower() not in DAY_TYPES:
+            if not DayTypes.is_valid_type(key.lower()):
                 raise ValueError(f"Unknown day type `{key}` in period_combinations")
             self.period_combinations[key.lower()] = []
             if len(vals) != len(set(vals)):
@@ -163,12 +163,9 @@ class MidtermPermanenceScore(Component):
                     str(period_combinations[key]),
                 )
             for val in vals:
-                if val not in TIME_INTERVALS:
+                if not TimeIntervals.is_valid_type(val.lower()):
                     raise ValueError(f"Unknown time interval `{val}` in period_combinations under `{key}`")
                 self.period_combinations[key.lower()].append(val)
-
-        # Score interval, for DPS calculation, currently set = 2
-        self.score_interval = 2
 
         # Country of study, used to load its holidays
         self.country_of_study = self.config.get(self.COMPONENT_ID, "country_of_study")
@@ -386,7 +383,7 @@ class MidtermPermanenceScore(Component):
         Returns:
             DataFrame: filtered DPS dataframe
         """
-        if subdaily_period not in TIME_INTERVALS:
+        if not TimeIntervals.is_valid_type(subdaily_period):
             raise ValueError(f"Unknown subdaily/time_interval {subdaily_period}")
 
         # Auxiliary variables
@@ -406,7 +403,7 @@ class MidtermPermanenceScore(Component):
         slot_end_min = F.minute(ColNames.time_slot_end_time)
 
         # Global time interval, taking all time slots
-        if subdaily_period == "all":
+        if subdaily_period == TimeIntervals.ALL:
             if start != end:
                 raise ValueError(
                     "`all` time interval must have matching start and end times to not overlap with "
@@ -444,7 +441,7 @@ class MidtermPermanenceScore(Component):
             )
 
         # consider self.day_start_hour = 4 for the following examples
-        if subdaily_period == "night_time":
+        if subdaily_period == TimeIntervals.NIGHT_TIME:
             if start.hour >= self.day_start_hour and (end > start or end == dt.time(0, 0)):
                 # night-interval stays in the day, example [20:15 to 23:30] or [19:45 to 00:00]
                 df = df.withColumn(ColNames.date, F.col(ColNames.time_slot_initial_time).cast(DateType()))
@@ -507,46 +504,30 @@ class MidtermPermanenceScore(Component):
             )
         )
 
-        if submonthly_period not in DAY_TYPES:
+        if not DayTypes.is_valid_type(submonthly_period):
             raise ValueError(f"Unknown submonthly period/day type `{submonthly_period}`")
-        if submonthly_period == "all":
+        if submonthly_period == DayTypes.ALL:
             return df
 
-        if submonthly_period == "weekends":
+        if submonthly_period == DayTypes.WEEKENDS:
             df = df.filter((F.weekday(ColNames.date) + F.lit(1)).isin(self.weekend_days))
             return df
-        if submonthly_period == "mondays":
-            df = df.filter((F.weekday(ColNames.date)).isin([0]))
-            return df
 
-        if submonthly_period == "tuesdays":
-            df = df.filter((F.weekday(ColNames.date)).isin([1]))
-            return df
-        if submonthly_period == "wednesdays":
-            df = df.filter((F.weekday(ColNames.date)).isin([2]))
-            return df
-        if submonthly_period == "thursdays":
-            df = df.filter((F.weekday(ColNames.date)).isin([3]))
-            return df
-        if submonthly_period == "fridays":
-            df = df.filter((F.weekday(ColNames.date)).isin([4]))
-            return df
-        if submonthly_period == "saturdays":
-            df = df.filter((F.weekday(ColNames.date)).isin([5]))
-            return df
-        if submonthly_period == "sundays":
-            df = df.filter((F.weekday(ColNames.date)).isin([6]))
-            return df
+        # Handle specific weekdays
+        if submonthly_period in DayTypes.WEEKDAY_MAP.keys():
+            return df.filter(F.weekday(ColNames.date) == F.lit(DayTypes.WEEKDAY_MAP[submonthly_period]))
 
         holidays = F.broadcast(self.input_data_objects["BronzeHolidayCalendarInfoDO"].df)
         holidays = holidays.filter(F.col(ColNames.iso2) == F.lit(self.country_of_study))
-        if submonthly_period == "holidays":
+        if submonthly_period == DayTypes.HOLIDAYS:
             df = df.join(holidays.select(ColNames.date), on=ColNames.date, how="inner")
         # Workdays are all days falling in one of self.work_days and not being a holiday
-        if submonthly_period == "workdays":
-            df = df.join(holidays.select(ColNames.date), on=ColNames.date, how="left_anti").filter(
-                (F.weekday(ColNames.date) + F.lit(1)).isin(self.work_days)
+        if submonthly_period == DayTypes.WORKDAYS:
+            df_local = df.filter(F.col(ColNames.id_type) != UeGridIdType.ABROAD_STR).join(
+                holidays.select(ColNames.date), on=ColNames.date, how="left_anti"
             )
+            df_abroad = df.filter(F.col(ColNames.id_type) == UeGridIdType.ABROAD_STR)
+            df = df_local.unionByName(df_abroad).filter((F.weekday(ColNames.date) + F.lit(1)).isin(self.work_days))
         return df
 
     def compute_midterm_metrics(self, df: DataFrame) -> DataFrame:
@@ -564,7 +545,7 @@ class MidtermPermanenceScore(Component):
         before_reg = (
             df.filter(F.col(ColNames.date) < F.lit(self.current_mt_period["month_start"]))
             .withColumn(ColNames.grid_id, F.explode(ColNames.dps))
-            .groupBy(ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id)
+            .groupBy(ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id, ColNames.id_type)
             .agg(F.max(ColNames.date).alias(ColNames.date))
         )
 
@@ -573,7 +554,7 @@ class MidtermPermanenceScore(Component):
         after_reg = (
             df.filter(F.col(ColNames.date) > F.lit(self.current_mt_period["month_end"]))
             .withColumn(ColNames.grid_id, F.explode(ColNames.dps))
-            .groupBy(ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id)
+            .groupBy(ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id, ColNames.id_type)
             .agg(F.min(ColNames.date).alias(ColNames.date))
         )
 
@@ -589,13 +570,13 @@ class MidtermPermanenceScore(Component):
         # Calculate regularity metrics
         regularity_df = self._generate_midterm_metrics_df(study_df, before_reg, after_reg)
 
-        combined_df = regularity_df.union(observation_df)
+        combined_df = regularity_df.unionByName(observation_df)
 
         return combined_df
 
     def _generate_device_observation_df(self, study_df: DataFrame) -> DataFrame:
         return (
-            study_df.filter(F.col(ColNames.id_type) == F.lit(UeGridIdType.GRID_STR))
+            study_df.filter(F.col(ColNames.id_type) != F.lit(UeGridIdType.UKNOWN_STR))
             .groupby(ColNames.user_id_modulo, ColNames.user_id, ColNames.date)
             .agg(F.count_distinct(ColNames.time_slot_initial_time).alias("observed_day_dps"))
             .groupby(ColNames.user_id_modulo, ColNames.user_id)
@@ -621,10 +602,17 @@ class MidtermPermanenceScore(Component):
         df = (
             study_df.withColumn(ColNames.grid_id, F.explode(ColNames.dps))
             .withColumn(ColNames.dps, F.lit(1))
-            .select(ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id, ColNames.date, ColNames.dps)
+            .select(
+                ColNames.user_id_modulo,
+                ColNames.user_id,
+                ColNames.grid_id,
+                ColNames.id_type,
+                ColNames.date,
+                ColNames.dps,
+            )
             .union(before_reg.withColumn(ColNames.dps, F.lit(0)))
             .union(after_reg.withColumn(ColNames.dps, F.lit(0)))
-            .groupby(ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id)
+            .groupby(ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id, ColNames.id_type)
             .agg(
                 F.sum(ColNames.dps).cast(IntegerType()).alias(ColNames.mps),
                 F.array_sort(F.collect_set(ColNames.date)).alias("dates"),
@@ -728,19 +716,11 @@ class MidtermPermanenceScore(Component):
             .drop(size_days_colname)
         )
 
-        # --------------- Calculate Unknown ---------------
-        df = df.withColumn(
-            ColNames.id_type,
-            F.when(F.col(ColNames.grid_id) == F.lit(UeGridIdType.UNKNOWN), F.lit(UeGridIdType.UKNOWN_STR)).otherwise(
-                F.lit(UeGridIdType.GRID_STR)
-            ),
-        )
-
         return df
 
     def transform(self):
         # Load all needed dps
-        if self.time_interval == "all":
+        if self.time_interval == TimeIntervals.ALL:
             time_interval_start = dt.time(hour=self.day_start_hour)
             time_interval_end = dt.time(hour=self.day_start_hour)
         else:
@@ -764,7 +744,6 @@ class MidtermPermanenceScore(Component):
             .withColumn(ColNames.year, F.lit(self.current_mt_period["month_start"].year).cast(ShortType()))
             .withColumn(ColNames.month, F.lit(self.current_mt_period["month_start"].month).cast(ByteType()))
         )
-
         mps = apply_schema_casting(mps, SilverMidtermPermanenceScoreDataObject.SCHEMA)
 
         mps = mps.repartition(*SilverMidtermPermanenceScoreDataObject.PARTITION_COLUMNS)

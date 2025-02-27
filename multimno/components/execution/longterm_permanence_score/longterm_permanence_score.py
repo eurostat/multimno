@@ -21,7 +21,7 @@ from multimno.core.data_objects.silver.silver_longterm_permanence_score_data_obj
 )
 from multimno.core.settings import CONFIG_SILVER_PATHS_KEY
 from multimno.core.constants.columns import ColNames
-from multimno.core.constants.period_names import TIME_INTERVALS, DAY_TYPES, SEASONS
+from multimno.core.constants.period_names import TimeIntervals, DayTypes, Seasons
 from multimno.core.log import get_execution_stats
 
 
@@ -70,11 +70,11 @@ class LongtermPermanenceScore(Component):
         period_combinations = self.config.geteval(self.COMPONENT_ID, "period_combinations")
         self.period_combinations = {}
         for season, day_types_dict in period_combinations.items():
-            if season.lower() not in SEASONS:
+            if not Seasons.is_valid_type(season.lower()):
                 raise ValueError(f"Unknown season `{season}` in period_combinations")
             self.period_combinations[season.lower()] = {}
             for day_type, time_intervals in day_types_dict.items():
-                if day_type.lower() not in DAY_TYPES:
+                if not DayTypes.is_valid_type(day_type.lower()):
                     raise ValueError(f"Uknown day_type `{day_type}` under `{season}` in period_combinations")
                 self.period_combinations[season.lower()][day_type.lower()] = []
                 if len(time_intervals) != len(set(time_intervals)):
@@ -83,13 +83,13 @@ class LongtermPermanenceScore(Component):
                         str(period_combinations[season][day_type]),
                     )
                 for time_interval in time_intervals:
-                    if time_interval not in TIME_INTERVALS:
+                    if not TimeIntervals.is_valid_type(time_interval):
                         raise ValueError(f"Unknown time_interval `{time_interval}` under `{season}` and `{day_type}`")
                     self.period_combinations[season.lower()][day_type.lower()].append(time_interval)
 
         # Check that all seasons for which an analysis is to be performed have been assigned at least one month
         for season, periods in self.period_combinations.items():
-            if season == "all":
+            if season == Seasons.ALL:
                 continue
             if len(periods) > 0 and len(getattr(self, f"{season}_months")) == 0:
                 raise ValueError(
@@ -108,16 +108,16 @@ class LongtermPermanenceScore(Component):
         month_start_date = self.start_date
         while month_start_date < self.end_date:
             self.longterm_months.append(month_start_date)
-            if "all" in self.season_months:
-                self.season_months["all"].append(month_start_date)
-            if "winter" in self.season_months and month_start_date.month in self.winter_months:
-                self.season_months["winter"].append(month_start_date)
-            if "spring" in self.season_months and month_start_date.month in self.spring_months:
-                self.season_months["spring"].append(month_start_date)
-            if "summer" in self.season_months and month_start_date.month in self.summer_months:
-                self.season_months["summer"].append(month_start_date)
-            if "autumn" in self.season_months and month_start_date.month in self.autumn_months:
-                self.season_months["autumn"].append(month_start_date)
+            if Seasons.ALL in self.season_months:
+                self.season_months[Seasons.ALL].append(month_start_date)
+            if Seasons.WINTER in self.season_months and month_start_date.month in self.winter_months:
+                self.season_months[Seasons.WINTER].append(month_start_date)
+            if Seasons.SPRING in self.season_months and month_start_date.month in self.spring_months:
+                self.season_months[Seasons.SPRING].append(month_start_date)
+            if Seasons.SUMMER in self.season_months and month_start_date.month in self.summer_months:
+                self.season_months[Seasons.SUMMER].append(month_start_date)
+            if Seasons.AUTUMN in self.season_months and month_start_date.month in self.autumn_months:
+                self.season_months[Seasons.AUTUMN].append(month_start_date)
 
             month_start_date += dt.timedelta(days=cal.monthrange(month_start_date.year, month_start_date.month)[1])
 
@@ -266,12 +266,8 @@ class LongtermPermanenceScore(Component):
         Returns:
             DataFrame: dataframe with the long-term permanence score aend metrics
         """
-        # Split dataframes by id_type
-        grid_df = df.filter(F.col(ColNames.id_type) == F.lit("grid"))
-        unknown_df = df.filter(F.col(ColNames.id_type) == F.lit("unknown"))
-        obs_df = df.filter(F.col(ColNames.id_type) == F.lit("device_observation"))
 
-        grid_df = grid_df.groupby(ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id).agg(
+        df = df.groupby(ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id, ColNames.id_type).agg(
             F.sum(ColNames.mps).cast(IntegerType()).alias(ColNames.lps),
             F.sum(ColNames.frequency).cast(IntegerType()).alias(ColNames.total_frequency),
             F.mean(ColNames.frequency).cast(FloatType()).alias(ColNames.frequency_mean),
@@ -280,60 +276,7 @@ class LongtermPermanenceScore(Component):
             F.stddev_samp(ColNames.regularity_mean).cast(FloatType()).alias(ColNames.regularity_std),
         )
 
-        unknown_df = unknown_df.groupby(ColNames.user_id_modulo, ColNames.user_id).agg(
-            F.sum(ColNames.mps).cast(IntegerType()).alias(ColNames.lps),
-            F.sum(ColNames.frequency).cast(IntegerType()).alias(ColNames.total_frequency),
-            F.mean(ColNames.frequency).cast(FloatType()).alias(ColNames.frequency_mean),
-            F.stddev_samp(ColNames.frequency).cast(FloatType()).alias(ColNames.frequency_std),
-            F.mean(ColNames.regularity_mean).cast(FloatType()).alias(ColNames.regularity_mean),
-            F.stddev_samp(ColNames.regularity_mean).cast(FloatType()).alias(ColNames.regularity_std),
-        )
-
-        obs_df = obs_df.groupby(ColNames.user_id_modulo, ColNames.user_id).agg(
-            F.sum(ColNames.mps).cast(IntegerType()).alias(ColNames.lps),
-            F.sum(ColNames.frequency).cast(IntegerType()).alias(ColNames.total_frequency),
-        )
-
-        grid_df = grid_df.select(
-            ColNames.user_id_modulo,
-            ColNames.user_id,
-            ColNames.grid_id,
-            ColNames.lps,
-            ColNames.total_frequency,
-            ColNames.frequency_mean,
-            ColNames.frequency_std,
-            ColNames.regularity_mean,
-            ColNames.regularity_std,
-            F.lit("grid").alias(ColNames.id_type),
-        )
-
-        unknown_df = unknown_df.select(
-            ColNames.user_id_modulo,
-            ColNames.user_id,
-            F.lit(-99).alias(ColNames.grid_id),
-            ColNames.lps,
-            ColNames.total_frequency,
-            ColNames.frequency_mean,
-            ColNames.frequency_std,
-            ColNames.regularity_mean,
-            ColNames.regularity_std,
-            F.lit("unknown").alias(ColNames.id_type),
-        )
-
-        obs_df = obs_df.select(
-            ColNames.user_id_modulo,
-            ColNames.user_id,
-            F.lit(UeGridIdType.DEVICE_OBSERVATION).alias(ColNames.grid_id),
-            ColNames.lps,
-            ColNames.total_frequency,
-            F.lit(None).cast(FloatType()).alias(ColNames.frequency_mean),
-            F.lit(None).cast(FloatType()).alias(ColNames.frequency_std),
-            F.lit(None).cast(FloatType()).alias(ColNames.regularity_mean),
-            F.lit(None).cast(FloatType()).alias(ColNames.regularity_std),
-            F.lit("device_observation").alias(ColNames.id_type),
-        )
-
-        return grid_df.union(unknown_df).union(obs_df)
+        return df
 
     def transform(self):
         midterm_df = self.input_data_objects[SilverMidtermPermanenceScoreDataObject.ID].df

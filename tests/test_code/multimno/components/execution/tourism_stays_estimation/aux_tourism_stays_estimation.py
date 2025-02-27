@@ -1,6 +1,6 @@
 from configparser import ConfigParser
 from datetime import datetime
-from multimno.core.constants.columns import ColNames
+from multimno.core.constants.columns import ColNames, SegmentStates
 from multimno.core.data_objects.silver.silver_cell_connection_probabilities_data_object import (
     SilverCellConnectionProbabilitiesDataObject,
 )
@@ -105,6 +105,8 @@ def data_test_0001() -> dict:
     month = 1
     day = 3
     user_id_modulo = 0
+    dataset_id = "test_dataset"
+    inspire_id = "INSPIRE_1km"
 
     input_input_ue_labels_data = [
         Row(
@@ -130,7 +132,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[],
-            state="unknown",
+            state=SegmentStates.UNKNOWN,
             is_last=True,
             year=year,
             month=month,
@@ -146,7 +148,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[],
-            state="unknown",
+            state=SegmentStates.UNKNOWN,
             is_last=False,
             year=year,
             month=month,
@@ -162,7 +164,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[cell_id_a],
-            state="stay",
+            state=SegmentStates.STAY,
             is_last=False,
             year=year,
             month=month,
@@ -178,7 +180,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[cell_id_a],
-            state="stay",
+            state=SegmentStates.STAY,
             is_last=False,
             year=year,
             month=month,
@@ -194,7 +196,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[cell_id_a],
-            state="move",
+            state=SegmentStates.MOVE,
             is_last=False,
             year=year,
             month=month,
@@ -210,7 +212,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[cell_id_b1, cell_id_b2],
-            state="stay",
+            state=SegmentStates.STAY,
             is_last=False,
             year=year,
             month=month,
@@ -226,7 +228,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[cell_id_a],
-            state="stay",
+            state=SegmentStates.STAY,
             is_last=False,
             year=year,
             month=month,
@@ -235,11 +237,11 @@ def data_test_0001() -> dict:
         ),
     ]
 
-    grid_id_1 = 10001
-    grid_id_2 = 10002
-    grid_id_3 = 10003
-    grid_id_4 = 10004
-    grid_id_5 = 10005
+    grid_id_1 = 1 * (10**7) + 1
+    grid_id_2 = 2 * (10**7) + 2
+    grid_id_3 = 10111 * (10**7) + 11000
+    grid_id_4 = 10113 * (10**7) + 10999
+    grid_id_5 = 80000 * (10**7) + 90000
 
     input_cell_connection_probabilities_data = [
         # cell_id_a has grids 1, 2
@@ -378,6 +380,7 @@ def data_test_0001() -> dict:
             end_timestamp=datetime.strptime("2023-01-03T05:55:00", date_format),
             mcc=mcc,
             mnc=mnc,
+            plmn=plmn,
             zone_ids_list=["z0|z00|z001"],
             zone_weights_list=[1.0],
             is_overnight=True,
@@ -385,6 +388,7 @@ def data_test_0001() -> dict:
             month=month,
             day=day,
             user_id_modulo=user_id_modulo,
+            dataset_id=dataset_id,
         ),
         Row(  # Stay at cell_id_b1,cell_id_b2. Should get included.
             user_id=user_id,
@@ -393,6 +397,7 @@ def data_test_0001() -> dict:
             end_timestamp=datetime.strptime("2023-01-03T09:45:00", date_format),
             mcc=mcc,
             mnc=mnc,
+            plmn=plmn,
             zone_ids_list=["z0|z00|z002", "z0|z00|z003"],
             zone_weights_list=[0.8, 0.2],
             is_overnight=False,
@@ -400,6 +405,42 @@ def data_test_0001() -> dict:
             month=month,
             day=day,
             user_id_modulo=user_id_modulo,
+            dataset_id=dataset_id,
+        ),
+        # INSPIRE_1km results
+        Row(
+            user_id=user_id,
+            time_segment_id="2",
+            start_timestamp=datetime.strptime("2023-01-03T00:55:00", date_format),
+            end_timestamp=datetime.strptime("2023-01-03T05:55:00", date_format),
+            mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
+            zone_ids_list=["1kmN0E0"],
+            zone_weights_list=[1.0],
+            is_overnight=True,
+            year=year,
+            month=month,
+            day=day,
+            user_id_modulo=user_id_modulo,
+            dataset_id=inspire_id,
+        ),
+        Row(
+            user_id=user_id,
+            time_segment_id="4",
+            start_timestamp=datetime.strptime("2023-01-03T05:54:30", date_format),
+            end_timestamp=datetime.strptime("2023-01-03T09:45:00", date_format),
+            mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
+            zone_ids_list=["1kmN10E10", "1kmN10E11", "1kmN80E90"],
+            zone_weights_list=[0.574999988079071, 0.22500000894069672, 0.20000000298023224],
+            is_overnight=False,
+            year=year,
+            month=month,
+            day=day,
+            user_id_modulo=user_id_modulo,
+            dataset_id=inspire_id,
         ),
     ]
 

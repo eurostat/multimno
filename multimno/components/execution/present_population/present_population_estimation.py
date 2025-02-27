@@ -5,6 +5,7 @@ import sys
 from typing import List, Tuple
 from datetime import datetime, timedelta
 
+from multimno.core.exceptions import PpNoDevicesException
 from pyspark.sql.types import (
     FloatType,
 )
@@ -111,19 +112,20 @@ class PresentPopulationEstimation(Component):
 
         # Processing logic: handle time points independently one at a time. Write results after each time point.
         for time_point in time_points:
-            self.logger.info(f"Present Population: Starting time point {time_point}")
-            self.time_point = time_point
-            self.transform()
-            self.write()
-            # Cleanup
-            self.spark.catalog.clearCache()
-            tmp_pp_path = self.config.get(GENERAL_CONFIG_KEY, "tmp_present_population_path")
-            delete_file_or_folder(self.spark, tmp_pp_path)
-            self.logger.info(f"Present Population: Finished time point {time_point}")
-        # TODO: optimizing when to write.
-        # As time points are independent, it seems reasonable to write each out separately.
-        # Currently we have hard-coded write mode "overwrite", which does not allow for this,
-        # so DO write and pre-write deletion needs handling first.
+            try:
+                self.logger.info(f"Present Population: Starting time point {time_point}")
+                self.time_point = time_point
+                self.transform()
+                self.write()
+            except PpNoDevicesException as e:
+                self.logger.warning(e.error_msg(time_point))
+                continue
+            finally:
+                # Cleanup
+                self.spark.catalog.clearCache()
+                tmp_pp_path = self.config.get(GENERAL_CONFIG_KEY, "tmp_present_population_path")
+                delete_file_or_folder(self.spark, tmp_pp_path)
+                self.logger.info(f"Present Population: Finished time point {time_point}")
         self.logger.info("FINISHED: Present Population Estimation")
 
     def transform(self):
@@ -140,12 +142,16 @@ class PresentPopulationEstimation(Component):
 
         cell_conn_prob_df = self.get_cell_connection_probabilities(time_point)
 
-        # calculate population estimates per grid tile.
+        # calculate population estimates per grid tile. It will write the results in tmp path
         population_per_grid_df = self.calculate_population_per_grid(count_per_cell_df, cell_conn_prob_df)
 
         # Prepare the results.
+        tmp_pp_path = self.config.get(GENERAL_CONFIG_KEY, "tmp_present_population_path")
+        population_per_grid_df = self.spark.read.parquet(tmp_pp_path)
         population_per_grid_df = (
-            population_per_grid_df.withColumn(ColNames.timestamp, F.lit(time_point))
+            population_per_grid_df
+            # .withColumn(ColNames.population, F.col(ColNames.population).cast(FloatType()))
+            .withColumn(ColNames.timestamp, F.lit(time_point))
             .withColumn(ColNames.year, F.lit(time_point.year))
             .withColumn(ColNames.month, F.lit(time_point.month))
             .withColumn(ColNames.day, F.lit(time_point.day))
@@ -230,7 +236,7 @@ class PresentPopulationEstimation(Component):
 
         return counts_df
 
-    def calculate_population_per_grid(self, devices_per_cell_df: DataFrame, cell_conn_prob_df: DataFrame) -> DataFrame:
+    def calculate_population_per_grid(self, devices_per_cell_df: DataFrame, cell_conn_prob_df: DataFrame):
         """
         Calculates population estimates for each grid tile Using an iterative Bayesian process.
 
@@ -238,26 +244,35 @@ class PresentPopulationEstimation(Component):
             devices_per_cell_df (DataFrame): (cell_id, device_count) dataframe
             cell_conn_prob_df (DataFrame): (grid_id, cell_id, cell_connection_probability) dataframe
         Returns:
-            DataFrame: (grid_id, population) dataframe
+            None
+        Raises:
+            PpNoDevicesException: If no devices are found at the time point being calculated.
         """
-        devices_per_cell_df.cache()
+        devices_per_cell_df.persist()
 
         # First, calculate total number of devices and grid tiles to initialise the prior
-        total_devices = devices_per_cell_df.select(F.sum(ColNames.device_count).alias("total_devices")).collect()[0][
-            "total_devices"
-        ]
+        total_devices_row = devices_per_cell_df.agg(F.sum(ColNames.device_count).alias("total_devices")).first()
+        total_devices = total_devices_row["total_devices"] if total_devices_row else 0
 
         if total_devices is None or total_devices == 0:
-            total_devices = 0
-            # TODO: do not enter iterations, as everything will be zero!
+            raise PpNoDevicesException()
 
         grid_df = self.input_data_objects[SilverGridDataObject.ID].df.select(ColNames.grid_id)
 
+        # persist the grid dataframe as it will be used two times
+        # 1- Count grid tiles
+        # 2- Initial population per grid tile using prior
+        grid_df.persist()
+
         # TODO: total number of grid tiles, or total number of grid tiles covered by the cells our events refer to?
+        # (Action)
         total_tiles = grid_df.count()
 
         # Initial prior value of population per tile
         initial_prior_value = float(total_devices / total_tiles)
+
+        # Create Initial Population Dataframe
+        pop_df = grid_df.select(ColNames.grid_id).withColumn(ColNames.population, F.lit(initial_prior_value))
 
         # Create master dataframe
         # Fields: year, month, day, cell_id, grid_id, cell_connection_probability, device_count(in the cell)
@@ -265,71 +280,36 @@ class PresentPopulationEstimation(Component):
             devices_per_cell_df, on=[ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id]
         )
 
-        # Add prior
-        master_df = master_df.withColumn(ColNames.population, F.lit(initial_prior_value))
-
         # Persist static information
-        master_df.cache()
+        master_df.persist()
+
+        # (Action) Action to persist master_df
+        master_df.count()
 
         niter = 0
-        diff = sys.float_info.max
+        diff = float("inf")
+        has_converged = False
 
         normalisation_window = Window().partitionBy(ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id)
 
-        # First iteration
-        # Calculate population using bayes
-        pop_df = (
-            master_df.withColumn(
-                ColNames.population, F.col(ColNames.population) * F.col(ColNames.cell_connection_probability)
-            )
-            .withColumn(
-                ColNames.population,
-                (
-                    F.col(ColNames.device_count)
-                    * F.col(ColNames.population)
-                    / F.sum(ColNames.population).over(normalisation_window)
-                ),
-            )
-            .groupby(ColNames.grid_id)
-            .agg(F.sum(ColNames.population).alias(ColNames.population))
-        )
-
-        # Calculate difference with initial prior
-        diff_df = pop_df.select(
-            F.sum(F.abs(F.col(ColNames.population) - F.lit(initial_prior_value))).alias("difference")
-        )
-
-        # Cache the population dataframe before getting the difference
-        pop_df.cache()
-
-        diff = diff_df.collect()[0]["difference"]
-
-        # Persist the population dataframe in disk
+        # (Action) Persist the population dataframe in disk
         tmp_pp_path = self.config.get(GENERAL_CONFIG_KEY, "tmp_present_population_path")
         pop_df.write.parquet(tmp_pp_path, mode="overwrite")
 
-        # unpersist in ram
-        pop_df.unpersist()
+        # un-persist the grid dataframe
+        grid_df.unpersist()
+        devices_per_cell_df.unpersist()
 
-        # If the difference is None, set it to 0
-        if diff is None:
-            diff = 0
-        # Increment the number of iterations and finish first iteration
-        niter += 1
-        self.logger.info(f"Finished iteration {niter}, diff {diff} vs threshold {self.min_difference_threshold}")
-
-        if diff < self.min_difference_threshold:
-            return pop_df.withColumn(ColNames.population, F.col(ColNames.population).cast(FloatType()))
-
+        # Start the iterative process
         while niter < self.max_iterations:
             # Load the population dataframe from disk
             pop_df = self.spark.read.parquet(tmp_pp_path)
-            # pop_df.cache()
 
             # Calculate the new population dataframe using the cached master dataframe
             new_pop_df = (
                 master_df.drop(ColNames.population)
                 .join(pop_df, on=ColNames.grid_id)
+                .withColumn("previous_population", F.col(ColNames.population))
                 .withColumn(
                     ColNames.population, F.col(ColNames.population) * F.col(ColNames.cell_connection_probability)
                 )
@@ -342,36 +322,36 @@ class PresentPopulationEstimation(Component):
                     ),
                 )
                 .groupby(ColNames.grid_id)
-                .agg(F.sum(ColNames.population).alias(ColNames.population))
+                .agg(
+                    F.sum(ColNames.population).alias(ColNames.population),
+                    F.first("previous_population").alias("previous_population"),
+                )
             )
 
             # Cache the new population dataframe
-            new_pop_df.cache()
+            new_pop_df.persist()
 
-            # Calculate the difference between the new population dataframe and the previous one
-            diff_df = (
-                new_pop_df.withColumnRenamed(ColNames.population, "new_population")
-                .join(pop_df, on=ColNames.grid_id)
-                .select(F.sum(F.abs(F.col(ColNames.population) - F.col("new_population"))).alias("difference"))
-            )
+            # (Action) Calculate the difference between the new population dataframe and the previous one
+            diff = (
+                new_pop_df.select(
+                    F.sum(F.abs(F.col("previous_population") - F.col(ColNames.population))).alias("difference")
+                )
+            ).first()
+            diff = diff["difference"] if diff else 0
 
-            # Get the difference
-            diff = diff_df.collect()[0]["difference"]
-            if diff is None:
-                diff = 0
+            # (Action) Overwrite in disk the new population dataframe & Unpersist the new population dataframe
+            new_pop_df.write.parquet(tmp_pp_path, mode="overwrite")
+            new_pop_df.unpersist()
 
             niter += 1
             self.logger.info(f"Finished iteration {niter}, diff {diff} vs threshold {self.min_difference_threshold}")
 
+            # Check exit condition
             if diff < self.min_difference_threshold:
+                has_converged = True
                 break
 
-            # Overwrite in disk the new population dataframe & Unpersist the new population dataframe
-            new_pop_df.write.parquet(tmp_pp_path, mode="overwrite")
-            new_pop_df.unpersist()
-            # pop_df = new_pop_df
-
-        if diff < self.min_difference_threshold:
+        if has_converged:
             self.logger.info(f"Algorithm convergence for tolerance {self.min_difference_threshold}!")
         else:
             self.logger.info(f"Stopped iterations after reaching max iterations {self.max_iterations}")
@@ -379,8 +359,8 @@ class PresentPopulationEstimation(Component):
         # Cleanup
         master_df.unpersist()
 
-        # At the end of the iteration, we have our population estimation over the grid tiles
-        return new_pop_df.withColumn(ColNames.population, F.col(ColNames.population).cast(FloatType()))
+        # At the end of the iteration, we have our population estimation over the grid tiles written in disk
+        return
 
 
 def generate_time_points(period_start: datetime, period_end: datetime, time_point_gap_s: timedelta) -> List[datetime]:

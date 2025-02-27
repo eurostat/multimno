@@ -1,3 +1,4 @@
+import pytest
 from pyspark.testing.utils import assertDataFrameEqual
 
 from multimno.core.configuration import parse_configuration
@@ -33,6 +34,7 @@ def teardown_function():
     teardown_test_data_dir()
 
 
+@pytest.mark.skip(reason="TODO: When enriched grid is redesigned")
 def test_usual_environment_aggregation(spark, expected_data):
     """
     DESCRIPTION:

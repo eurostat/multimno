@@ -30,6 +30,8 @@ In time_segments.ini parameters are as follows:
 
 - **max_time_missing_move_s** - integer, maximum time difference between events to be considered a “move”. If larger, the time segment will be marked “unknown”. Default value is 2 hours.
 
+-**max_time_missing_abroad_s** - integer, maximum time difference between events to be considered a “abroad”. If larger, the time segment will be marked “unknown”. Default value is 72 hours.
+
 - **pad_time_s** - integer, half the size of an isolated time segment: between two “unknowns” time segments. It expands the isolated event in time, by “padding” from the “unknown” time segments on both sides. Default value is 5 minutes.
 
 
@@ -46,5 +48,6 @@ event_error_flags_to_include = [0]
 min_time_stay_s = 900
 max_time_missing_stay_s = 43200
 max_time_missing_move_s = 7200
+max_time_missing_abroad_s = 259200
 pad_time_s = 300
 ```

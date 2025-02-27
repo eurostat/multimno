@@ -4,7 +4,7 @@ Module that implements the Continuous Time Segmentations functionality
 
 from datetime import datetime, timedelta, time, date
 from functools import partial
-from typing import List, Optional, Tuple, Dict
+from typing import List, Optional, Tuple, Dict, Any
 import hashlib
 import pandas as pd
 from pandas import DataFrame as pdDataFrame
@@ -20,6 +20,7 @@ from pyspark.sql.types import (
     BooleanType,
     IntegerType,
     ShortType,
+    ByteType,
 )
 from multimno.core.component import Component
 
@@ -34,8 +35,9 @@ from multimno.core.data_objects.silver.silver_time_segments_data_object import (
 )
 from multimno.core.spark_session import check_if_data_path_exists, delete_file_or_folder
 from multimno.core.settings import CONFIG_SILVER_PATHS_KEY
-from multimno.core.constants.columns import ColNames
+from multimno.core.constants.columns import ColNames, SegmentStates
 from multimno.core.log import get_execution_stats
+from multimno.core.utils import apply_schema_casting
 
 
 class ContinuousTimeSegmentation(Component):
@@ -56,21 +58,22 @@ class ContinuousTimeSegmentation(Component):
         ).date()
 
         self.min_time_stay = timedelta(seconds=self.config.getint(self.COMPONENT_ID, "min_time_stay_s"))
-
         self.max_time_missing_stay = timedelta(seconds=self.config.getint(self.COMPONENT_ID, "max_time_missing_stay_s"))
-
         self.max_time_missing_move = timedelta(seconds=self.config.getint(self.COMPONENT_ID, "max_time_missing_move_s"))
-
+        self.max_time_missing_abroad = timedelta(
+            seconds=self.config.getint(self.COMPONENT_ID, "max_time_missing_abroad_s")
+        )
         self.pad_time = timedelta(seconds=self.config.getint(self.COMPONENT_ID, "pad_time_s"))
 
         self.event_error_flags_to_include = self.config.geteval(self.COMPONENT_ID, "event_error_flags_to_include")
+        self.local_mcc = self.config.getint(self.COMPONENT_ID, "local_mcc")
         # this is for UDF
         self.segmentation_return_schema = StructType(
             [
                 StructField(ColNames.start_timestamp, TimestampType()),
                 StructField(ColNames.end_timestamp, TimestampType()),
                 StructField(ColNames.cells, ArrayType(StringType())),
-                StructField(ColNames.state, StringType()),
+                StructField(ColNames.state, ByteType()),
                 StructField(ColNames.is_last, BooleanType()),
                 StructField(ColNames.time_segment_id, StringType()),
                 StructField(ColNames.user_id, StringType()),
@@ -85,6 +88,8 @@ class ContinuousTimeSegmentation(Component):
             self.data_period_start + timedelta(days=i)
             for i in range((self.data_period_end - self.data_period_start).days + 1)
         ]
+        self.last_time_segments = None
+        self.current_date = None
 
     def initalize_data_objects(self):
 
@@ -127,42 +132,14 @@ class ContinuousTimeSegmentation(Component):
     @get_execution_stats
     def execute(self):
         self.logger.info(f"Starting {self.COMPONENT_ID}...")
-        self.read()
-
-        # If segements was already calculated and this is continuation of the previous run
-        # we need to get the last time segment for each user.
-        # If this is the first run, we will create an empty dataframe
-        if self.is_first_run:
-            self.intital_time_segment = self.spark.createDataFrame([], SilverTimeSegmentsDataObject.SCHEMA)
-        else:
-            previous_date = self.data_period_start - timedelta(days=1)
-            self.intital_time_segment = self.input_data_objects[SilverTimeSegmentsDataObject.ID].df.filter(
-                (F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day)) == F.lit(previous_date))
-                & (F.col(ColNames.is_last) == True)
-            )
-
-            # this is needed to join the last time segement with the events of the current date
-            self.intital_time_segment = self.intital_time_segment.withColumn(
-                ColNames.start_timestamp, F.date_add(F.col(ColNames.start_timestamp), 1)
-            ).withColumns(
-                {
-                    ColNames.year: F.year(ColNames.start_timestamp).cast("smallint"),
-                    ColNames.month: F.month(ColNames.start_timestamp).cast("tinyint"),
-                    ColNames.day: F.dayofmonth(ColNames.start_timestamp).cast("tinyint"),
-                }
-            )
-
-            self.intital_time_segment = self.intital_time_segment.withColumn(
-                ColNames.user_id, F.hex(F.col(ColNames.user_id))
-            )
 
         # for every date in the data period, get the events and the intersection groups
         # for that date and calculate the time segments
         for current_date in self.data_period_dates:
-
             self.logger.info(f"Processing events for {current_date.strftime('%Y-%m-%d')}")
-
             self.current_date = current_date
+            self.read()
+
             self.current_input_events_sdf = self.input_data_objects[SilverEventFlaggedDataObject.ID].df.filter(
                 (F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day)) == F.lit(current_date))
                 & (F.col(ColNames.error_flag).isin(self.event_error_flags_to_include))
@@ -183,27 +160,39 @@ class ContinuousTimeSegmentation(Component):
                 .select(ColNames.cell_id, ColNames.overlapping_cell_ids, ColNames.year, ColNames.month, ColNames.day)
             )
 
+            # If segements was already calculated and this is continuation of the previous run
+            # we need to get the last time segment for each user.
+            # If this is the first run, we will create an empty dataframe
+            if not self.is_first_run:
+
+                previous_date = current_date - timedelta(days=1)
+                self.last_time_segments = self.input_data_objects[SilverTimeSegmentsDataObject.ID].df.filter(
+                    (
+                        F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day))
+                        == F.lit(previous_date)
+                    )
+                    & (F.col(ColNames.is_last) == True)
+                )
+
             self.transform()
             self.write()
-            self.current_segments_sdf.unpersist()
+            self.input_data_objects[SilverTimeSegmentsDataObject.ID] = self.output_data_objects[
+                SilverTimeSegmentsDataObject.ID
+            ]
+            self.is_first_run = False
 
         self.logger.info(f"Finished {self.COMPONENT_ID}")
 
     def transform(self):
         self.logger.info(f"Transform method {self.COMPONENT_ID}")
 
-        current_events = self.current_input_events_sdf
-        last_time_segment = self.intital_time_segment
-
-        # TODO: This conversion is needed for Pandas serialisation/deserialisation,
-        # to remove it when user_id will be stored as string, not as binary
-        current_events = current_events.withColumn(ColNames.user_id, F.hex(F.col(ColNames.user_id)))
-        # Conversion to string is needed for easier intersection groups lookup in the aggregation function
+        current_events_sdf = self.current_input_events_sdf
+        last_time_segments_sdf = self.last_time_segments
         intersections_groups_df = self.current_interesection_groups_sdf
 
         # Add overlapping_cell_ids list to each event
-        current_events = (
-            current_events.alias("df1")
+        current_events_sdf = (
+            current_events_sdf.alias("df1")
             .join(
                 intersections_groups_df.alias("df2"),
                 on=[ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id],
@@ -216,42 +205,66 @@ class ContinuousTimeSegmentation(Component):
                 f"df1.{ColNames.mnc}",
                 f"df1.{ColNames.plmn}",
                 f"df1.{ColNames.cell_id}",
-                f"df1.{ColNames.year}",
-                f"df1.{ColNames.month}",
-                f"df1.{ColNames.day}",
                 f"df1.{ColNames.user_id_modulo}",
                 ColNames.overlapping_cell_ids,
             )
         )
+
+        if last_time_segments_sdf is None:
+            current_events_sdf = (
+                current_events_sdf.withColumn(ColNames.end_timestamp, F.lit(None).cast(TimestampType()))
+                .withColumn(ColNames.cells, F.lit(None))
+                .withColumn(ColNames.state, F.lit(None))
+                .withColumn("segment_plmn", F.lit(None))
+            )
+        else:
+            last_time_segments_sdf = last_time_segments_sdf.select(
+                ColNames.end_timestamp,
+                ColNames.cells,
+                ColNames.state,
+                ColNames.user_id,
+                F.col(ColNames.mcc).alias("segment_mcc"),
+                F.col(ColNames.mnc).alias("segment_mnc"),
+                F.col(ColNames.plmn).alias("segment_plmn"),
+                ColNames.user_id_modulo,
+            )
+            current_events_sdf = current_events_sdf.join(
+                F.broadcast(last_time_segments_sdf),
+                on=[ColNames.user_id_modulo, ColNames.user_id],
+                how="outer",
+            )
+
+            current_events_sdf = (
+                current_events_sdf.withColumn(
+                    ColNames.mcc, F.coalesce(F.col(ColNames.mcc), F.col("segment_mcc"))
+                ).withColumn(ColNames.mnc, F.coalesce(F.col(ColNames.mnc), F.col("segment_mnc")))
+            ).drop("segment_mcc", "segment_mnc")
+
         # TODO add first event(s?) from next date to current events to handle last segment of date
 
+        # TODO: This conversion is needed for Pandas serialisation/deserialisation,
+        # to remove it when user_id will be stored as string, not as binary
+        current_events_sdf = current_events_sdf.withColumn(ColNames.user_id, F.hex(F.col(ColNames.user_id)))
+
+        current_events_sdf = current_events_sdf.withColumn(
+            "is_abroad_event",
+            (F.col(ColNames.plmn).isNotNull()) & (F.col(ColNames.plmn).substr(1, 3) != F.lit(self.local_mcc)),
+        )
+
         # Partial function to pass the current date and other parameters to the aggregation function
-        aggregate_stays_partial = partial(
-            self.aggregate_stays,
+        aggregate_segments_partial = partial(
+            self.aggregate_segments,
             current_date=self.current_date,
             min_time_stay=self.min_time_stay,
             max_time_missing_stay=self.max_time_missing_stay,
             max_time_missing_move=self.max_time_missing_move,
+            max_time_missing_abroad=self.max_time_missing_abroad,
             pad_time=self.pad_time,
-            # intersections_set=intersections_set,
         )
 
-        groupby_cols = [
-            ColNames.user_id
-        ]  # + self.input_data_objects[SilverEventFlaggedDataObject.ID].PARTITION_COLUMNS
-
-        # TODO This filtration should be removed after bugfixes since it is not necessary
-        #   if previous modules are run correctly, since each valid event should have a valid cell.
-        current_events = current_events.where(F.col(ColNames.overlapping_cell_ids).isNotNull())
-
-        # Using cogroup to join the current events with the last time segment.
-        # Handy to avoid joining last segments to every row of the current events
-        # Also helps to detect missing events for the user for the last day or for the current day
         # TODO: To test this approach with large datasets, might not be feasible
-        current_segments_sdf = (
-            current_events.groupby(*groupby_cols)
-            .cogroup(last_time_segment.groupby(*groupby_cols))
-            .applyInPandas(aggregate_stays_partial, self.segmentation_return_schema)
+        current_segments_sdf = current_events_sdf.groupby(ColNames.user_id_modulo, ColNames.user_id).applyInPandas(
+            aggregate_segments_partial, self.segmentation_return_schema
         )
 
         current_segments_sdf = current_segments_sdf.withColumns(
@@ -261,345 +274,496 @@ class ContinuousTimeSegmentation(Component):
                 ColNames.day: F.dayofmonth(ColNames.start_timestamp).cast("tinyint"),
             }
         )
-        current_segments_sdf = current_segments_sdf.cache()
-        self.current_segments_sdf = current_segments_sdf
-
-        # Need to keep last segment for the next date iteration
-        # Have to add one day to time columns to be able to cogroup with the next day
-        last_segments = current_segments_sdf.filter(F.col(ColNames.is_last) == True)
-        last_segments = last_segments.withColumn(
-            ColNames.start_timestamp, F.date_add(F.col(ColNames.start_timestamp), 1)
-        )
-
-        last_segments = last_segments.withColumns(
-            {
-                ColNames.year: F.year(ColNames.start_timestamp).cast("smallint"),
-                ColNames.month: F.month(ColNames.start_timestamp).cast("tinyint"),
-                ColNames.day: F.dayofmonth(ColNames.start_timestamp).cast("tinyint"),
-            }
-        )
-        self.intital_time_segment.unpersist()
-        self.intital_time_segment = last_segments.cache()
-        last_segments.count()
 
         # TODO: This conversion is needed to get back to binary after Pandas serialisation/deserialisation,
         # to remove it when user_id will be stored as string, not as binary
         current_segments_sdf = current_segments_sdf.withColumn(ColNames.user_id, F.unhex(F.col(ColNames.user_id)))
 
-        current_segments_sdf = current_segments_sdf.select(
-            *[field.name for field in SilverTimeSegmentsDataObject.SCHEMA.fields]
-        )
-        columns = {
-            field.name: F.col(field.name).cast(field.dataType) for field in SilverTimeSegmentsDataObject.SCHEMA.fields
-        }
-        current_segments_sdf = current_segments_sdf.withColumns(columns)
-
+        current_segments_sdf = apply_schema_casting(current_segments_sdf, SilverTimeSegmentsDataObject.SCHEMA)
         current_segments_sdf = current_segments_sdf.repartition(
-            ColNames.year, ColNames.month, ColNames.day, ColNames.user_id_modulo
+            *SilverTimeSegmentsDataObject.PARTITION_COLUMNS
         ).sortWithinPartitions(ColNames.user_id, ColNames.start_timestamp)
 
         self.output_data_objects[SilverTimeSegmentsDataObject.ID].df = current_segments_sdf
 
     @staticmethod
-    def aggregate_stays(
-        pdf: pdDataFrame,
-        last_segments_pdf: pdDataFrame,
+    def aggregate_segments(
+        pdf: pd.DataFrame,
         current_date: date,
         min_time_stay: timedelta,
         max_time_missing_stay: timedelta,
         max_time_missing_move: timedelta,
+        max_time_missing_abroad: timedelta,
         pad_time: timedelta,
-    ) -> DataFrame:
-        """
-        Aggregates events into Time Segments for a given user.
-
-        This method processes a Pandas DataFrame of user events, and aggregates them into time segments based on
-        certain conditions. It handles the first event separately, then iterates over the remaining events. For each
-        event, it checks if there's an intersection of an event cell and the current time segment cells and if the time
-        gap is within anacceptable range. Depending on the state of the current time segment and the result of
-        the intersection check, it either updates the current time segment or creates a new one.
-
-        Input user event data is expected to be sorted by timestamp.
-
-        Parameters:
-        pdf (pdDataFrame): The input Pandas DataFrame containing user events to be processed.
-        last_segments_pdf (pdDataFrame): A Pandas DataFrame containing the last segments.
-        current_date (date): The current date.
-        min_time_stay (timedelta): The minimum time to consider a segment as a 'stay'.
-        max_time_missing_stay (timedelta): The maximum time gap to consider continuation of a 'stay'.
-        max_time_missing_move (timedelta): The maximum time gap to consider continuation of a 'move'.
-        pad_time (timedelta): The padding time to have between 'unknown' segment.
-        groups_sdf (DataFrame): A PySpark DataFrame containing the groups.
-
+    ) -> pd.DataFrame:
+        """Aggregates user stays into continuous time segments based on given parameters.
+        This function processes user location data and creates continuous time segments,
+        taking into account various time-based parameters to determine segment boundaries and types.
+        Args:
+            pdf: DataFrame containing user location events.
+            current_date: Date for which to generate segments.
+            min_time_stay: Minimum duration required to consider a period as a stay.
+            max_time_missing_stay: Maximum allowed gap in data while maintaining a stay segment.
+            max_time_missing_move: Maximum allowed gap in data while maintaining a move segment.
+            max_time_missing_abroad: Maximum allowed gap in data for abroad segments.
+            pad_time: Time padding to add around segments.
         Returns:
-        DataFrame: A DataFrame containing the aggregated time segments.
+            DataFrame containing aggregated time segments.
         """
-        segments = []
-        is_first_ts = True
+        user_id, user_mod, mcc, mnc = ContinuousTimeSegmentation._get_user_metadata(pdf)
 
+        # Prepare date boundaries
         current_date_start = datetime.combine(current_date, time(0, 0, 0))
         current_date_end = datetime.combine(current_date, time(23, 59, 59))
-        previous_date_start = current_date_start - timedelta(days=1)
-        previous_date_end = current_date_end - timedelta(days=1)
 
-        pdf = pdf.sort_values(by=[ColNames.timestamp])
+        # Check if there are any events for this date
+        no_events_for_current_date = pdf[ColNames.timestamp].isna().all()
+        no_previous_segments = pdf[ColNames.end_timestamp].isna().all()
 
-        # The user has current date events, previous time segment, or both. This code is not executed if both are missing.
-        # If previous time segment exists and events do exist, set it as current time segment.
-        #   Then process events to generate segments.
-        # If previous time segment exists and events do not exist, create whole-day "unknown" time segment.
-        #   This is the only segment for the date.
-        # If prevous time segment does not exist and events do exist, generate previous day whole-day "unknown" time segment using user info from events, set it as current time segment.
-        #   Then process events to generate segments.
-
-        if pdf.empty and not last_segments_pdf.empty:
-            # If a previous segments exists but this date has no data, then
-            # generate current date "unknown" segment using user data from previous date segment and add it to segments list.
-            # Do not generate any other segments for the current date.
-            user_id, user_mod, mcc, mnc, plmn = ContinuousTimeSegmentation.get_user_info_from_pdf(last_segments_pdf)
-            current_date_only_ts = ContinuousTimeSegmentation.create_time_segment(
-                current_date_start, current_date_end, [], "unknown", user_id
+        if no_events_for_current_date:
+            # If no events, create a single UNKNOWN segment
+            segments = ContinuousTimeSegmentation._handle_no_events_for_current_date(
+                pdf, no_previous_segments, user_id, current_date_start, current_date_end, max_time_missing_abroad
             )
-            current_date_only_ts[ColNames.is_last] = True
-            segments.append(current_date_only_ts)
-        else:  # there exist event records of this date
-            if last_segments_pdf.empty:
-                # There is no existing previous date segment, so this is the first date this user has data.
-                # Generate previous date "unknown" segment, add it to segments list, set it as current segment.
-                user_id, user_mod, mcc, mnc, plmn = ContinuousTimeSegmentation.get_user_info_from_pdf(pdf)
-                current_ts = ContinuousTimeSegmentation.create_time_segment(
-                    previous_date_start, previous_date_end, [], "unknown", user_id
-                )
-                current_ts[ColNames.is_last] = True
-                segments.append(current_ts)
-            else:
-                # Get existing previous day segment, set as current segment.
-                user_id, user_mod, mcc, mnc, plmn = ContinuousTimeSegmentation.get_user_info_from_pdf(pdf)
-                current_ts = ContinuousTimeSegmentation.get_previous_date_last_segment(last_segments_pdf)
-            # Iterate over events in chronological order to generate segments.
-            for event in pdf.itertuples(index=False):
-                next_ts = {}
-                ts_to_add = []
-                event_timestamp = event.timestamp
-                event_cell = event.cell_id
-                overlapping_cell_ids = event.overlapping_cell_ids
+        else:
+            # Create the initial time segment for this day
+            current_ts = ContinuousTimeSegmentation._create_initial_time_segment(
+                pdf,
+                no_previous_segments,
+                current_date_start,
+                pad_time,
+                user_id,
+                max_time_missing_stay,
+                max_time_missing_move,
+                max_time_missing_abroad,
+            )
 
-                # Add event's own cell_id to overlapping_cell_ids
-                current_event_cell_overlapping_cell_ids = overlapping_cell_ids.tolist() + [event_cell]
+            # Limit columns we actually need
+            pdf_for_events = pdf[
+                [ColNames.timestamp, ColNames.cell_id, ColNames.overlapping_cell_ids, "is_abroad_event", ColNames.plmn]
+            ]
 
-                # For the first time segment to start, look at the previous day's last segment and
-                # create a new time segment with the same state from the day start until the first event.
-                if is_first_ts:
-                    next_ts = ContinuousTimeSegmentation.handle_first_segment(
-                        current_ts=current_ts,
-                        event_timestamp=event_timestamp,
-                        event_cell=event_cell,
-                        current_date_start=current_date_start,
-                        max_time_missing_stay=max_time_missing_stay,
-                        max_time_missing_move=max_time_missing_move,
-                        pad_time=pad_time,
-                        user_id=user_id,
-                    )
-                    current_ts = next_ts
-                    is_first_ts = False
+            # Build segments from each event
+            segments = ContinuousTimeSegmentation._iterate_events(
+                pdf_for_events,
+                current_ts,
+                user_id,
+                min_time_stay,
+                max_time_missing_stay,
+                max_time_missing_move,
+                max_time_missing_abroad,
+                pad_time,
+            )
 
-                # Determine if this event intersects with the current time segment.
-                is_intersected = ContinuousTimeSegmentation.check_intersection(
-                    current_ts[ColNames.cells],
-                    current_event_cell_overlapping_cell_ids,
-                )
-
-                if current_ts[ColNames.state] == "unknown":
-                    # If the current state is 'unknown' (from the previous day),
-                    # create a new 'undetermined' time segment with pad_time adjustment
-                    next_ts = ContinuousTimeSegmentation.create_time_segment(
-                        current_ts[ColNames.end_timestamp],
-                        event_timestamp,
-                        [event_cell],
-                        "undetermined",
-                        user_id,
-                    )
-                    ts_to_add = [current_ts]
-                    current_ts = next_ts
-
-                elif is_intersected and (event_timestamp - current_ts[ColNames.end_timestamp]) <= max_time_missing_stay:
-                    # If there's an intersection, check if we should update the current_ts or create a new one
-                    if current_ts[ColNames.state] in ["undetermined", "stay"]:
-                        # If the current state is 'undetermined' or 'stay' and the time gap is within
-                        # the acceptable range for a stay update the current time segment with the new cell
-                        # and the new end timestamp and set state to stay
-                        current_ts[ColNames.end_timestamp] = event_timestamp
-                        current_ts[ColNames.cells] = list(set(current_ts[ColNames.cells] + [event_cell]))
-                        if current_ts[ColNames.end_timestamp] - current_ts[ColNames.start_timestamp] > min_time_stay:
-                            current_ts[ColNames.state] = "stay"
-                    elif current_ts[ColNames.state] == "move":
-                        # If the current state is 'move' and the time gap is within the acceptable range
-                        # create new time segment with state 'undetermined' after 'move' segment
-                        next_ts = ContinuousTimeSegmentation.create_time_segment(
-                            current_ts[ColNames.end_timestamp],
-                            event_timestamp,
-                            [event_cell],
-                            "undetermined",
-                            user_id,
-                        )
-                        # if time gap is big enough to assume that it is a stay, change the state to 'stay'
-                        if next_ts[ColNames.end_timestamp] - next_ts[ColNames.start_timestamp] > min_time_stay:
-                            next_ts[ColNames.state] = "stay"
-                        ts_to_add = [current_ts]
-                        current_ts = next_ts
-
-                elif (
-                    not is_intersected and event_timestamp - current_ts[ColNames.end_timestamp] <= max_time_missing_move
-                ):
-                    # If there is no intersection and the time gap is within the acceptable range for a move, create
-                    # two 'move' segments, each covering half the duration of the time gap
-                    mid_point = (
-                        current_ts[ColNames.end_timestamp] + (event_timestamp - current_ts[ColNames.end_timestamp]) / 2
-                    )
-
-                    next_ts_1 = ContinuousTimeSegmentation.create_time_segment(
-                        current_ts[ColNames.end_timestamp],
-                        mid_point,
-                        current_ts[ColNames.cells],
-                        "move",
-                        user_id,
-                    )
-
-                    next_ts_2 = ContinuousTimeSegmentation.create_time_segment(
-                        mid_point,
-                        event_timestamp,
-                        [event_cell],
-                        "move",
-                        user_id,
-                    )
-
-                    ts_to_add = [current_ts, next_ts_1]
-                    current_ts = next_ts_2
-
-                else:
-                    # If the time gap is too big, create 'unknown' segment for missing time with pad_time adjustment
-                    # create new time segment with state 'undetermined' with pad_time adjustment
-                    current_ts[ColNames.end_timestamp] = current_ts[ColNames.end_timestamp] + pad_time
-
-                    next_ts_1 = ContinuousTimeSegmentation.create_time_segment(
-                        current_ts[ColNames.end_timestamp],
-                        event_timestamp - pad_time,
-                        [],
-                        "unknown",
-                        user_id,
-                    )
-
-                    next_ts_2 = ContinuousTimeSegmentation.create_time_segment(
-                        event_timestamp - pad_time,
-                        event_timestamp,
-                        [event_cell],
-                        "undetermined",
-                        user_id,
-                    )
-
-                    ts_to_add = [current_ts, next_ts_1]
-                    current_ts = next_ts_2
-
-                segments.extend(ts_to_add)
-            # For the last ongoing segment, set is_last to true and add it as the last segment of the day.
-            current_ts[ColNames.is_last] = True
-            segments.append(current_ts)
-        # TODO: NOT IMPLEMENTED.
-        # Currently there is no methodological description on how to handle the time from the last event to the end of the day.
-        # May need to create and extra time segment that covers the duration from the last event-based time segment until the end of the date.
-
-        # Prepare return columns
+        # Convert list of segments to DataFrame
         segments_df = pd.DataFrame(segments)
         segments_df[ColNames.user_id] = user_id
         segments_df[ColNames.mcc] = mcc
         segments_df[ColNames.mnc] = mnc
-        segments_df[ColNames.plmn] = plmn
         segments_df[ColNames.user_id_modulo] = user_mod
 
         return segments_df
 
+    # ---------------------  No-Events Helper  ---------------------
     @staticmethod
-    def handle_first_segment(
-        current_ts: Dict,
-        event_timestamp: datetime,
-        event_cell: int,
-        current_date_start: datetime,
-        max_time_missing_stay: timedelta,
-        max_time_missing_move: timedelta,
+    def _handle_no_events_for_current_date(
+        pdf: pd.DataFrame,
+        no_previous_segments: bool,
+        user_id: str,
+        day_start: datetime,
+        day_end: datetime,
+        max_time_missing_abroad: timedelta,
+    ) -> List[Dict]:
+        """Handles cases where there are no events for the current date.
+        This method creates a time segment for a day without events. If there were previous segments
+        and the last segment was abroad within the maximum allowed time gap, it continues the abroad state.
+        Otherwise, it creates an unknown state segment.
+        Args:
+            pdf (pd.DataFrame): DataFrame containing previous segments information
+            no_previous_segments (bool): Flag indicating if there are previous segments
+            user_id (str): Identifier for the user
+            day_start (datetime): Start timestamp of the day
+            day_end (datetime): End timestamp of the day
+            max_time_missing_abroad (timedelta): Maximum allowed time gap for continuing abroad state
+        Returns:
+            List[Dict]: List containing a single time segment dictionary with the appropriate state
+        """
+        if not no_previous_segments:
+            previous_segment_end_time = pdf[ColNames.end_timestamp].iloc[0]
+            previous_segment_state = pdf[ColNames.state].iloc[0]
+            previous_segment_plmn = pdf["segment_plmn"].iloc[0]
+
+            if (previous_segment_state == SegmentStates.ABROAD) and (
+                day_end - previous_segment_end_time <= max_time_missing_abroad
+            ):
+                seg = ContinuousTimeSegmentation._create_time_segment(
+                    day_start, day_end, [], previous_segment_plmn, SegmentStates.ABROAD, user_id
+                )
+            else:
+                seg = ContinuousTimeSegmentation._create_time_segment(
+                    day_start, day_end, [], None, SegmentStates.UNKNOWN, user_id
+                )
+        else:
+            seg = ContinuousTimeSegmentation._create_time_segment(
+                day_start, day_end, [], None, SegmentStates.UNKNOWN, user_id
+            )
+
+        seg[ColNames.is_last] = True
+        return [seg]
+
+    # ---------------------  Initial Segment Helper  ---------------------
+    @staticmethod
+    def _create_initial_time_segment(
+        pdf: pd.DataFrame,
+        no_previous_segments: bool,
+        day_start: datetime,
         pad_time: timedelta,
         user_id: str,
-    ) -> dict:
-        """
-        Handles the first segment for a user for a date based on a previous date last segment.
-
-        This method takes the last time segment of previous date and the timestamp of the first
-            event in the current date.
-        It checks the state of the current time segment and the time difference between the end of the current
-        time segment and the first event in the next date.
-
-        If the state is 'undetermined' or 'stay' and the time difference is within the maximum missing stay time,
-        or if the state is 'move' and the time difference is within the maximum missing move time, it creates a new
-        time segment with the same cells, state. The start timestamp
-        of the new time segment is the start of the current date, and the end timestamp
-            is the timestamp of the first event.
-
-        If neither of these conditions are met, it creates a new time segment with
-            an empty list of cells, state 'unknown'.
-        The start timestamp of the new time segment is the start of the next date,
-            and the end timestamp is the timestamp of the first event minus the padding time.
-
-        Parameters:
-        current_ts (Dict): The last time segment from previous date.
-        event_timestamp (datetime): The timestamp of the first event in the current date.
-        event_cell (int): The cell of the first event in the current date.
-        current_date_start (datetime): The start of the current date.
-        max_time_missing_stay (timedelta): The maximum time gap to consider continuation of a 'stay'.
-        max_time_missing_move (timedelta): The maximum time gap to consider continuation of a 'move'.
-        pad_time (timedelta): The padding time to have between 'unknown' segment.
-
+        max_time_missing_stay: timedelta,
+        max_time_missing_move: timedelta,
+        max_time_missing_abroad: timedelta,
+    ) -> Dict:
+        """Create initial time segment based on first event and previous day information.
+        Creates a time segment from the start of the day until the first event of the day,
+        considering any existing segments from the previous day to maintain continuity.
+        Args:
+            pdf: DataFrame containing the first event data
+            no_previous_segments: Boolean indicating if there are segments from previous day
+            day_start: DateTime marking the start of the current day
+            pad_time: TimeDelta for padding unknown segments
+            user_id: String identifier for the user
+            max_time_missing_stay: Maximum allowed gap for stay segments
+            max_time_missing_move: Maximum allowed gap for move segments
+            max_time_missing_abroad: Maximum allowed gap for abroad segments
         Returns:
-        dict: The new first time segment for the current date.
+            Dict containing the created time segment
         """
-        # TODO Verify if logic is consistent with non-first segments
-        if (
-            current_ts[ColNames.state] in ["undetermined", "stay"]
-            and event_timestamp - current_ts[ColNames.end_timestamp] <= max_time_missing_stay
-        ):
-            next_ts = ContinuousTimeSegmentation.create_time_segment(
-                current_date_start,
-                event_timestamp,
-                list(set(current_ts[ColNames.cells] + [event_cell])),
-                current_ts[ColNames.state],
+        first_event_time = pdf[ColNames.timestamp].iloc[0]
+        previous_segment_end_time = pdf[ColNames.end_timestamp].iloc[0]
+        previous_segment_state = pdf[ColNames.state].iloc[0]
+        previous_segment_plmn = pdf["segment_plmn"].iloc[0]
+        previous_segment_cells = pdf[ColNames.cells].iloc[0]
+
+        time_to_first_event = first_event_time - day_start
+        adjusted_pad = min(pad_time, time_to_first_event / 2)
+
+        if no_previous_segments:
+            # No segment from previous day => unknown until first event
+            return ContinuousTimeSegmentation._create_time_segment(
+                day_start,
+                first_event_time - adjusted_pad,
+                [],
+                None,
+                SegmentStates.UNKNOWN,
                 user_id,
             )
-        elif (
-            current_ts[ColNames.state] == "move"
-            and event_timestamp - current_ts[ColNames.end_timestamp] <= max_time_missing_move
-        ):
-            next_ts = ContinuousTimeSegmentation.create_time_segment(
-                current_date_start,
-                event_timestamp,
-                list(set(current_ts[ColNames.cells] + [event_cell])),
-                current_ts[ColNames.state],
+
+        # Otherwise, try to continue from the previous day
+        gap = first_event_time - previous_segment_end_time
+
+        if (previous_segment_state == SegmentStates.STAY) and (gap <= max_time_missing_stay):
+            return ContinuousTimeSegmentation._create_time_segment(
+                day_start,
+                first_event_time,
+                previous_segment_cells,
+                previous_segment_plmn,
+                SegmentStates.STAY,
+                user_id,
+            )
+        elif (previous_segment_state == SegmentStates.MOVE) and (gap <= max_time_missing_move):
+            return ContinuousTimeSegmentation._create_time_segment(
+                day_start,
+                first_event_time,
+                previous_segment_cells,
+                previous_segment_plmn,
+                SegmentStates.MOVE,
+                user_id,
+            )
+        elif (previous_segment_state == SegmentStates.ABROAD) and (gap <= max_time_missing_abroad):
+            return ContinuousTimeSegmentation._create_time_segment(
+                day_start,
+                first_event_time,
+                [],
+                previous_segment_plmn,
+                SegmentStates.ABROAD,
                 user_id,
             )
         else:
-            pad_time = timedelta(seconds=0) if event_timestamp - current_date_start < pad_time else pad_time
-            next_ts = ContinuousTimeSegmentation.create_time_segment(
-                current_date_start,
-                event_timestamp - pad_time,
+            # Large gap or incompatible => unknown until first event
+            return ContinuousTimeSegmentation._create_time_segment(
+                day_start,
+                first_event_time - adjusted_pad,
                 [],
-                "unknown",
+                None,
+                SegmentStates.UNKNOWN,
                 user_id,
             )
 
-        return next_ts
+    # ---------------------  Iteration Over Events ---------------------
+    @staticmethod
+    def _iterate_events(
+        pdf_events: pd.DataFrame,
+        current_ts: Dict,
+        user_id: str,
+        min_time_stay: timedelta,
+        max_time_missing_stay: timedelta,
+        max_time_missing_move: timedelta,
+        max_time_missing_abroad: timedelta,
+        pad_time: timedelta,
+    ) -> List[Dict]:
+        """Iterates through events and constructs time segments based on continuous time segmentation rules.
+
+        Processes a sequence of events (both abroad and local) and creates time segments according to
+        specified time constraints. Each event updates the current time segment state and may generate
+        new segments when conditions are met.
+
+        Args:
+            pdf_events: DataFrame containing events with timestamp, location, and other relevant information.
+            current_ts: Dictionary representing the current time segment state.
+            user_id: String identifier for the user.
+            min_time_stay: Minimum duration required for a stay segment.
+            max_time_missing_stay: Maximum allowed gap in stay segments.
+            max_time_missing_move: Maximum allowed gap in movement segments.
+            max_time_missing_abroad: Maximum allowed gap in abroad segments.
+            pad_time: Time padding added to segments.
+
+        Returns:
+            List of dictionaries representing time segments
+        """
+        all_segments: List[Dict] = []
+
+        for event in pdf_events.itertuples(index=False):
+            if event.is_abroad_event:
+                # Process abroad logic
+                new_segments, new_current = ContinuousTimeSegmentation._process_abroad_event(
+                    current_ts,
+                    user_id,
+                    event.timestamp,
+                    event.plmn,
+                    max_time_missing_abroad,
+                )
+            else:
+                # Process local logic
+                new_segments, new_current = ContinuousTimeSegmentation._process_local_event(
+                    current_ts,
+                    user_id,
+                    event.timestamp,
+                    event.cell_id,
+                    event.overlapping_cell_ids,
+                    event.plmn,
+                    min_time_stay,
+                    max_time_missing_stay,
+                    max_time_missing_move,
+                    pad_time,
+                )
+
+            all_segments.extend(new_segments)
+            current_ts = new_current
+
+        # Mark final segment as is_last
+        current_ts[ColNames.is_last] = True
+        all_segments.append(current_ts)
+        return all_segments
 
     @staticmethod
-    def create_time_segment(
+    def _extend_segment(current_ts: Dict, new_end_time: datetime, new_cells: List[Any] = None) -> Dict:
+        """
+        Returns a brand new segment dictionary with an extended_ts end_time
+        and optionally merged cells. Does not mutate the original.
+        """
+        updated_ts = current_ts.copy()
+        updated_ts[ColNames.end_timestamp] = new_end_time
+
+        if new_cells is not None:
+            merged_cells = list(set(updated_ts[ColNames.cells] + new_cells))
+            updated_ts[ColNames.cells] = merged_cells
+
+        return updated_ts
+
+    # ---------------------  Processing Each Event ---------------------
+    @staticmethod
+    def _process_abroad_event(
+        current_ts: Dict,
+        user_id: str,
+        event_timestamp: datetime,
+        event_plmn: str,
+        max_time_missing_abroad: timedelta,
+    ) -> Tuple[List[Dict], Dict]:
+        """
+        Decide whether to extend current ABROAD segment, create a new one,
+        or start bridging with UNKNOWN if the gap is too large.
+        Returns (finalized_segments, new_current_ts).
+        """
+        segments_to_add: List[Dict] = []
+
+        abroad_mcc = str(event_plmn)[:3]
+        current_mcc = str(current_ts.get(ColNames.plmn) or "")[:3]
+        is_mcc_matched = abroad_mcc == current_mcc
+
+        gap = event_timestamp - current_ts[ColNames.end_timestamp]
+
+        if current_ts[ColNames.state] != SegmentStates.ABROAD:
+            # Transition from a different state to ABROAD
+            segments_to_add.append(current_ts)
+            current_ts = ContinuousTimeSegmentation._create_time_segment(
+                current_ts[ColNames.end_timestamp],
+                event_timestamp,
+                [],
+                event_plmn,
+                SegmentStates.ABROAD,
+                user_id,
+            )
+
+        elif is_mcc_matched and (gap <= max_time_missing_abroad):
+            # Extend existing ABROAD
+            current_ts = ContinuousTimeSegmentation._extend_segment(current_ts, event_timestamp)
+
+        elif (not is_mcc_matched) and (gap <= max_time_missing_abroad):
+            # Different MCC but within the gap => new ABROAD segment
+            segments_to_add.append(current_ts)
+            current_ts = ContinuousTimeSegmentation._create_time_segment(
+                current_ts[ColNames.end_timestamp],
+                event_timestamp,
+                [],
+                event_plmn,
+                SegmentStates.ABROAD,
+                user_id,
+            )
+
+        else:
+            # Gap too large => bridging with UNKNOWN
+            segments_to_add.append(current_ts)
+            current_ts = ContinuousTimeSegmentation._create_time_segment(
+                current_ts[ColNames.end_timestamp],
+                event_timestamp,
+                [],
+                event_plmn,
+                SegmentStates.UNKNOWN,
+                user_id,
+            )
+
+        return segments_to_add, current_ts
+
+    @staticmethod
+    def _process_local_event(
+        current_ts: Dict,
+        user_id: str,
+        event_timestamp: datetime,
+        event_cell: Any,
+        overlapping_cell_ids: Any,
+        event_plmn: Any,
+        min_time_stay: timedelta,
+        max_time_missing_stay: timedelta,
+        max_time_missing_move: timedelta,
+        pad_time: timedelta,
+    ) -> Tuple[List[Dict], Dict]:
+        """
+        Decide whether to continue a STAY/UNDETERMINED, transition to MOVE,
+        or insert UNKNOWN bridging based on the local event.
+        Returns (finalized_segments, updated_current_ts).
+        """
+        segments_to_add: List[Dict] = []
+        gap = event_timestamp - current_ts[ColNames.end_timestamp]
+        if overlapping_cell_ids is None:
+            overlapping_cell_ids = []
+        new_cells = overlapping_cell_ids.tolist()
+        new_cells.append(event_cell)
+
+        is_intersected = ContinuousTimeSegmentation._check_intersection(
+            current_ts[ColNames.cells],
+            new_cells,
+        )
+
+        # Case 1: UNKNOWN/ABROAD => UNDETERMINED transition
+        if current_ts[ColNames.state] in [SegmentStates.UNKNOWN, SegmentStates.ABROAD]:
+            segments_to_add.append(current_ts)
+            current_ts = ContinuousTimeSegmentation._create_time_segment(
+                current_ts[ColNames.end_timestamp],
+                event_timestamp,
+                [event_cell],
+                event_plmn,
+                SegmentStates.UNDETERMINED,
+                user_id,
+            )
+
+        # Case 2: Intersection => STAY or UNDETERMINED extension
+        elif is_intersected and (gap <= max_time_missing_stay):
+            if current_ts[ColNames.state] in [SegmentStates.UNDETERMINED, SegmentStates.STAY]:
+                # Extend in place
+                current_ts = ContinuousTimeSegmentation._extend_segment(current_ts, event_timestamp, [event_cell])
+                duration = current_ts[ColNames.end_timestamp] - current_ts[ColNames.start_timestamp]
+                if duration > min_time_stay:
+                    current_ts[ColNames.state] = SegmentStates.STAY
+
+            elif current_ts[ColNames.state] == SegmentStates.MOVE:
+                # End MOVE => start UNDETERMINED
+                segments_to_add.append(current_ts)
+                current_ts = ContinuousTimeSegmentation._create_time_segment(
+                    current_ts[ColNames.end_timestamp],
+                    event_timestamp,
+                    [event_cell],
+                    event_plmn,
+                    SegmentStates.UNDETERMINED,
+                    user_id,
+                )
+        # Case 3: No intersection but gap <= max_time_missing_move => 'move'
+        elif (not is_intersected) and (gap <= max_time_missing_move):
+
+            midpoint = current_ts[ColNames.end_timestamp] + gap / 2
+            move_ts_1 = ContinuousTimeSegmentation._create_time_segment(
+                current_ts[ColNames.end_timestamp],
+                midpoint,
+                current_ts[ColNames.cells],
+                event_plmn,
+                SegmentStates.MOVE,
+                user_id,
+            )
+            segments_to_add.extend([current_ts, move_ts_1])
+
+            current_ts = ContinuousTimeSegmentation._create_time_segment(
+                midpoint,
+                event_timestamp,
+                [event_cell],
+                event_plmn,
+                SegmentStates.MOVE,
+                user_id,
+            )
+
+        # Case 4: Gap too large => bridging with UNKNOWN
+        else:
+            # First, artificially extend current_ts by pad_time
+            extended_ts = ContinuousTimeSegmentation._extend_segment(
+                current_ts, current_ts[ColNames.end_timestamp] + pad_time
+            )
+
+            unknown_segment = ContinuousTimeSegmentation._create_time_segment(
+                extended_ts[ColNames.end_timestamp],
+                event_timestamp - pad_time,
+                [],
+                event_plmn,
+                SegmentStates.UNKNOWN,
+                user_id,
+            )
+
+            segments_to_add.extend([extended_ts, unknown_segment])
+
+            current_ts = ContinuousTimeSegmentation._create_time_segment(
+                event_timestamp - pad_time,
+                event_timestamp,
+                [event_cell],
+                event_plmn,
+                SegmentStates.UNDETERMINED,
+                user_id,
+            )
+
+        return segments_to_add, current_ts
+
+    @staticmethod
+    def _create_time_segment(
         start_timestamp: datetime,
         end_timestamp: datetime,
         cells: List[str],
+        plmn: int,
         state: str,
         user_id: str,
     ) -> Dict:
@@ -625,52 +789,31 @@ class ContinuousTimeSegmentation(Component):
             ColNames.start_timestamp: start_timestamp,
             ColNames.end_timestamp: end_timestamp,
             ColNames.cells: cells,
+            ColNames.plmn: plmn,
             ColNames.state: state,
             ColNames.is_last: False,
         }
 
     @staticmethod
-    def get_user_info_from_pdf(pdf: pdDataFrame) -> Tuple[str, int, str]:
+    def _get_user_metadata(pdf: pdDataFrame) -> Tuple[str, int, str]:
         """
-        Gets user_id, user_id_modulo, mcc, mnc and plmn from Pandas DataFrame containing columns with the corresponding names.
+        Gets user_id, user_id_modulo, mcc, mnc from Pandas DataFrame containing columns with the corresponding names.
         Values from the first row of the dataframe are used.
 
         Args:
             pdf (pdDataFrame): Pandas DataFrame
 
         Returns:
-            Tuple[str, int, str]: user_id, user_id_modulo, mcc, mnc, plmn
+            Tuple[str, int, str]: user_id, user_id_modulo, mcc, mnc
         """
         user_id = pdf[ColNames.user_id][0]
         user_id_mod = pdf[ColNames.user_id_modulo][0]
         mcc = pdf[ColNames.mcc][0]
         mnc = pdf[ColNames.mnc][0]
-        plmn = pdf[ColNames.plmn][0]
-        return user_id, user_id_mod, mcc, mnc, plmn
+        return user_id, user_id_mod, mcc, mnc
 
     @staticmethod
-    def get_previous_date_last_segment(last_segments_pdf: pdDataFrame) -> Dict:
-        """
-        Gets last segment from the previous date. The input DataFrame is expected to contain only one row to be retrieved.
-
-        Args:
-            last_segments_pdf (pdDataFrame): Pandas DataFrame containing the user's previous date's final segment.
-
-        Returns:
-            Dict: dict of segment
-        """
-        return last_segments_pdf.iloc[0][
-            [
-                ColNames.time_segment_id,
-                ColNames.start_timestamp,
-                ColNames.end_timestamp,
-                ColNames.cells,
-                ColNames.state,
-            ]
-        ].to_dict()
-
-    @staticmethod
-    def check_intersection(
+    def _check_intersection(
         previous_ts_cells: List[str],
         current_event_overlapping_cell_ids: List[str],
     ) -> bool:

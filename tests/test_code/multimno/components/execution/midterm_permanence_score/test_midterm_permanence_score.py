@@ -11,7 +11,7 @@ from multimno.components.execution.midterm_permanence_score.midterm_permanence_s
 )
 
 from multimno.core.constants.columns import ColNames
-
+from multimno.core.constants.error_types import UeGridIdType
 from tests.test_code.fixtures import spark_session as spark
 from tests.test_code.multimno.components.execution.midterm_permanence_score.aux_midterm_permanence_score import (
     expected_midterm_ps,
@@ -133,8 +133,10 @@ def test_midterm_metrics_calculation(spark):
     result_df = midterm_ps._calculate_midterm_metrics(study_df)
 
     # Assertion
-    assert_result_df = result_df.withColumn(ColNames.regularity_mean, F.round(ColNames.regularity_mean, 2)).withColumn(
-        ColNames.regularity_std, F.round(ColNames.regularity_std, 2)
+    assert_result_df = (
+        result_df.withColumn(ColNames.regularity_mean, F.round(ColNames.regularity_mean, 2))
+        .withColumn(ColNames.regularity_std, F.round(ColNames.regularity_std, 2))
+        .withColumn(ColNames.id_type, F.lit(UeGridIdType.GRID_STR))
     )
 
     assertDataFrameEqual(assert_result_df, expected_df)

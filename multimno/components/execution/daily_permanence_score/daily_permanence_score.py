@@ -33,7 +33,7 @@ from multimno.core.data_objects.silver.silver_cell_footprint_data_object import 
 from multimno.core.data_objects.silver.silver_daily_permanence_score_data_object import (
     SilverDailyPermanenceScoreDataObject,
 )
-from multimno.core.settings import CONFIG_SILVER_PATHS_KEY
+from multimno.core.settings import CONFIG_SILVER_PATHS_KEY, GENERAL_CONFIG_KEY
 from multimno.core.constants.columns import ColNames
 from multimno.core.constants.error_types import UeGridIdType
 from multimno.core.grid import InspireGridGenerator
@@ -70,10 +70,11 @@ class DailyPermanenceScore(Component):
         self.max_time_thresh = timedelta(seconds=self.config.getint(self.COMPONENT_ID, "max_time_thresh"))
         self.max_time_thresh_day = timedelta(seconds=self.config.getint(self.COMPONENT_ID, "max_time_thresh_day"))
         self.max_time_thresh_night = timedelta(seconds=self.config.getint(self.COMPONENT_ID, "max_time_thresh_night"))
+        self.max_time_thresh_abroad = timedelta(seconds=self.config.getint(self.COMPONENT_ID, "max_time_thresh_abroad"))
         self.max_speed_thresh = self.config.getfloat(self.COMPONENT_ID, "max_speed_thresh")
         self.broadcast_footprints = self.config.getboolean(self.COMPONENT_ID, "broadcast_footprints", fallback=False)
         self.use_200m_grid = self.config.getboolean(self.COMPONENT_ID, "use_200m_grid", fallback=False)
-
+        self.local_mcc = self.config.getint(GENERAL_CONFIG_KEY, "local_mcc")
         self.event_error_flags_to_include = self.config.geteval(self.COMPONENT_ID, "event_error_flags_to_include")
 
         self.data_period_dates = [
@@ -218,6 +219,7 @@ class DailyPermanenceScore(Component):
                 ColNames.user_id,
                 ColNames.cell_id,
                 ColNames.timestamp,
+                ColNames.plmn,
                 ColNames.year,
                 ColNames.month,
                 ColNames.day,
@@ -252,6 +254,7 @@ class DailyPermanenceScore(Component):
             ColNames.user_id,
             ColNames.cell_id,
             ColNames.timestamp,
+            ColNames.plmn,
             ColNames.year,
             ColNames.month,
             ColNames.day,
@@ -366,12 +369,8 @@ class DailyPermanenceScore(Component):
         previous_events = self.get_cache_events(previous_date, partition_chunk, last_event=True)
         next_events = self.get_cache_events(next_date, partition_chunk, last_event=False)
 
-        # concat all events together (last of D-1 + all D + first of D+1):
-        events = (
-            previous_events.union(current_events)
-            .union(next_events)
-            .drop(ColNames.longitude, ColNames.latitude, ColNames.loc_error, ColNames.error_flag)
-        )
+        # concat all events together (last of D-1 + all D + first of D+1 dummy outbound):
+        events = previous_events.union(current_events).union(next_events)
 
         # Get distinct cell_ids for previous and next events for filtering footprints
         previous_cells = previous_events.select(ColNames.cell_id).distinct()
@@ -447,12 +446,13 @@ class DailyPermanenceScore(Component):
     def transform(self):
         self.logger.info(f"Transform method {self.COMPONENT_ID}")
 
+        current_events = self.events
+
+        current_events = self.enrich_events(current_events, self.cell_footprint)
         # differentiate 'move' events:
-        events = self.detect_move_events(self.events, self.cell_footprint)
-
+        current_events = self.detect_move_events(current_events)
         # Determine stay durations:
-        stays = self.determine_stay_durations(events)
-
+        stays = self.determine_stay_durations(current_events)
         # generate time slots per user
         # TODO: this might be an issue with big countries, probably will need to rethink
         unique_users = stays.select(ColNames.user_id, ColNames.user_id_modulo).distinct()
@@ -466,7 +466,6 @@ class DailyPermanenceScore(Component):
         stays_slots = self.filter_zero_dps_durations(stays_slots)
         stays_slots = stays_slots.persist(StorageLevel.MEMORY_AND_DISK)
         stays_slots.count()  # for some reason better to force computation
-
         # collect grid_ids where DPS is 1
         dps = self.calculate_dps(stays_slots, self.cell_footprint)
 
@@ -483,7 +482,45 @@ class DailyPermanenceScore(Component):
         dps = dps.repartition(*SilverDailyPermanenceScoreDataObject.PARTITION_COLUMNS)
         self.output_data_objects[SilverDailyPermanenceScoreDataObject.ID].df = dps
 
-    def detect_move_events(self, events: DataFrame, cell_footprint: DataFrame) -> DataFrame:
+    def enrich_events(self, events: DataFrame, cell_footprint: DataFrame) -> DataFrame:
+        """
+        Enrich events with additional information
+
+        Args:
+            events (DataFrame): events dataframe.
+            cell_footprint (DataFrame): cells footprint dataframe.
+
+        Returns:
+            DataFrame: enriched events dataframe.
+        """
+
+        events = self.join_footprints(events, cell_footprint, [ColNames.geometry])
+        # add abroad flag
+        events = (
+            events.withColumn("abroad_mcc", F.substring(F.col(ColNames.plmn), 0, 3).cast(IntegerType()))
+            .withColumn(
+                "is_abroad",
+                F.when(
+                    (F.col(ColNames.plmn).isNotNull()) & (F.col("abroad_mcc") != self.local_mcc), F.lit(True)
+                ).otherwise(F.lit(False)),
+            )
+            .withColumn(  # add abroad country mcc as cell_id for abroad events
+                ColNames.cell_id,
+                F.when(F.col("is_abroad") == True, F.col("abroad_mcc")).otherwise(F.col(ColNames.cell_id)),
+            )
+            .drop("abroad_mcc", ColNames.plmn)
+        )
+        # Add lags of timestamp, cell_id:
+        window = Window.partitionBy(ColNames.user_id_modulo, ColNames.user_id).orderBy(ColNames.timestamp)
+        lag_fields = [ColNames.timestamp, ColNames.cell_id, ColNames.geometry]
+        for lf in lag_fields:
+            events = events.withColumn(f"{lf}_+1", F.lag(lf, -1).over(window)).withColumn(
+                f"{lf}_-1", F.lag(lf, 1).over(window)
+            )
+
+        return events
+
+    def detect_move_events(self, events: DataFrame) -> DataFrame:
         """
         Detect which of the events are associated to moves according to the
         distances/times from previous to posterior event and a speed threshold.
@@ -495,35 +532,17 @@ class DailyPermanenceScore(Component):
         Returns:
             DataFrame: events dataframe, with an additional 'is_move' boolean column.
         """
-        # inner join -> bring cell footprints to events data discarding events for which there is no cell footprint
-        events = events.join(
-            cell_footprint.select(ColNames.cell_id, ColNames.year, ColNames.month, ColNames.day, ColNames.geometry),
-            (events[ColNames.cell_id] == cell_footprint[ColNames.cell_id])
-            & (events[ColNames.year] == cell_footprint[ColNames.year])
-            & (events[ColNames.month] == cell_footprint[ColNames.month])
-            & (events[ColNames.day] == cell_footprint[ColNames.day]),
-            "inner",
-        ).drop(
-            cell_footprint[ColNames.cell_id],
-            cell_footprint[ColNames.year],
-            cell_footprint[ColNames.month],
-            cell_footprint[ColNames.day],
-        )
 
-        # Add lags of timestamp, cell_id and grid_ids:
         window = Window.partitionBy(ColNames.user_id_modulo, ColNames.user_id).orderBy(ColNames.timestamp)
-        lag_fields = [ColNames.timestamp, ColNames.cell_id, ColNames.geometry]
-        for lf in lag_fields:
-            events = events.withColumn(f"{lf}_+1", F.lag(lf, -1).over(window)).withColumn(
-                f"{lf}_-1", F.lag(lf, 1).over(window)
-            )
-
         # Calculate distance between grid tiles associated to events -1, 0 and +1:
         # Calculate speeds and determine which rows are moves:
         events = (
             events.withColumn(
                 "dist_0_+1",
-                STF.ST_Distance(F.col(ColNames.geometry), F.col(f"{ColNames.geometry}_+1")),
+                F.when(
+                    F.col(ColNames.geometry).isNotNull() & F.col(f"{ColNames.geometry}_+1").isNotNull(),
+                    STF.ST_Distance(F.col(ColNames.geometry), F.col(f"{ColNames.geometry}_+1")),
+                ).otherwise(F.lit(0)),
             )
             # .withColumn(
             #     "dist_-1_0",
@@ -534,7 +553,10 @@ class DailyPermanenceScore(Component):
             )
             .withColumn(
                 "dist_-1_+1",
-                STF.ST_Distance(F.col(f"{ColNames.geometry}_-1"), F.col(f"{ColNames.geometry}_+1")),
+                F.when(
+                    F.col(f"{ColNames.geometry}_-1").isNotNull() & F.col(f"{ColNames.geometry}_+1").isNotNull(),
+                    STF.ST_Distance(F.col(f"{ColNames.geometry}_-1"), F.col(f"{ColNames.geometry}_+1")),
+                ).otherwise(F.lit(0)),
             )
             .withColumn(
                 "time_difference",
@@ -579,12 +601,18 @@ class DailyPermanenceScore(Component):
             # Filter out 'move' events (keep only stays), and also drop unneeded columns:
             .filter(F.col("is_move") == False)
             # Set applicable time thresholds:
+            # if prev, next and current events:
+            # - if the event is in the same cell as the previous one, and the previous event is within the night interval,
+            # - set the threshold to max_time_thresh_night, otherwise set it to max_time_thresh_day
+            # - if the event is not in the same cell as the previous one, set the threshold to max_time_thresh
+            # if prev or next event is missing and current event is abroad:
+            # - set missing timestamp to current timestamp +/- max_time_thresh_abroad
             .withColumn(
                 "threshold_-1",
                 F.when(
                     (F.col("cell_id") == F.col("cell_id_-1"))
-                    & (F.col("timestamp_-1") >= night_start_time)
-                    & (F.col("timestamp") <= night_end_time),
+                    & (F.col("timestamp") >= night_start_time)
+                    & (F.col("timestamp_-1") <= night_end_time),
                     self.max_time_thresh_night,
                 ).otherwise(
                     F.when(F.col("cell_id") == F.col("cell_id_-1"), self.max_time_thresh_day).otherwise(
@@ -609,17 +637,27 @@ class DailyPermanenceScore(Component):
             .withColumn(
                 "init_time",
                 F.when(
+                    (F.col(f"{ColNames.timestamp}_-1").isNull()) & (F.col("is_abroad") == True),
+                    F.col(ColNames.timestamp) - self.max_time_thresh_abroad,
+                )
+                .when(
                     F.col(ColNames.timestamp) - F.col(f"{ColNames.timestamp}_-1") <= F.col("threshold_-1"),
                     F.col(ColNames.timestamp) - (F.col(ColNames.timestamp) - F.col(f"{ColNames.timestamp}_-1")) / 2,
-                ).otherwise(F.col(ColNames.timestamp) - self.max_time_thresh / 2),
+                )
+                .otherwise(F.col(ColNames.timestamp) - self.max_time_thresh / 2),
             )
             .withColumn(
                 "end_time",
                 F.when(
+                    (F.col(f"{ColNames.timestamp}_+1").isNull()) & (F.col("is_abroad") == True),
+                    F.col(ColNames.timestamp) + self.max_time_thresh_abroad,
+                )
+                .when(
                     F.col(f"{ColNames.timestamp}_+1") - F.col(ColNames.timestamp) <= F.col("threshold_+1"),
                     F.col(f"{ColNames.timestamp}_+1")
                     - (F.col(f"{ColNames.timestamp}_+1") - F.col(ColNames.timestamp)) / 2,
-                ).otherwise(F.col(ColNames.timestamp) + self.max_time_thresh / 2),
+                )
+                .otherwise(F.col(ColNames.timestamp) + self.max_time_thresh / 2),
             )
             .drop(
                 f"{ColNames.cell_id}_-1",
@@ -686,6 +724,7 @@ class DailyPermanenceScore(Component):
                 ColNames.time_slot_initial_time,
                 ColNames.time_slot_end_time,
                 ColNames.stay_duration,
+                F.coalesce(F.col("is_abroad"), F.lit(False)).alias("is_abroad"),
                 ColNames.year,
                 ColNames.month,
                 ColNames.day,
@@ -698,6 +737,7 @@ class DailyPermanenceScore(Component):
             ColNames.cell_id,
             ColNames.time_slot_initial_time,
             ColNames.time_slot_end_time,
+            "is_abroad",
             ColNames.year,
             ColNames.month,
             ColNames.day,
@@ -756,9 +796,12 @@ class DailyPermanenceScore(Component):
         # for intervals with multiple cells, we have to explode footprints to calculate sum of durations for grids
         # in case if there is overalap in coverage areas.
         # TODO: this is the most expensive part
-        stay_intervals_multiple_cells = stay_intervals.filter(F.col("distinct_cell_count") > 1)
+        local_stay_intervals = stay_intervals.filter(F.col("is_abroad") == False)
+        stay_intervals_multiple_cells = local_stay_intervals.filter(F.col("distinct_cell_count") > 1)
 
-        stay_intervals_multiple_cells = self.join_footprint_grids(stay_intervals_multiple_cells, cell_footprint)
+        stay_intervals_multiple_cells = self.join_footprints(
+            stay_intervals_multiple_cells, cell_footprint, ["grid_ids"]
+        )
 
         stay_intervals_multiple_cells = (
             stay_intervals_multiple_cells.withColumn(ColNames.grid_id, F.explode(F.col("grid_ids")))
@@ -791,15 +834,16 @@ class DailyPermanenceScore(Component):
                 ColNames.time_slot_initial_time,
                 ColNames.time_slot_end_time,
                 ColNames.user_id_modulo,
+                F.lit(UeGridIdType.GRID_STR).alias(ColNames.id_type),
             )
         )
 
         # For intervals with single cell no need to explode, just join grid ids as is
-        stay_intervals_single_cell = stay_intervals.filter(
+        stay_intervals_single_cell = local_stay_intervals.filter(
             (F.col("distinct_cell_count") == 1)
             & (F.col(ColNames.cell_id) != F.lit(UeGridIdType.UNKNOWN).cast(StringType()))
         )
-        stay_intervals_single_cell = self.join_footprint_grids(stay_intervals_single_cell, cell_footprint)
+        stay_intervals_single_cell = self.join_footprints(stay_intervals_single_cell, cell_footprint, ["grid_ids"])
 
         stay_intervals_single_cell = stay_intervals_single_cell.select(
             ColNames.user_id,
@@ -807,9 +851,10 @@ class DailyPermanenceScore(Component):
             ColNames.time_slot_initial_time,
             ColNames.time_slot_end_time,
             ColNames.user_id_modulo,
+            F.lit(UeGridIdType.GRID_STR).alias(ColNames.id_type),
         )
 
-        uknown_intervals = stay_intervals.filter(F.col(ColNames.cell_id) == F.lit(UeGridIdType.UNKNOWN))
+        uknown_intervals = local_stay_intervals.filter(F.col(ColNames.cell_id) == F.lit(UeGridIdType.UNKNOWN))
 
         uknown_intervals = uknown_intervals.withColumn(
             ColNames.dps,
@@ -820,54 +865,65 @@ class DailyPermanenceScore(Component):
             ColNames.time_slot_initial_time,
             ColNames.time_slot_end_time,
             ColNames.user_id_modulo,
+            F.lit(UeGridIdType.UKNOWN_STR).alias(ColNames.id_type),
         )
 
-        # uknown_intervals = uknown_intervals.persist(StorageLevel.MEMORY_AND_DISK)
+        abroad_intervals = stay_intervals.filter(
+            (F.col("is_abroad") == True)
+            & (
+                F.col(ColNames.stay_duration)
+                >= F.lit(int((timedelta(days=1) / self.time_slot_number).total_seconds() / 2))
+            )
+        )
+        abroad_intervals = abroad_intervals.withColumn(
+            ColNames.dps,
+            F.array(F.col(ColNames.cell_id).cast(LongType())),
+        ).select(
+            ColNames.user_id,
+            ColNames.dps,
+            ColNames.time_slot_initial_time,
+            ColNames.time_slot_end_time,
+            ColNames.user_id_modulo,
+            F.lit(UeGridIdType.ABROAD_STR).alias(ColNames.id_type),
+        )
 
-        dps = stay_intervals_single_cell.union(stay_intervals_multiple_cells).union(uknown_intervals)
-
-        dps = dps.withColumn(
-            ColNames.id_type,
-            F.when(
-                F.col(ColNames.dps) == F.array(F.lit(UeGridIdType.UNKNOWN).cast(LongType())),
-                F.lit(UeGridIdType.UKNOWN_STR),
-            ).otherwise(F.lit(UeGridIdType.GRID_STR)),
+        dps = (
+            stay_intervals_single_cell.union(stay_intervals_multiple_cells)
+            .union(uknown_intervals)
+            .union(abroad_intervals)
         )
 
         return dps
 
-    def join_footprint_grids(self, stay_intervals: DataFrame, cell_footprint: DataFrame) -> DataFrame:
+    def join_footprints(self, events: DataFrame, cell_footprints: DataFrame, columns: List) -> DataFrame:
         """
-        Join the stay_intervals dataframe with the cell_footprint dataframe.
+        Join the events dataframe with the cell_footprint dataframe.
 
         Args:
-            stay_intervals (DataFrame): stay_intervals dataframe.
+            events (DataFrame): events dataframe.
             cell_footprint (DataFrame): cell_footprint dataframe.
 
         Returns:
-            DataFrame: stay_intervals dataframe with the grid_ids column.
+            DataFrame: events dataframe with the cell footprint information.
         """
-        stay_intervals = stay_intervals.join(
-            cell_footprint.select(
+        events = events.join(
+            cell_footprints.select(
                 F.col(ColNames.cell_id).alias("footprints_cell_id"),
                 F.col(ColNames.year).alias("footprints_year"),
                 F.col(ColNames.month).alias("footprints_month"),
                 F.col(ColNames.day).alias("footprints_day"),
-                ("grid_ids"),
+                *columns,
             ),
             (F.col(ColNames.cell_id) == F.col("footprints_cell_id"))
             & (F.col(ColNames.year) == F.col("footprints_year"))
             & (F.col(ColNames.month) == F.col("footprints_month"))
             & (F.col(ColNames.day) == F.col("footprints_day")),
+            "left",
         ).drop(
             "footprints_cell_id",
             "footprints_year",
             "footprints_month",
             "footprints_day",
-            ColNames.cell_id,
-            ColNames.year,
-            ColNames.month,
-            ColNames.day,
         )
 
-        return stay_intervals
+        return events

@@ -13,7 +13,7 @@ from pyspark.sql.window import Window
 from pyspark.sql import DataFrame
 
 from multimno.core.component import Component
-from multimno.core.constants.period_names import SEASONS
+from multimno.core.constants.period_names import Seasons
 from multimno.core.data_objects.silver.silver_usual_environment_labels_data_object import (
     SilverUsualEnvironmentLabelsDataObject,
 )
@@ -66,8 +66,8 @@ class UsualEnvironmentAggregation(Component):
         )
 
         self.season = self.config.get(self.COMPONENT_ID, "season")
-        if self.season not in SEASONS:
-            error_msg = f"season: expected one of: {', '.join(SEASONS)} - found: {self.season}"
+        if not Seasons.is_valid_type(self.season):
+            error_msg = f"season: expected one of: {', '.join(Seasons.values())} - found: {self.season}"
             self.logger.error(error_msg)
             raise ValueError(error_msg)
 
@@ -140,35 +140,26 @@ class UsualEnvironmentAggregation(Component):
         ue_labels_sdf = ue_labels_sdf.select(
             ColNames.user_id, ColNames.grid_id, ColNames.label, ColNames.user_id_modulo
         )
-        # aggregate usual environments
-        aggregated_ue_sdf = self.aggregate_usual_environments(ue_labels_sdf, grid_sdf)
 
-        # aggreagate location labels
-        aggregated_home_labels_sdf = self.aggregate_location_labels(ue_labels_sdf, grid_sdf, "home")
-
-        aggregated_work_labels_sdf = self.aggregate_location_labels(ue_labels_sdf, grid_sdf, "work")
-
-        # union all aggregated results
-        aggregated_results_sdf = reduce(
-            lambda df1, df2: df1.union(df2), [aggregated_ue_sdf, aggregated_home_labels_sdf, aggregated_work_labels_sdf]
-        )
+        # aggregate ue and meaningful locations
+        aggregated_labels_sdf = self.aggregate_labels(ue_labels_sdf, grid_sdf)
 
         # Cast column types to DO schema, add missing columns manually
-        aggregated_results_sdf = (
-            aggregated_results_sdf.withColumn(ColNames.start_date, F.lit(self.start_date))
+        aggregated_labels_sdf = (
+            aggregated_labels_sdf.withColumn(ColNames.start_date, F.lit(self.start_date))
             .withColumn(ColNames.end_date, F.lit(self.end_date))
             .withColumn(ColNames.season, F.lit(self.season))
         )
 
-        aggregated_results_sdf = utils.apply_schema_casting(
-            aggregated_results_sdf, SilverAggregatedUsualEnvironmentsDataObject.SCHEMA
+        aggregated_labels_sdf = utils.apply_schema_casting(
+            aggregated_labels_sdf, SilverAggregatedUsualEnvironmentsDataObject.SCHEMA
         )
 
-        aggregated_results_sdf = aggregated_results_sdf.repartition(
+        aggregated_labels_sdf = aggregated_labels_sdf.repartition(
             *SilverAggregatedUsualEnvironmentsDataObject.PARTITION_COLUMNS
         )
 
-        self.output_data_objects[SilverAggregatedUsualEnvironmentsDataObject.ID].df = aggregated_results_sdf
+        self.output_data_objects[SilverAggregatedUsualEnvironmentsDataObject.ID].df = aggregated_labels_sdf
 
     def assign_tile_weights(self, grid_sdf: DataFrame, uniform_tile_weights: bool) -> DataFrame:
         """
@@ -194,7 +185,7 @@ class UsualEnvironmentAggregation(Component):
 
         return grid_sdf
 
-    def get_device_tile_weights(self, ue_labels_sdf: DataFrame, grid_sdf: DataFrame, label: str = "ue") -> DataFrame:
+    def get_device_tile_weights(self, ue_labels_sdf: DataFrame, grid_sdf: DataFrame) -> DataFrame:
         """
         Calculates and assigns weights to each device UE tiles based on the tile weights in the grid DataFrame.
 
@@ -216,52 +207,15 @@ class UsualEnvironmentAggregation(Component):
         - DataFrame: A DataFrame containing the calculated weights for each device tile.
         """
 
-        if label == "ue":
-            ue_labels_sdf = ue_labels_sdf.filter(F.col(ColNames.ue_label_rule) != F.lit("ue_na"))
-
-            # as the same tile can be labeled into multiple label categories (e.g. home and work), we need to remove duplicates for ue weights
-            ue_labels_sdf = ue_labels_sdf.dropDuplicates([ColNames.user_id, ColNames.grid_id, ColNames.user_id_modulo])
-        else:
-            ue_labels_sdf = ue_labels_sdf.filter(
-                (F.col(ColNames.label) == F.lit(label)) & (F.col(ColNames.location_label_rule) != F.lit("loc_na"))
-            )
-
         ue_labels_sdf = ue_labels_sdf.join(grid_sdf, on=ColNames.grid_id, how="inner")
-
-        window_spec = Window.partitionBy(ColNames.user_id_modulo, ColNames.user_id)
-
+        window_spec = Window.partitionBy(ColNames.user_id_modulo, ColNames.user_id, ColNames.label)
         ue_labels_sdf = ue_labels_sdf.withColumn(
             ColNames.device_tile_weight, F.col(ColNames.tile_weight) / F.sum(ColNames.tile_weight).over(window_spec)
         )
 
         return ue_labels_sdf
 
-    def aggregate_usual_environments(self, ue_labels_sdf: DataFrame, grid_sdf: DataFrame) -> DataFrame:
-        """
-        Aggregates usual environment by grid ID and calculates the sum of weighted device count.
-
-        This method first calculates device tile weights for usual environment tiles.
-        It then aggregates these weights by grid ID to compute the total weighted device count for each grid.
-        Finally, it assigns a label "ue" to all aggregated entries to indicate their association with usual environments.
-
-        Parameters:
-        - ue_labels_sdf (DataFrame): The DataFrame containing ue labels.
-        - grid_sdf (DataFrame): The DataFrame containing grid information with tile weights.
-
-        Returns:
-        - DataFrame: A DataFrame with sum of weighted device count per grid tile.
-        """
-        ue_with_device_weights_sdf = self.get_device_tile_weights(ue_labels_sdf, grid_sdf)
-
-        aggregated_ue_sdf = ue_with_device_weights_sdf.groupBy(ColNames.grid_id).agg(
-            F.sum(ColNames.device_tile_weight).alias(ColNames.weighted_device_count)
-        )
-
-        aggregated_ue_sdf = aggregated_ue_sdf.withColumn(ColNames.label, F.lit("ue"))
-
-        return aggregated_ue_sdf
-
-    def aggregate_location_labels(self, ue_labels_sdf: DataFrame, grid_sdf: DataFrame, label: str) -> DataFrame:
+    def aggregate_labels(self, ue_labels_sdf: DataFrame, grid_sdf: DataFrame) -> DataFrame:
         """
         Aggregates location labels by grid ID and calculates the sum of weighted device count.
 
@@ -277,12 +231,10 @@ class UsualEnvironmentAggregation(Component):
         - DataFrame: A DataFrame with sum of weighted device count per grid tile.
         """
 
-        loc_label_with_device_weights_sdf = self.get_device_tile_weights(ue_labels_sdf, grid_sdf, label)
+        loc_label_with_device_weights_sdf = self.get_device_tile_weights(ue_labels_sdf, grid_sdf)
 
-        aggregated_labels_sdf = loc_label_with_device_weights_sdf.groupBy(ColNames.grid_id).agg(
+        aggregated_labels_sdf = loc_label_with_device_weights_sdf.groupBy(ColNames.grid_id, ColNames.label).agg(
             F.sum(ColNames.device_tile_weight).alias(ColNames.weighted_device_count)
         )
-
-        aggregated_labels_sdf = aggregated_labels_sdf.withColumn(ColNames.label, F.lit(label))
 
         return aggregated_labels_sdf

@@ -10,7 +10,7 @@ include = ["multimno*"]
 # Project metadata
 [project]
 name = "multimno"
-version = "0.6.1"
+version = "0.7.0"
 description = "Big data pipeline software for mobility and sociodemographic analysis from MNO Data."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -34,11 +34,12 @@ dependencies = [
     "pyarrow~=17.0",
     "requests~=2.31",
     "toml~=0.10",
+    "py4j>=0.10.9.7",
 
     # ------ sedona ------
     "apache-sedona==1.6.1",
-    "geopandas~=0.11",      # Due to numpy 1.X versioning
-    "shapely~=1.8",         # Due to numpy 1.X versioning
+    "geopandas~=1.0",
+    "shapely~=2.0",
 ]
 
 [project.scripts]
@@ -49,7 +50,6 @@ orchestrator_multimno = "multimno.orchestrator_multimno:main"
 [project.optional-dependencies]
 spark = [
     "pyspark==3.5.1",
-    "py4j>=0.10.9.7",
     "grpcio>=1.48,<1.57",
     "grpcio-status>=1.48,<1.57",
     "googleapis-common-protos==1.56.4",

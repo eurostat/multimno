@@ -1,5 +1,5 @@
 """
-Module that cleans RAW MNO Event data.
+Module that computes the grid footprint of cells
 """
 
 from math import sqrt, pi

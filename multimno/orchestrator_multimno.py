@@ -24,6 +24,7 @@ import logging
 
 from multimno.core.log import LoggerKeys
 from multimno.core.configuration import parse_configuration
+from multimno.core.settings import QUALITY_WARNINGS_EXIT_CODE, SUCCESS_EXIT_CODE
 
 
 def create_logger(general_config_path: str):
@@ -140,7 +141,11 @@ def main():
         result = subprocess.run(spark_submit_command, check=False)
 
         # Parse result
-        if result.returncode != 0:
+
+        if result.returncode == QUALITY_WARNINGS_EXIT_CODE:
+            logger.error(f"Component {component_id} raised a critical quality warnings exit.")
+            sys.exit(QUALITY_WARNINGS_EXIT_CODE)
+        if result.returncode != SUCCESS_EXIT_CODE:
             logger.error(
                 "[X] ------ Component Error ------\n" + f"Error executing component: {component_id}\n"
                 f"General config: {general_config_path}\n"

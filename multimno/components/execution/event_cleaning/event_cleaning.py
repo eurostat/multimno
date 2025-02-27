@@ -436,9 +436,10 @@ class EventCleaning(Component):
         """
         sdf = sdf.withColumn(
             ColNames.domain,
-            F.when(F.col(ColNames.plmn).isNotNull(), ColNames.outbound).otherwise(
-                F.when(F.col(ColNames.mcc) == local_mcc, ColNames.domestic).otherwise(ColNames.inbound)
-            ),
+            F.when(
+                (F.col(ColNames.plmn).isNotNull()) & (F.col(ColNames.plmn).substr(1, 3) != F.lit(local_mcc)),
+                ColNames.outbound,
+            ).otherwise(F.when(F.col(ColNames.mcc) == local_mcc, ColNames.domestic).otherwise(ColNames.inbound)),
         )
         return sdf
 

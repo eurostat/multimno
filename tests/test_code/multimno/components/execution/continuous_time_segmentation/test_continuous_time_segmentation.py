@@ -8,7 +8,7 @@ from multimno.core.data_objects.silver.silver_time_segments_data_object import (
 from multimno.components.execution.time_segments.continuous_time_segmentation import (
     ContinuousTimeSegmentation,
 )
-from multimno.core.constants.columns import ColNames
+from multimno.core.constants.columns import ColNames, SegmentStates
 
 from tests.test_code.fixtures import spark_session as spark
 from tests.test_code.multimno.components.execution.continuous_time_segmentation.aux_continuous_time_segmentation import (
@@ -84,8 +84,13 @@ def test_continuous_time_segmentation(spark, get_test_data):
     output_data_object.read()
 
     output_df = output_data_object.df.orderBy([ColNames.user_id, ColNames.start_timestamp])
+
     # assert read data == expected
     expected_time_segments = get_expected_output_df(spark, test_data_dict[expected_output_time_segments_id])
+
+    output_df.show()
+
+    expected_time_segments.show()
 
     # May need to explicitly sort "cells" for equality checks
     assertDataFrameEqual(output_df, expected_time_segments)

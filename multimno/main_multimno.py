@@ -13,9 +13,9 @@ python multimno/main.py <component_id> <general_config_path> <component_config_p
 """
 
 import argparse
+import sys
 
 # Synthetic
-from multimno.components.execution.tourism_stays_estimation.tourism_stays_estimation import TourismStaysEstimation
 from multimno.components.ingestion.synthetic.synthetic_network import SyntheticNetwork
 from multimno.components.ingestion.synthetic.synthetic_diaries import SyntheticDiaries
 from multimno.components.ingestion.synthetic.synthetic_events import SyntheticEvents
@@ -80,9 +80,7 @@ from multimno.components.execution.usual_environment_aggregation.usual_environme
 from multimno.components.execution.internal_migration.internal_migration import InternalMigration
 
 # Postprocessing
-from multimno.components.execution.spatial_aggregation.spatial_aggregation import SpatialAggregation
-from multimno.components.execution.estimation.estimation import Estimation
-from multimno.components.execution.kanonimity.kanonimity import KAnonimity
+from multimno.components.execution.output_indicators.output_indicators import OutputIndicators
 from multimno.components.execution.multimno_aggregation.multimno_aggregation import MultiMNOAggregation
 
 # Quality
@@ -98,7 +96,23 @@ from multimno.components.quality.network_quality_warnings.network_quality_warnin
 from multimno.components.execution.device_activity_statistics.device_activity_statistics import (
     DeviceActivityStatistics,
 )
+from multimno.components.quality.cell_footprint_quality_metrics.cell_footprint_quality_metrics import (
+    CellFootPrintQualityMetrics,
+)
+from multimno.components.quality.daily_permanence_score_quality_metrics.daily_permanence_score_quality_metrics import (
+    DailyPermanenceScoreQualityMetrics,
+)
 
+# Tourism
+from multimno.components.execution.tourism_stays_estimation.tourism_stays_estimation import TourismStaysEstimation
+from multimno.components.execution.tourism_statistics.tourism_statistics_calculation import (
+    TourismStatisticsCalculation,
+)
+from multimno.components.execution.tourism_outbound_statistics.tourism_outbound_statistics_calculation import (
+    TourismOutboundStatisticsCalculation,
+)
+from multimno.core.exceptions import ComponentNotSupported, CriticalQualityWarningRaisedException
+from multimno.core.settings import QUALITY_WARNINGS_EXIT_CODE, ERROR_EXIT_CODE
 
 CONSTRUCTORS = {
     # Synthetic generator
@@ -133,23 +147,25 @@ CONSTRUCTORS = {
     UsualEnvironmentLabeling.COMPONENT_ID: UsualEnvironmentLabeling,
     UsualEnvironmentAggregation.COMPONENT_ID: UsualEnvironmentAggregation,
     InternalMigration.COMPONENT_ID: InternalMigration,
-    # Postprocessing
-    SpatialAggregation.COMPONENT_ID: SpatialAggregation,
-    Estimation.COMPONENT_ID: Estimation,
-    KAnonimity.COMPONENT_ID: KAnonimity,
-    MultiMNOAggregation.COMPONENT_ID: MultiMNOAggregation,
+    # Tourism
+    TourismStaysEstimation.COMPONENT_ID: TourismStaysEstimation,
+    TourismStatisticsCalculation.COMPONENT_ID: TourismStatisticsCalculation,
+    TourismOutboundStatisticsCalculation.COMPONENT_ID: TourismOutboundStatisticsCalculation,
     # Quality
     EventQualityWarnings.COMPONENT_ID: EventQualityWarnings,
     SemanticQualityWarnings.COMPONENT_ID: SemanticQualityWarnings,
     NetworkQualityWarnings.COMPONENT_ID: NetworkQualityWarnings,
-    # Tourism
-    TourismStaysEstimation.COMPONENT_ID: TourismStaysEstimation,
+    CellFootPrintQualityMetrics.COMPONENT_ID: CellFootPrintQualityMetrics,
+    DailyPermanenceScoreQualityMetrics.COMPONENT_ID: DailyPermanenceScoreQualityMetrics,
+    # Postprocessing (Export)
+    OutputIndicators.COMPONENT_ID: OutputIndicators,
+    MultiMNOAggregation.COMPONENT_ID: MultiMNOAggregation,
 }
 
 
 def build(component_id: str, general_config_path: str, component_config_path: str):
     """
-
+    Build a component based on the component_id.
 
     Args:
         component_id (str): id of the component
@@ -157,15 +173,14 @@ def build(component_id: str, general_config_path: str, component_config_path: st
         component_config_path (str): component config path
 
     Raises:
-        ValueError: If the component_id is not supported.
+        ComponentNotSupported: If the component_id is not supported.
 
     Returns:
         (multimno.core.component.Component): Component constructor.
     """
-    try:
-        constructor = CONSTRUCTORS[component_id]
-    except KeyError as e:
-        raise ValueError(f"Component {component_id} is not supported.") from e
+    constructor = CONSTRUCTORS.get(component_id)
+    if constructor is None:
+        raise ComponentNotSupported(component_id)
 
     return constructor(general_config_path, component_config_path)
 
@@ -185,9 +200,26 @@ def main():
     # Parse the arguments
     args = parser.parse_args()
 
-    # Use the arguments
-    component = CONSTRUCTORS[args.component_id](args.general_config_path, args.component_config_path)
-    component.execute()
+    # Build component
+    try:
+        component = build(args.component_id, args.general_config_path, args.component_config_path)
+    except ComponentNotSupported as e:
+        print(e)
+        sys.exit(ERROR_EXIT_CODE)
+    except Exception as e:
+        print(f"An unexpected error occurred during the creation of the component: {e}")
+        sys.exit(ERROR_EXIT_CODE)
+
+    # Execute component
+    try:
+        component.execute()
+    except CriticalQualityWarningRaisedException as e:
+        component.logger.error(e)
+        sys.exit(QUALITY_WARNINGS_EXIT_CODE)
+    except Exception as e:
+        component.logger.error(f"An unexpected error occurred during the execution of the component: {e}")
+        raise (e)
+        # sys.exit(ERROR_EXIT_CODE) # TO be changed in production 1.0
 
 
 if __name__ == "__main__":

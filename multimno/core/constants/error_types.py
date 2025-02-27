@@ -56,3 +56,4 @@ class UeGridIdType:
     UKNOWN_STR = "unknown"
     DEVICE_OBSERVATION_STR = "device_observation"
     GRID_STR = "grid"
+    ABROAD_STR = "abroad"

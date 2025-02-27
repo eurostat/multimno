@@ -34,6 +34,7 @@ class SilverTourismStaysDataObject(ParquetDataObject):
             StructField(ColNames.end_timestamp, TimestampType(), nullable=False),
             StructField(ColNames.mcc, ShortType(), nullable=False),
             StructField(ColNames.mnc, StringType(), nullable=False),
+            StructField(ColNames.plmn, StringType(), nullable=False),
             StructField(ColNames.zone_ids_list, ArrayType(StringType()), nullable=False),
             StructField(ColNames.zone_weights_list, ArrayType(FloatType()), nullable=False),
             StructField(ColNames.is_overnight, BooleanType(), nullable=False),
@@ -42,7 +43,8 @@ class SilverTourismStaysDataObject(ParquetDataObject):
             StructField(ColNames.month, ByteType(), nullable=False),
             StructField(ColNames.day, ByteType(), nullable=False),
             StructField(ColNames.user_id_modulo, IntegerType(), nullable=False),
+            StructField(ColNames.dataset_id, StringType(), nullable=False),
         ]
     )
 
-    PARTITION_COLUMNS = [ColNames.year, ColNames.month, ColNames.day, ColNames.user_id_modulo]
+    PARTITION_COLUMNS = [ColNames.year, ColNames.month, ColNames.day, ColNames.user_id_modulo, ColNames.dataset_id]

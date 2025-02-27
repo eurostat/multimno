@@ -81,7 +81,7 @@ def test_daily_permanence_score(spark, expected_data):
     output_data_object = dps_component.output_data_objects[SilverDailyPermanenceScoreDataObject.ID]
     output_data_object.read()
 
-    # assert read data == expected (Expected data only defined for known dps)
+    # assert read data == expected
     assertDataFrameEqual(output_data_object.df, expected_data)
 
 

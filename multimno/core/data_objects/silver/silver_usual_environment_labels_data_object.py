@@ -19,8 +19,8 @@ class SilverUsualEnvironmentLabelsDataObject(ParquetDataObject):
             StructField(ColNames.user_id, BinaryType(), nullable=False),
             StructField(ColNames.grid_id, LongType(), nullable=False),
             StructField(ColNames.label, StringType(), nullable=False),
-            StructField(ColNames.ue_label_rule, StringType(), nullable=False),
-            StructField(ColNames.location_label_rule, StringType(), nullable=False),
+            StructField(ColNames.label_rule, StringType(), nullable=False),
+            StructField(ColNames.id_type, StringType(), nullable=False),
             # partition columns
             StructField(ColNames.start_date, DateType(), nullable=False),
             StructField(ColNames.end_date, DateType(), nullable=False),

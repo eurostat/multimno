@@ -22,7 +22,7 @@ from multimno.core.spark_session import check_if_data_path_exists, delete_file_o
 from multimno.core.component import Component
 from multimno.core.settings import CONFIG_SILVER_PATHS_KEY
 from multimno.core.constants.columns import ColNames
-from multimno.core.constants.period_names import SEASONS
+from multimno.core.constants.period_names import Seasons
 from multimno.core.log import get_execution_stats
 from multimno.core.utils import apply_schema_casting
 
@@ -73,8 +73,8 @@ class InternalMigration(Component):
             raise ValueError(msg)
 
         self.season_prev = self.config.get(self.COMPONENT_ID, "season_previous")
-        if self.season_prev not in SEASONS:
-            msg = f"Unknown season_previous {self.season_prev} -- valid values are {SEASONS}"
+        if not Seasons.is_valid_type(self.season_prev):
+            msg = f"Unknown season_previous {self.season_prev} -- valid values are {Seasons.values()}"
             self.logger.error(msg)
             raise ValueError(msg)
 
@@ -92,8 +92,8 @@ class InternalMigration(Component):
             raise ValueError(msg)
 
         self.season_new = self.config.get(self.COMPONENT_ID, "season_new")
-        if self.season_new not in SEASONS:
-            msg = f"Unknown season_new {self.season_new} -- valid values are {SEASONS}"
+        if not Seasons.is_valid_type(self.season_new):
+            msg = f"Unknown season_new {self.season_new} -- valid values are {Seasons.values()}"
             self.logger.error(msg)
             raise ValueError(msg)
 

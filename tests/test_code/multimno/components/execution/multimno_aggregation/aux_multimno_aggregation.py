@@ -10,9 +10,15 @@ from multimno.core.data_objects.silver.silver_aggregated_usual_environments_zone
     SilverAggregatedUsualEnvironmentsZonesDataObject,
 )
 from multimno.core.data_objects.silver.silver_internal_migration_data_object import SilverInternalMigrationDataObject
+from multimno.core.data_objects.silver.silver_tourism_outbound_nights_spent_data_object import (
+    SilverTourismOutboundNightsSpentDataObject,
+)
+from multimno.core.data_objects.silver.silver_tourism_zone_departures_nights_spent_data_object import (
+    SilverTourismZoneDeparturesNightsSpentDataObject,
+)
 
 
-def generate_input_aggregated_ue_zone_data(start_date: str) -> list[Row]:
+def generate_input_aggregated_ue_zone_data(start_date: str) -> tuple[list[Row], list[Row]]:
     """Generates the test's input usual environment data
 
     Args:
@@ -153,7 +159,7 @@ def generate_input_aggregated_ue_zone_data(start_date: str) -> list[Row]:
         ),
     ]
 
-    return [input_data_mno_1, input_data_mno_2]
+    return (input_data_mno_1, input_data_mno_2)
 
 
 def generate_expected_aggregated_ue_zone_data(start_date: str) -> list[Row]:
@@ -237,7 +243,7 @@ def generate_expected_aggregated_ue_zone_data(start_date: str) -> list[Row]:
     return expected_output_data
 
 
-def generate_input_present_population_zones_data(timestamp: str) -> list[Row]:
+def generate_input_present_population_zones_data(timestamp: str) -> tuple[list[Row], list[Row]]:
     """Generates the test's input present population data
 
     Args:
@@ -378,7 +384,7 @@ def generate_input_present_population_zones_data(timestamp: str) -> list[Row]:
         ),
     ]
 
-    return [input_data_mno_1, input_data_mno_2]
+    return (input_data_mno_1, input_data_mno_2)
 
 
 def generate_expected_present_population_zones_data(timestamp: str) -> list[Row]:
@@ -462,7 +468,7 @@ def generate_expected_present_population_zones_data(timestamp: str) -> list[Row]
     return expected_output_data
 
 
-def generate_input_internal_migration_data() -> list[Row]:
+def generate_input_internal_migration_data() -> tuple[list[Row], list[Row]]:
     """Generates the test's input internal migration data
 
     Returns:
@@ -564,7 +570,7 @@ def generate_input_internal_migration_data() -> list[Row]:
             }
         ),
     ]
-    return [input_data_mno_1, input_data_mno_2]
+    return (input_data_mno_1, input_data_mno_2)
 
 
 def generate_expected_internal_migration_zones_data() -> list[Row]:
@@ -609,8 +615,321 @@ def generate_expected_internal_migration_zones_data() -> list[Row]:
     return expected_output_data
 
 
+def generate_input_inbound_tourism_data() -> tuple[list[Row], list[Row]]:
+    time_period = "2023-01"
+    year = 2023
+    month = 1
+    dataset_id = "nuts"
+
+    input_data_mno_1 = [
+        Row(
+            time_period=time_period,
+            zone_id="Z0",
+            country_of_origin="IT",
+            is_overnight=True,
+            nights_spent=48.6,
+            num_of_departures=32.4,
+            year=year,
+            month=month,
+            level=1,
+            dataset_id=dataset_id,
+        ),
+        Row(
+            time_period=time_period,
+            zone_id="Z0",
+            country_of_origin="IT",
+            is_overnight=False,
+            nights_spent=0.0,
+            num_of_departures=54.0,
+            year=year,
+            month=month,
+            level=1,
+            dataset_id=dataset_id,
+        ),
+        Row(
+            time_period=time_period,
+            zone_id="Z0",
+            country_of_origin="FR",
+            is_overnight=True,
+            nights_spent=29.925,
+            num_of_departures=25.65,
+            year=year,
+            month=month,
+            level=1,
+            dataset_id=dataset_id,
+        ),
+        Row(
+            time_period=time_period,
+            zone_id="Z0",
+            country_of_origin="FR",
+            is_overnight=False,
+            nights_spent=0.0,
+            num_of_departures=42.75,
+            year=year,
+            month=month,
+            level=1,
+            dataset_id=dataset_id,
+        ),
+    ]
+
+    input_data_mno_2 = [
+        Row(
+            time_period=time_period,
+            zone_id="Z0",
+            country_of_origin="IT",
+            is_overnight=True,
+            nights_spent=50.0,
+            num_of_departures=30.0,
+            year=year,
+            month=month,
+            level=1,
+            dataset_id=dataset_id,
+        ),
+        Row(
+            time_period=time_period,
+            zone_id="Z0",
+            country_of_origin="IT",
+            is_overnight=False,
+            nights_spent=0.0,
+            num_of_departures=40.0,
+            year=year,
+            month=month,
+            level=1,
+            dataset_id=dataset_id,
+        ),
+        Row(
+            time_period=time_period,
+            zone_id="Z0",
+            country_of_origin="FR",
+            is_overnight=True,
+            nights_spent=36.0,
+            num_of_departures=32.0,
+            year=year,
+            month=month,
+            level=1,
+            dataset_id=dataset_id,
+        ),
+        Row(
+            time_period=time_period,
+            zone_id="Z0",
+            country_of_origin="FR",
+            is_overnight=False,
+            nights_spent=0.0,
+            num_of_departures=106.0,
+            year=year,
+            month=month,
+            level=1,
+            dataset_id=dataset_id,
+        ),
+    ]
+
+    return input_data_mno_1, input_data_mno_2
+
+
+def generate_expected_inbound_tourism_data() -> list[Row]:
+    time_period = "2023-01"
+    year = 2023
+    month = 1
+    dataset_id = "nuts"
+    expected_data = [
+        Row(
+            time_period=time_period,
+            zone_id="Z0",
+            country_of_origin="IT",
+            is_overnight=True,
+            nights_spent=49.16,
+            num_of_departures=31.44,
+            year=year,
+            month=month,
+            level=1,
+            dataset_id=dataset_id,
+        ),
+        Row(
+            time_period=time_period,
+            zone_id="Z0",
+            country_of_origin="IT",
+            is_overnight=False,
+            nights_spent=0.0,
+            num_of_departures=48.4,
+            year=year,
+            month=month,
+            level=1,
+            dataset_id=dataset_id,
+        ),
+        Row(
+            time_period=time_period,
+            zone_id="Z0",
+            country_of_origin="FR",
+            is_overnight=True,
+            nights_spent=32.355,
+            num_of_departures=28.19,
+            year=year,
+            month=month,
+            level=1,
+            dataset_id=dataset_id,
+        ),
+        Row(
+            time_period=time_period,
+            zone_id="Z0",
+            country_of_origin="FR",
+            is_overnight=False,
+            nights_spent=0.0,
+            num_of_departures=68.05,
+            year=year,
+            month=month,
+            level=1,
+            dataset_id=dataset_id,
+        ),
+    ]
+
+    return expected_data
+
+
+def generate_input_outbound_tourism_data() -> tuple[list[Row], list[Row]]:
+    input_data_mno_1 = [
+        Row(
+            time_period="2023-01",
+            country_of_destination="IT",
+            nights_spent=20.0,
+            year=2023,
+            month=1,
+        ),
+        Row(
+            time_period="2023-01",
+            country_of_destination="FR",
+            nights_spent=105.0,
+            year=2023,
+            month=1,
+        ),
+        Row(
+            time_period="2023-01",
+            country_of_destination="EE",
+            nights_spent=10.0,
+            year=2023,
+            month=1,
+        ),
+        Row(
+            time_period="2023-02",
+            country_of_destination="IT",
+            nights_spent=500.0,
+            year=2023,
+            month=2,
+        ),
+        Row(
+            time_period="2023-02",
+            country_of_destination="FR",
+            nights_spent=206.0,
+            year=2023,
+            month=2,
+        ),
+        Row(
+            time_period="2023-02",
+            country_of_destination="EE",
+            nights_spent=35.0,
+            year=2023,
+            month=2,
+        ),
+    ]
+
+    input_data_mno_2 = [
+        Row(
+            time_period="2023-01",
+            country_of_destination="IT",
+            nights_spent=30.0,
+            year=2023,
+            month=1,
+        ),
+        Row(
+            time_period="2023-01",
+            country_of_destination="FR",
+            nights_spent=40.0,
+            year=2023,
+            month=1,
+        ),
+        Row(
+            time_period="2023-01",
+            country_of_destination="EE",
+            nights_spent=50.0,
+            year=2023,
+            month=1,
+        ),
+        Row(
+            time_period="2023-02",
+            country_of_destination="IT",
+            nights_spent=60.0,
+            year=2023,
+            month=2,
+        ),
+        Row(
+            time_period="2023-02",
+            country_of_destination="FR",
+            nights_spent=70.0,
+            year=2023,
+            month=2,
+        ),
+        Row(
+            time_period="2023-02",
+            country_of_destination="EE",
+            nights_spent=80.0,
+            year=2023,
+            month=2,
+        ),
+    ]
+
+    return (input_data_mno_1, input_data_mno_2)
+
+
+def generate_expected_outbound_tourism_data() -> tuple[list[Row], list[Row]]:
+    expected_data = [
+        Row(
+            time_period="2023-01",
+            country_of_destination="IT",
+            nights_spent=24.0,
+            year=2023,
+            month=1,
+        ),
+        Row(
+            time_period="2023-01",
+            country_of_destination="FR",
+            nights_spent=79.0,
+            year=2023,
+            month=1,
+        ),
+        Row(
+            time_period="2023-01",
+            country_of_destination="EE",
+            nights_spent=26.0,
+            year=2023,
+            month=1,
+        ),
+        Row(
+            time_period="2023-02",
+            country_of_destination="IT",
+            nights_spent=324.0,
+            year=2023,
+            month=2,
+        ),
+        Row(
+            time_period="2023-02",
+            country_of_destination="FR",
+            nights_spent=151.6,
+            year=2023,
+            month=2,
+        ),
+        Row(
+            time_period="2023-02",
+            country_of_destination="EE",
+            nights_spent=53.0,
+            year=2023,
+            month=2,
+        ),
+    ]
+
+    return expected_data
+
+
 def set_input_data(
-    spark: SparkSession, config: ConfigParser, kind: str, date: str = "2023-01-01", timestamp="2023-01-01T00:00:00"
+    spark: SparkSession, config: ConfigParser, use_case: str, date: str = "2023-01-01", timestamp="2023-01-01T00:00:00"
 ):
     """Setup function for the input data of the test, creating the necessary data and saving it into a temporary
     directory
@@ -627,7 +946,7 @@ def set_input_data(
     Raises:
         ValueError: Unsupported `kind` parameter value was passed.
     """
-    if kind == "present_population":
+    if use_case == "PresentPopulationEstimation":
         input_rows_mno_1, input_rows_mno_2 = generate_input_present_population_zones_data(timestamp)
         input_do_1 = SilverPresentPopulationZoneDataObject(
             spark, config["Paths.Gold"]["single_mno_1_present_population_zone_gold"]
@@ -642,7 +961,7 @@ def set_input_data(
         input_do_1.write()
         input_do_2.write()
 
-    elif kind == "usual_environment":
+    elif use_case == "UsualEnvironmentAggregation":
         input_rows_mno_1, input_rows_mno_2 = generate_input_aggregated_ue_zone_data(date)
         input_do_1 = SilverAggregatedUsualEnvironmentsZonesDataObject(
             spark, config["Paths.Gold"]["single_mno_1_usual_environment_zone_gold"]
@@ -660,7 +979,7 @@ def set_input_data(
 
         input_do_1.write()
         input_do_2.write()
-    elif kind == "internal_migration":
+    elif use_case == "InternalMigration":
         input_rows_mno_1, input_rows_mno_2 = generate_input_internal_migration_data()
         input_do_1 = SilverInternalMigrationDataObject(
             spark, config["Paths.Gold"]["single_mno_1_internal_migration_gold"]
@@ -674,5 +993,41 @@ def set_input_data(
 
         input_do_1.write()
         input_do_2.write()
+    elif use_case == "TourismStatisticsCalculation":
+        input_rows_mno_1, input_rows_mno_2 = generate_input_inbound_tourism_data()
+        input_do_1 = SilverTourismZoneDeparturesNightsSpentDataObject(
+            spark, config["Paths.Gold"]["single_mno_1_inbound_tourism_zone_aggregations_gold"]
+        )
+
+        input_do_2 = SilverTourismZoneDeparturesNightsSpentDataObject(
+            spark, config["Paths.Gold"]["single_mno_2_inbound_tourism_zone_aggregations_gold"]
+        )
+        input_do_1.df = spark.createDataFrame(
+            input_rows_mno_1, schema=SilverTourismZoneDeparturesNightsSpentDataObject.SCHEMA
+        )
+        input_do_2.df = spark.createDataFrame(
+            input_rows_mno_2, schema=SilverTourismZoneDeparturesNightsSpentDataObject.SCHEMA
+        )
+
+        input_do_1.write()
+        input_do_2.write()
+    elif use_case == "TourismOutboundStatisticsCalculation":
+        input_rows_mno_1, input_rows_mno_2 = generate_input_outbound_tourism_data()
+        input_do_1 = SilverTourismOutboundNightsSpentDataObject(
+            spark, config["Paths.Gold"]["single_mno_1_outbound_tourism_aggregations_gold"]
+        )
+
+        input_do_2 = SilverTourismOutboundNightsSpentDataObject(
+            spark, config["Paths.Gold"]["single_mno_2_outbound_tourism_aggregations_gold"]
+        )
+        input_do_1.df = spark.createDataFrame(
+            input_rows_mno_1, schema=SilverTourismOutboundNightsSpentDataObject.SCHEMA
+        )
+        input_do_2.df = spark.createDataFrame(
+            input_rows_mno_2, schema=SilverTourismOutboundNightsSpentDataObject.SCHEMA
+        )
+
+        input_do_1.write()
+        input_do_2.write()
     else:
-        raise ValueError(kind)
+        raise ValueError(use_case)

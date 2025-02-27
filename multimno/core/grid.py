@@ -426,8 +426,8 @@ class InspireGridGenerator(GridGenerator):
         sdf = sdf.withColumn(
             self.grid_id_col_name,
             (
-                STF.ST_XMin(sdf["geometry"]).cast(LongType()) * 10**self.PROJ_COORD_INT_SIZE
-                + STF.ST_YMin(sdf["geometry"])
+                STF.ST_YMin(sdf["geometry"]).cast(LongType()) * 10**self.PROJ_COORD_INT_SIZE
+                + STF.ST_XMin(sdf["geometry"])
             ).cast(LongType()),
         )
 
@@ -484,9 +484,9 @@ class InspireGridGenerator(GridGenerator):
             F.concat(
                 F.lit(resolution_str),
                 F.lit("N"),
-                (F.expr(f"grid_id DIV {10**(self.PROJ_COORD_INT_SIZE + trailing_zeros)}")),
+                (F.expr(f"{grid_id_col} DIV {10**(self.PROJ_COORD_INT_SIZE + trailing_zeros)}")),
                 F.lit("E"),
-                (F.expr(f"(grid_id % {10**self.PROJ_COORD_INT_SIZE}) DIV {10 ** trailing_zeros}")),
+                (F.expr(f"({grid_id_col} % {10**self.PROJ_COORD_INT_SIZE}) DIV {10 ** trailing_zeros}")),
             ),
         )
 
@@ -642,7 +642,7 @@ class InspireGridGenerator(GridGenerator):
                 child_col_name,
                 (F.col("child_northing").cast(LongType()) * 10**self.PROJ_COORD_INT_SIZE + F.col("child_easting")),
             )
-            .drop("child_northing", "child_easting", "northing", "easting")
+            .drop("child_northing", "child_easting", "northing", "easting", "northing_offset", "easting_offset")
         )
 
         return result

@@ -2,7 +2,7 @@ import pytest
 import hashlib
 from configparser import ConfigParser
 from datetime import datetime
-from multimno.core.constants.columns import ColNames
+from multimno.core.constants.columns import ColNames, SegmentStates
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.types import Row
 
@@ -205,7 +205,7 @@ def data_test_0001() -> dict:
             day=day,
             user_id_modulo=user_id_modulo,
         ),
-        Row(  # User has moved to cell_id_a with enough time in between to cause "unknown" state
+        Row(  # User has moved to cell_id_a with enough time in between to cause SegmentStates.UNKNOWN state
             user_id=user_id,
             timestamp=datetime.strptime("2023-01-03T07:17:00", date_format),
             mcc=mcc,
@@ -221,7 +221,7 @@ def data_test_0001() -> dict:
             day=day,
             user_id_modulo=user_id_modulo,
         ),
-        Row(  # User is at cell_id_a, but not enough time is spent to cause a stay, so state is "undetermined"
+        Row(  # User is at cell_id_a, but not enough time is spent to cause a stay, so state is SegmentStates.UNDETERMINED
             user_id=user_id,
             timestamp=datetime.strptime("2023-01-03T07:18:00", date_format),
             mcc=mcc,
@@ -301,6 +301,38 @@ def data_test_0001() -> dict:
             day=4,
             user_id_modulo=user_id_modulo,
         ),
+        Row(  # Outbound event
+            user_id=user_id,
+            timestamp=datetime.strptime("2023-01-06T17:55:00", date_format),
+            mcc=mcc,
+            mnc=mnc,
+            plmn=12345,
+            cell_id=None,
+            latitude=None,
+            longitude=None,
+            loc_error=None,
+            error_flag=0,
+            year=year,
+            month=month,
+            day=6,
+            user_id_modulo=user_id_modulo,
+        ),
+        Row(  # Outbound event
+            user_id=user_id,
+            timestamp=datetime.strptime("2023-01-06T00:27:00", date_format),
+            mcc=mcc,
+            mnc=mnc,
+            plmn=12345,
+            cell_id=None,
+            latitude=None,
+            longitude=None,
+            loc_error=None,
+            error_flag=0,
+            year=year,
+            month=month,
+            day=6,
+            user_id_modulo=user_id_modulo,
+        ),
     ]
     # Input: cell intersection groups data.
     # Case: single cell in one group. Cell id and day matches event data.
@@ -357,25 +389,7 @@ def data_test_0001() -> dict:
     unhex_user_id = user_id.hex().upper()
 
     expected_output_data = [
-        Row(  # "unknown" segment for entire date before first events
-            user_id=user_id,
-            time_segment_id=hashlib.md5(
-                f"{unhex_user_id}{datetime.strptime('2023-01-02T00:00:00', date_format)}".encode()
-            ).hexdigest(),
-            start_timestamp=datetime.strptime("2023-01-02T00:00:00", date_format),
-            end_timestamp=datetime.strptime("2023-01-02T23:59:59", date_format),
-            mcc=mcc,
-            mnc=mnc,
-            plmn=plmn,
-            cells=[],
-            state="unknown",
-            is_last=True,
-            year=year,
-            month=month,
-            day=day - 1,
-            user_id_modulo=user_id_modulo,
-        ),
-        Row(  # "unknown" segment from start of day until first event
+        Row(  # SegmentStates.UNKNOWN segment from start of day until first event
             user_id=user_id,
             time_segment_id=hashlib.md5(
                 f"{unhex_user_id}{datetime.strptime('2023-01-03T00:00:00', date_format)}".encode()
@@ -386,7 +400,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[],
-            state="unknown",
+            state=SegmentStates.UNKNOWN,
             is_last=False,
             year=year,
             month=month,
@@ -404,7 +418,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[cell_id_a],
-            state="stay",
+            state=SegmentStates.STAY,
             is_last=False,
             year=year,
             month=month,
@@ -422,7 +436,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[cell_id_a],
-            state="move",
+            state=SegmentStates.MOVE,
             is_last=False,
             year=year,
             month=month,
@@ -440,7 +454,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[cell_id_b1],
-            state="move",
+            state=SegmentStates.MOVE,
             is_last=False,
             year=year,
             month=month,
@@ -458,7 +472,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[cell_id_b1, cell_id_b2],
-            state="stay",
+            state=SegmentStates.STAY,
             is_last=False,
             year=year,
             month=month,
@@ -476,7 +490,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[],
-            state="unknown",
+            state=SegmentStates.UNKNOWN,
             is_last=False,
             year=year,
             month=month,
@@ -494,7 +508,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[cell_id_a],
-            state="undetermined",
+            state=SegmentStates.UNDETERMINED,
             is_last=False,
             year=year,
             month=month,
@@ -512,7 +526,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[cell_id_a],
-            state="move",
+            state=SegmentStates.MOVE,
             is_last=False,
             year=year,
             month=month,
@@ -530,14 +544,14 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[cell_id_b1],
-            state="move",
+            state=SegmentStates.MOVE,
             is_last=True,
             year=year,
             month=month,
             day=day,
             user_id_modulo=user_id_modulo,
         ),
-        Row(  # Day 4. "unknown" section
+        Row(  # Day 4. SegmentStates.UNKNOWN section
             user_id=user_id,
             time_segment_id=hashlib.md5(
                 f"{unhex_user_id}{datetime.strptime('2023-01-04T00:00:00', date_format)}".encode()
@@ -548,7 +562,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[],
-            state="unknown",
+            state=SegmentStates.UNKNOWN,
             is_last=False,
             year=year,
             month=month,
@@ -566,7 +580,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[cell_id_b1],
-            state="undetermined",
+            state=SegmentStates.UNDETERMINED,
             is_last=False,
             year=year,
             month=month,
@@ -584,7 +598,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[cell_id_b1],
-            state="move",
+            state=SegmentStates.MOVE,
             is_last=False,
             year=year,
             month=month,
@@ -602,7 +616,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[cell_id_a],
-            state="move",
+            state=SegmentStates.MOVE,
             is_last=False,
             year=year,
             month=month,
@@ -620,7 +634,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[cell_id_a],
-            state="move",
+            state=SegmentStates.MOVE,
             is_last=False,
             year=year,
             month=month,
@@ -638,7 +652,7 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[cell_id_b1],
-            state="move",
+            state=SegmentStates.MOVE,
             is_last=True,
             year=year,
             month=month,
@@ -656,11 +670,47 @@ def data_test_0001() -> dict:
             mnc=mnc,
             plmn=plmn,
             cells=[],
-            state="unknown",
+            state=SegmentStates.UNKNOWN,
             is_last=True,
             year=year,
             month=month,
             day=5,
+            user_id_modulo=user_id_modulo,
+        ),
+        Row(  # Day 6. First segment is unknown
+            user_id=user_id,
+            time_segment_id=hashlib.md5(
+                f"{unhex_user_id}{datetime.strptime('2023-01-06T00:00:00', date_format)}".encode()
+            ).hexdigest(),
+            start_timestamp=datetime.strptime("2023-01-06T00:00:00", date_format),
+            end_timestamp=datetime.strptime("2023-01-06T00:22:00", date_format),
+            mcc=mcc,
+            mnc=mnc,
+            plmn=plmn,
+            cells=[],
+            state=SegmentStates.UNKNOWN,
+            is_last=False,
+            year=year,
+            month=month,
+            day=6,
+            user_id_modulo=user_id_modulo,
+        ),
+        Row(  # Day 6. Abroad
+            user_id=user_id,
+            time_segment_id=hashlib.md5(
+                f"{unhex_user_id}{datetime.strptime('2023-01-06T00:22:00', date_format)}".encode()
+            ).hexdigest(),
+            start_timestamp=datetime.strptime("2023-01-06T00:22:00", date_format),
+            end_timestamp=datetime.strptime("2023-01-06T17:55:00", date_format),
+            mcc=mcc,
+            mnc=mnc,
+            plmn=12345,
+            cells=[],
+            state=SegmentStates.ABROAD,
+            is_last=True,
+            year=year,
+            month=month,
+            day=6,
             user_id_modulo=user_id_modulo,
         ),
     ]

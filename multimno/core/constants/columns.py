@@ -117,6 +117,10 @@ class ColNames:
     cells = "cells"
     group_size = "group_size"
 
+    # cell footprint quality metrics
+    number_of_events = "number_of_events"
+    percentage_total_events = "percentage_total_events"
+
     # Nearby cells and cell overlap
     overlapping_cell_ids = "overlapping_cell_ids"
     cell_id_a = "cell_id_a"
@@ -140,6 +144,9 @@ class ColNames:
     time_slot_initial_time = "time_slot_initial_time"
     time_slot_end_time = "time_slot_end_time"
     id_type = "id_type"
+
+    num_unknown_devices = "number_unknown_devices"
+    pct_unknown_devices = "percentage_unknown_devices"
 
     # midterm permanence score
     mps = "mps"
@@ -182,15 +189,19 @@ class ColNames:
     name = "name"
     dataset_id = "dataset_id"
     hierarchical_id = "hierarchical_id"
+    eurostat_code = "eurostat_code"
+    timezone = "timezone"
 
     # for usual environment labels
     label = "label"
-    ue_label_rule = "ue_label_rule"
-    location_label_rule = "location_label_rule"
+    label_rule = "label_rule"
 
     # for usual environment labeling quality metrics
     labeling_quality_metric = "metric"
     labeling_quality_count = "count"
+    labeling_quality_min = "min"
+    labeling_quality_max = "max"
+    labeling_quality_avg = "avg"
 
     # for usual environment aggregation
     weighted_device_count = "weighted_device_count"
@@ -202,6 +213,21 @@ class ColNames:
     is_overnight = "is_overnight"
     zone_weights_list = "zone_weights_list"
     zone_ids_list = "zone_ids_list"
+
+    # for tourism trips
+    trip_id = "trip_id"
+    visit_id = "visit_id"
+    trip_start_timestamp = "trip_start_timestamp"
+    time_segment_ids_list = "time_segment_ids_list"
+    is_trip_finished = "is_trip_finished"
+    time_period = "time_period"
+    country_of_origin = "country_of_origin"
+    avg_destinations = "avg_destinations"
+    avg_nights_spent_per_destination = "avg_nights_spent_per_destination"
+    geography_id = "geography_id"
+    nights_spent = "nights_spent"
+    num_of_departures = "num_of_departures"
+    country_of_destination = "country_of_destination"
 
     # internal migration
     previous_zone = "previous_zone"
@@ -218,3 +244,21 @@ class ColNames:
     previous_home_users = "previous_home_users"
     new_home_users = "new_home_users"
     common_home_users = "common_home_users"
+
+    # estimation factors
+    deduplication_factor = "deduplication_factor"
+    mno_to_target_population_factor = "mno_to_target_population_factor"
+
+
+class SegmentStates:
+
+    STAY = 1
+    MOVE = 2
+    UNDETERMINED = 3
+    UNKNOWN = 4
+    ABROAD = 5
+
+    STR_NAMES = {STAY: "stay", MOVE: "move", UNDETERMINED: "undetermined", UNKNOWN: "unknown", ABROAD: "abroad"}
+
+    # Add reverse mapping
+    STR_TO_INDEX = {v: k for k, v in STR_NAMES.items()}

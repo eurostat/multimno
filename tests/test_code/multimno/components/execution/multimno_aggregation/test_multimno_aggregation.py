@@ -11,6 +11,12 @@ from multimno.core.data_objects.silver.silver_aggregated_usual_environments_zone
     SilverAggregatedUsualEnvironmentsZonesDataObject,
 )
 from multimno.core.data_objects.silver.silver_internal_migration_data_object import SilverInternalMigrationDataObject
+from multimno.core.data_objects.silver.silver_tourism_outbound_nights_spent_data_object import (
+    SilverTourismOutboundNightsSpentDataObject,
+)
+from multimno.core.data_objects.silver.silver_tourism_zone_departures_nights_spent_data_object import (
+    SilverTourismZoneDeparturesNightsSpentDataObject,
+)
 
 from tests.test_code.fixtures import spark_session as spark
 
@@ -22,6 +28,8 @@ from tests.test_code.multimno.components.execution.multimno_aggregation.aux_mult
     generate_expected_aggregated_ue_zone_data,
     generate_expected_present_population_zones_data,
     generate_expected_internal_migration_zones_data,
+    generate_expected_inbound_tourism_data,
+    generate_expected_outbound_tourism_data,
 )
 
 # Dummy to avoid linting errors using pytest
@@ -63,7 +71,7 @@ def test_multimno_aggregated_present_population_zone(spark):
     config = parse_configuration(TEST_GENERAL_CONFIG_PATH, component_config_path)
     ts = "2023-01-01T00:00:00"
     # Create input data
-    set_input_data(spark, config, "present_population", timestamp=ts)
+    set_input_data(spark, config, "PresentPopulationEstimation", timestamp=ts)
 
     # Initialise component
     multimno_agg = MultiMNOAggregation(TEST_GENERAL_CONFIG_PATH, component_config_path)
@@ -111,7 +119,7 @@ def test_multimno_aggregated_usual_environment_zone(spark):
     config = parse_configuration(TEST_GENERAL_CONFIG_PATH, component_config_path)
     date = "2023-01-01"
     # Create input data
-    set_input_data(spark, config, "usual_environment", date=date)
+    set_input_data(spark, config, "UsualEnvironmentAggregation", date=date)
 
     # Initialise component
     multimno_agg = MultiMNOAggregation(TEST_GENERAL_CONFIG_PATH, component_config_path)
@@ -159,7 +167,7 @@ def test_multimno_internal_migration(spark):
     )
     config = parse_configuration(TEST_GENERAL_CONFIG_PATH, component_config_path)
     # Create input data
-    set_input_data(spark, config, "internal_migration")
+    set_input_data(spark, config, "InternalMigration")
 
     # Initialise component
     multimno_agg = MultiMNOAggregation(TEST_GENERAL_CONFIG_PATH, component_config_path)
@@ -175,6 +183,102 @@ def test_multimno_internal_migration(spark):
     expected_result = spark.createDataFrame(
         generate_expected_internal_migration_zones_data(),
         SilverInternalMigrationDataObject.SCHEMA,
+    )
+
+    # Assert equality of outputs
+    assertDataFrameEqual(output_do.df, expected_result)
+
+
+def test_multimno_inbound_tourism(spark):
+    """
+    Test the MultiMNO aggregation of inbound tourism.
+
+    DESCRIPTION:
+    This test verifies MultiMNO aggregation component for inbound tourism data. It initialises the necessary
+    configurations, sets up the input data, executes the aggregation porcess, and asserts that the output
+    DataFrame matches the expected result
+
+    INPUT:
+    - spark: Spark session fixture provided by pytest.
+
+    STEPS:
+    1. Initialise configuration path and configuration
+    3. Create input inbound tourism data using the test configuration
+    4. Initialise the MultiMNOAggregation component with the test configuration
+    5. Execute the aggregation component.
+    6. Read the output of the aggregation component.
+    7. Get the expected result of the execution.
+    8. Assert equality of component output and expected output.
+    """
+    component_config_path = (
+        f"{TEST_RESOURCES_PATH}/config/multimno_aggregation/multimno_aggregation_inbound_tourism.ini"
+    )
+    config = parse_configuration(TEST_GENERAL_CONFIG_PATH, component_config_path)
+    # Create input data
+    set_input_data(spark, config, "TourismStatisticsCalculation")
+
+    # Initialise component
+    multimno_agg = MultiMNOAggregation(TEST_GENERAL_CONFIG_PATH, component_config_path)
+
+    # Execution
+    multimno_agg.execute()
+
+    # Read output
+    output_do = multimno_agg.output_data_objects[SilverTourismZoneDeparturesNightsSpentDataObject.ID]
+    output_do.read()
+
+    # Get expected result
+    expected_result = spark.createDataFrame(
+        generate_expected_inbound_tourism_data(),
+        SilverTourismZoneDeparturesNightsSpentDataObject.SCHEMA,
+    )
+
+    # Assert equality of outputs
+    assertDataFrameEqual(output_do.df, expected_result)
+
+
+def test_multimno_outbound_tourism(spark):
+    """
+    Test the MultiMNO aggregation of outbound tourism.
+
+    DESCRIPTION:
+    This test verifies MultiMNO aggregation component for outbound tourism data. It initialises the necessary
+    configurations, sets up the input data, executes the aggregation porcess, and asserts that the output
+    DataFrame matches the expected result
+
+    INPUT:
+    - spark: Spark session fixture provided by pytest.
+
+    STEPS:
+    1. Initialise configuration path and configuration
+    3. Create input outbound tourism data using the test configuration
+    4. Initialise the MultiMNOAggregation component with the test configuration
+    5. Execute the aggregation component.
+    6. Read the output of the aggregation component.
+    7. Get the expected result of the execution.
+    8. Assert equality of component output and expected output.
+    """
+    component_config_path = (
+        f"{TEST_RESOURCES_PATH}/config/multimno_aggregation/multimno_aggregation_outbound_tourism.ini"
+    )
+    config = parse_configuration(TEST_GENERAL_CONFIG_PATH, component_config_path)
+    # Create input data
+    set_input_data(spark, config, "TourismOutboundStatisticsCalculation")
+
+    # Initialise component
+    multimno_agg = MultiMNOAggregation(TEST_GENERAL_CONFIG_PATH, component_config_path)
+
+    # Execution
+    multimno_agg.execute()
+
+    # Read output
+    output_do = multimno_agg.output_data_objects[SilverTourismOutboundNightsSpentDataObject.ID]
+    output_do.read()
+
+    # Get expected result
+    expected_result = spark.createDataFrame(
+        generate_expected_outbound_tourism_data(),
+        SilverTourismOutboundNightsSpentDataObject.SCHEMA,
     )
 
     # Assert equality of outputs

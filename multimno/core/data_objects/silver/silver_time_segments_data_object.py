@@ -35,7 +35,7 @@ class SilverTimeSegmentsDataObject(ParquetDataObject):
             StructField(ColNames.mnc, StringType(), nullable=False),
             StructField(ColNames.plmn, IntegerType(), nullable=True),
             StructField(ColNames.cells, ArrayType(StringType()), nullable=False),
-            StructField(ColNames.state, StringType(), nullable=False),
+            StructField(ColNames.state, ByteType(), nullable=False),
             StructField(ColNames.is_last, BooleanType(), nullable=True),
             # partition columns
             StructField(ColNames.year, ShortType(), nullable=False),

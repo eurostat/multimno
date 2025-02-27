@@ -7,6 +7,10 @@
             "component_config_path": "pipe_configs/configurations/grid/grid_generation.ini"
         },
         {
+            "component_id": "GeozonesGridMapping",
+            "component_config_path": "pipe_configs/configurations/grid/geozones_grid_mapping.ini"
+        },
+        {
             "component_id": "EventCleaning",
             "component_config_path": "pipe_configs/configurations/event/event_cleaning.ini"
         },
@@ -35,10 +39,6 @@
             "component_config_path": "pipe_configs/configurations/network/cell_proximity_estimation.ini"
         },
         {
-            "component_id": "ContinuousTimeSegmentation",
-            "component_config_path": "pipe_configs/configurations/daily_aggregations/continuous_time_segmentation.ini"
-        },
-        {
             "component_id": "PresentPopulationEstimation",
             "component_config_path": "pipe_configs/configurations/daily_aggregations/present_population_estimation.ini"
         },
@@ -63,20 +63,40 @@
             "component_config_path": "pipe_configs/configurations/longterm_analysis/usual_environment_aggregation.ini"
         },
         {
-            "component_id": "GeozonesGridMapping",
-            "component_config_path": "pipe_configs/configurations/grid/geozones_grid_mapping.ini"
+            "component_id": "ContinuousTimeSegmentation",
+            "component_config_path": "pipe_configs/configurations/daily_aggregations/continuous_time_segmentation.ini"
         },
         {
-            "component_id": "SpatialAggregation",
-            "component_config_path": "pipe_configs/configurations/indicators_aggregations/spatial_aggregation.ini"
+            "component_id": "TourismStaysEstimation",
+            "component_config_path": "pipe_configs/configurations/tourism_stays_estimation/tourism_stays_estimation.ini"
         },
         {
-            "component_id": "Estimation",
-            "component_config_path": "pipe_configs/configurations/estimation/estimation.ini"
+            "component_id": "TourismStatisticsCalculation",
+            "component_config_path": "pipe_configs/configurations/tourism_aggregation/tourism_statistics_calculation.ini"
         },
         {
-            "component_id": "KAnonimity",
-            "component_config_path": "pipe_configs/configurations/kanonimity/kanonimity.ini"
+            "component_id": "TourismOutboundStatisticsCalculation",
+            "component_config_path": "pipe_configs/configurations/tourism_aggregation/tourism_outbound_statistics_calculation.ini"
+        },
+        {
+            "component_id": "OutputIndicators",
+            "component_config_path": "pipe_configs/configurations/output_indicators/output_indicators_pp.ini"
+        },
+        {
+            "component_id": "OutputIndicators",
+            "component_config_path": "pipe_configs/configurations/output_indicators/output_indicators_ue.ini"
+        },
+        {
+            "component_id": "OutputIndicators",
+            "component_config_path": "pipe_configs/configurations/output_indicators/output_indicators_mig.ini"
+        },
+        {
+            "component_id": "OutputIndicators",
+            "component_config_path": "pipe_configs/configurations/output_indicators/output_indicators_tou_in.ini"
+        },
+        {
+            "component_id": "OutputIndicators",
+            "component_config_path": "pipe_configs/configurations/output_indicators/output_indicators_tou_out.ini"
         }
     ]
 }
