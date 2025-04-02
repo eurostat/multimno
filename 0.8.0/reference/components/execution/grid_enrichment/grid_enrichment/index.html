@@ -1,0 +1,3901 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="../" rel="prev"/>
+<link href="../../internal_migration/" rel="next"/>
+<link href="../../../../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.6.11" name="generator"/>
+<title>grid_enrichment - MultiMNO</title>
+<link href="../../../../../assets/stylesheets/main.4af4bdda.min.css" rel="stylesheet"/>
+<link href="../../../../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+<link href="../../../../../assets/stylesheets/panzoom.css" rel="stylesheet"/><meta content='{"selectors": [".d2", ".mermaid"]}' name="panzoom-data"/><meta content="material" name="panzoom-theme"/></head>
+<body data-md-color-accent="indigo" data-md-color-primary="indigo" data-md-color-scheme="default" dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#components.execution.grid_enrichment.grid_enrichment">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="MultiMNO" class="md-header__button md-logo" data-md-component="logo" href="../../../../.." title="MultiMNO">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            MultiMNO
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              grid_enrichment
+            
+          </span>
+</div>
+</div>
+</div>
+<form class="md-header__option" data-md-component="palette">
+<input aria-label="Switch to dark mode" class="md-option" data-md-color-accent="indigo" data-md-color-media="" data-md-color-primary="indigo" data-md-color-scheme="default" id="__palette_0" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_1" hidden="" title="Switch to dark mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+</label>
+<input aria-label="Switch to light mode" class="md-option" data-md-color-accent="indigo" data-md-color-media="" data-md-color-primary="indigo" data-md-color-scheme="slate" id="__palette_1" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_0" hidden="" title="Switch to light mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+</label>
+</form>
+<script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/eurostat/multimno" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
+</div>
+<div class="md-source__repository">
+    MultiMNO
+  </div>
+</a>
+</div>
+</nav>
+<nav aria-label="Tabs" class="md-tabs" data-md-component="tabs">
+<div class="md-grid">
+<ul class="md-tabs__list">
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../../..">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../../../UserManual/">
+        
+  
+  
+    
+  
+  User Manual
+
+      </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../../../DevGuide/">
+        
+  
+  
+    
+  
+  Dev Guide
+
+      </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../../../pipeline/">
+        
+  
+  
+    
+  
+  Pipeline
+
+      </a>
+</li>
+<li class="md-tabs__item md-tabs__item--active">
+<a class="md-tabs__link" href="../../../">
+          
+  
+  
+  Reference
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../../../system_requirements/">
+        
+  
+  
+    
+  
+  System Requirements
+
+      </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../../../LICENSE/">
+        
+  
+  
+    
+  
+  License
+
+      </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../../../autodoc/test_report/">
+        
+  
+  
+    
+  
+  Test Report
+
+      </a>
+</li>
+</ul>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="MultiMNO" class="md-nav__button md-logo" data-md-component="logo" href="../../../../.." title="MultiMNO">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+</a>
+    MultiMNO
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/eurostat/multimno" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
+</div>
+<div class="md-source__repository">
+    MultiMNO
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../..">
+<span class="md-ellipsis">
+    Home
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+<span class="md-ellipsis">
+    User Manual
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_2">
+<span class="md-nav__icon md-icon"></span>
+            User Manual
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+<span class="md-ellipsis">
+    Configuration
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_1">
+<span class="md-nav__icon md-icon"></span>
+            Configuration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_1_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_1_1" id="__nav_2_1_1_label" tabindex="0">
+<span class="md-ellipsis">
+    1 Pipeline
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_1_1_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_2_1_1">
+<span class="md-nav__icon md-icon"></span>
+            1 Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/0_general_configuration/">
+<span class="md-ellipsis">
+    General Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/1_inspire_grid_generation/">
+<span class="md-ellipsis">
+    InspireGridGeneration Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/2_event_data_cleaning/">
+<span class="md-ellipsis">
+    EventCleaning Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/3_network_cleaning/">
+<span class="md-ellipsis">
+    NetworkCleaning Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/4_cell_footprint_estimation/">
+<span class="md-ellipsis">
+    CellFootprintEstimation Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/5_cell_connection_probability/">
+<span class="md-ellipsis">
+    CellConnectionProbabilityEstimation Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/6_event_semantic_cleaning/">
+<span class="md-ellipsis">
+    SemanticCleaning Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/7_device_activity_statistics/">
+<span class="md-ellipsis">
+    DeviceActivityStatistics
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/8_continuous_time_segmentation/">
+<span class="md-ellipsis">
+    ContinuousTimeSegmentation Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/9_present_population_estimation/">
+<span class="md-ellipsis">
+    PresentPopulationEstimation Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/10_daily_permanence_score/">
+<span class="md-ellipsis">
+    DailyPermanenceScore Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/11_midterm_permanence_score/">
+<span class="md-ellipsis">
+    MidtermPermanenceScore Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/12_longterm_permanence_score/">
+<span class="md-ellipsis">
+    LongtermPermanenceScore Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/13_usual_environment_labeling/">
+<span class="md-ellipsis">
+    UsualEnvironmentLabeling Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/14_usual_environment_aggregation/">
+<span class="md-ellipsis">
+    UsualEnvironmentAggregation Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/15_internal_migration/">
+<span class="md-ellipsis">
+    InternalMigration Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/16_tourism_stays_estimation/">
+<span class="md-ellipsis">
+    TourismStaysEstimation Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/17_output_indicators/">
+<span class="md-ellipsis">
+    OutputIndicators Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/20_multimno_aggregation/">
+<span class="md-ellipsis">
+    MultiMNOAggregation Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/21_tourism_statistics_calculation/">
+<span class="md-ellipsis">
+    TourismStatisticsCalculation Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/1_Pipeline/22_tourism_outbound_statistics_calculation/">
+<span class="md-ellipsis">
+    TourismOutboundStatisticsCalculation Configuration
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_1_2" id="__nav_2_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    2 Optional
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_2_1_2">
+<span class="md-nav__icon md-icon"></span>
+            2 Optional
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/2_Optional/1_grid_enrichment/">
+<span class="md-ellipsis">
+    GridEnrichment Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/2_Optional/2_geozones_to_grid_mapping/">
+<span class="md-ellipsis">
+    GeozonesGridMapping Configuration
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_1_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_1_3" id="__nav_2_1_3_label" tabindex="0">
+<span class="md-ellipsis">
+    3 QualityWarnings
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_1_3_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_2_1_3">
+<span class="md-nav__icon md-icon"></span>
+            3 QualityWarnings
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/3_QualityWarnings/1_network_quality_warnings/">
+<span class="md-ellipsis">
+    NetworkQualityWarnings Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/3_QualityWarnings/2_event_quality_warnings/">
+<span class="md-ellipsis">
+    EventQualityWarnings Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/3_QualityWarnings/3_semantic_quality_warnings/">
+<span class="md-ellipsis">
+    SemanticQualityWarnings Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/3_QualityWarnings/4_cell_footprint_quality_metrics/">
+<span class="md-ellipsis">
+    CellFootprintQualityMetrics Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/3_QualityWarnings/5_daily_permanence_score_quality_metrics/">
+<span class="md-ellipsis">
+    DailyPermanenceScoreQualityMetrics Configuration
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_1_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_2_1_4" id="__nav_2_1_4_label" tabindex="0">
+<span class="md-ellipsis">
+    4 SyntheticMnoData
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_2_1_4_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_2_1_4">
+<span class="md-nav__icon md-icon"></span>
+            4 SyntheticMnoData
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/4_SyntheticMnoData/1_synthetic_diaries/">
+<span class="md-ellipsis">
+    SyntheticDiaries Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/4_SyntheticMnoData/2_synthetic_network/">
+<span class="md-ellipsis">
+    SyntheticNetwork Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/configuration/4_SyntheticMnoData/3_synthetic_events/">
+<span class="md-ellipsis">
+    SyntheticEvents Configuration
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/setup_guide/">
+<span class="md-ellipsis">
+    Setup Guide
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/execution/">
+<span class="md-ellipsis">
+    Execution
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../UserManual/cloud_usage/">
+<span class="md-ellipsis">
+    Cloud Deployment &amp; Execution
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+<span class="md-ellipsis">
+    Dev Guide
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Dev Guide
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../DevGuide/1_contribute/">
+<span class="md-ellipsis">
+    Contribute
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../DevGuide/2_dev_guidelines/">
+<span class="md-ellipsis">
+    Developer Guidelines
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../pipeline/">
+<span class="md-ellipsis">
+    Pipeline
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_5_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+<span class="md-ellipsis">
+    components
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_5_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_1">
+<span class="md-nav__icon md-icon"></span>
+            components
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_5_1_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1" id="__nav_5_1_1_label" tabindex="0">
+<span class="md-ellipsis">
+    execution
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_5_1_1_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_5_1_1">
+<span class="md-nav__icon md-icon"></span>
+            execution
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_1" id="__nav_5_1_1_1_label" tabindex="0">
+<span class="md-ellipsis">
+    cell_connection_probability
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_1_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_1">
+<span class="md-nav__icon md-icon"></span>
+            cell_connection_probability
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../cell_connection_probability/cell_connection_probability/">
+<span class="md-ellipsis">
+    cell_connection_probability
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_2" id="__nav_5_1_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    cell_footprint
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_2_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_2">
+<span class="md-nav__icon md-icon"></span>
+            cell_footprint
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../cell_footprint/cell_footprint_estimation/">
+<span class="md-ellipsis">
+    cell_footprint_estimation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_3" id="__nav_5_1_1_3_label" tabindex="0">
+<span class="md-ellipsis">
+    cell_proximity_estimation
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_3_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_3">
+<span class="md-nav__icon md-icon"></span>
+            cell_proximity_estimation
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../cell_proximity_estimation/cell_proximity_estimation/">
+<span class="md-ellipsis">
+    cell_proximity_estimation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_4" id="__nav_5_1_1_4_label" tabindex="0">
+<span class="md-ellipsis">
+    daily_permanence_score
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_4_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_4">
+<span class="md-nav__icon md-icon"></span>
+            daily_permanence_score
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../daily_permanence_score/daily_permanence_score/">
+<span class="md-ellipsis">
+    daily_permanence_score
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_5" id="__nav_5_1_1_5_label" tabindex="0">
+<span class="md-ellipsis">
+    device_activity_statistics
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_5_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_5">
+<span class="md-nav__icon md-icon"></span>
+            device_activity_statistics
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../device_activity_statistics/device_activity_statistics/">
+<span class="md-ellipsis">
+    device_activity_statistics
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_6" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_6" id="__nav_5_1_1_6_label" tabindex="0">
+<span class="md-ellipsis">
+    event_cleaning
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_6_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_6">
+<span class="md-nav__icon md-icon"></span>
+            event_cleaning
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../event_cleaning/event_cleaning/">
+<span class="md-ellipsis">
+    event_cleaning
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_7" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_7" id="__nav_5_1_1_7_label" tabindex="0">
+<span class="md-ellipsis">
+    event_semantic_cleaning
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_7_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_7">
+<span class="md-nav__icon md-icon"></span>
+            event_semantic_cleaning
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../event_semantic_cleaning/event_semantic_cleaning/">
+<span class="md-ellipsis">
+    event_semantic_cleaning
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_8" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_8" id="__nav_5_1_1_8_label" tabindex="0">
+<span class="md-ellipsis">
+    geozones_grid_mapping
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_8_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_8">
+<span class="md-nav__icon md-icon"></span>
+            geozones_grid_mapping
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../geozones_grid_mapping/geozones_grid_mapping/">
+<span class="md-ellipsis">
+    geozones_grid_mapping
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_5_1_1_9" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_9" id="__nav_5_1_1_9_label" tabindex="0">
+<span class="md-ellipsis">
+    grid_enrichment
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_5_1_1_9_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_9">
+<span class="md-nav__icon md-icon"></span>
+            grid_enrichment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    grid_enrichment
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    grid_enrichment
+    
+  </span>
+</a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#components.execution.grid_enrichment.grid_enrichment">
+<span class="md-ellipsis">
+      grid_enrichment
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#components.execution.grid_enrichment.grid_enrichment.GridEnrichment">
+<span class="md-ellipsis">
+      GridEnrichment
+    </span>
+</a>
+<nav aria-label="GridEnrichment" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#components.execution.grid_enrichment.grid_enrichment.GridEnrichment.assign_mapping_values">
+<span class="md-ellipsis">
+      assign_mapping_values
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#components.execution.grid_enrichment.grid_enrichment.GridEnrichment.calculate_grid_landuse_area_ratios">
+<span class="md-ellipsis">
+      calculate_grid_landuse_area_ratios
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#components.execution.grid_enrichment.grid_enrichment.GridEnrichment.calculate_transportation_buffer">
+<span class="md-ellipsis">
+      calculate_transportation_buffer
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#components.execution.grid_enrichment.grid_enrichment.GridEnrichment.generate_batches">
+<span class="md-ellipsis">
+      generate_batches
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#components.execution.grid_enrichment.grid_enrichment.GridEnrichment.prepare_transportation_data">
+<span class="md-ellipsis">
+      prepare_transportation_data
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_10" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_10" id="__nav_5_1_1_10_label" tabindex="0">
+<span class="md-ellipsis">
+    internal_migration
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_10_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_10">
+<span class="md-nav__icon md-icon"></span>
+            internal_migration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../internal_migration/internal_migration/">
+<span class="md-ellipsis">
+    internal_migration
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_11" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_11" id="__nav_5_1_1_11_label" tabindex="0">
+<span class="md-ellipsis">
+    longterm_permanence_score
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_11_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_11">
+<span class="md-nav__icon md-icon"></span>
+            longterm_permanence_score
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../longterm_permanence_score/longterm_permanence_score/">
+<span class="md-ellipsis">
+    longterm_permanence_score
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_12" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_12" id="__nav_5_1_1_12_label" tabindex="0">
+<span class="md-ellipsis">
+    midterm_permanence_score
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_12_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_12">
+<span class="md-nav__icon md-icon"></span>
+            midterm_permanence_score
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../midterm_permanence_score/midterm_permanence_score/">
+<span class="md-ellipsis">
+    midterm_permanence_score
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_13" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_13" id="__nav_5_1_1_13_label" tabindex="0">
+<span class="md-ellipsis">
+    multimno_aggregation
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_13_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_13">
+<span class="md-nav__icon md-icon"></span>
+            multimno_aggregation
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../multimno_aggregation/multimno_aggregation/">
+<span class="md-ellipsis">
+    multimno_aggregation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_14" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_14" id="__nav_5_1_1_14_label" tabindex="0">
+<span class="md-ellipsis">
+    network_cleaning
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_14_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_14">
+<span class="md-nav__icon md-icon"></span>
+            network_cleaning
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../network_cleaning/network_cleaning/">
+<span class="md-ellipsis">
+    network_cleaning
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_15" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_15" id="__nav_5_1_1_15_label" tabindex="0">
+<span class="md-ellipsis">
+    output_indicators
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_15_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_15">
+<span class="md-nav__icon md-icon"></span>
+            output_indicators
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../output_indicators/output_indicators/">
+<span class="md-ellipsis">
+    output_indicators
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_16" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_16" id="__nav_5_1_1_16_label" tabindex="0">
+<span class="md-ellipsis">
+    present_population
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_16_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_16">
+<span class="md-nav__icon md-icon"></span>
+            present_population
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../present_population/present_population_estimation/">
+<span class="md-ellipsis">
+    present_population_estimation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_17" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_17" id="__nav_5_1_1_17_label" tabindex="0">
+<span class="md-ellipsis">
+    time_segments
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_17_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_17">
+<span class="md-nav__icon md-icon"></span>
+            time_segments
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../time_segments/continuous_time_segmentation/">
+<span class="md-ellipsis">
+    continuous_time_segmentation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_18" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_18" id="__nav_5_1_1_18_label" tabindex="0">
+<span class="md-ellipsis">
+    tourism_outbound_statistics
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_18_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_18">
+<span class="md-nav__icon md-icon"></span>
+            tourism_outbound_statistics
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tourism_outbound_statistics/tourism_outbound_statistics_calculation/">
+<span class="md-ellipsis">
+    tourism_outbound_statistics_calculation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_19" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_19" id="__nav_5_1_1_19_label" tabindex="0">
+<span class="md-ellipsis">
+    tourism_statistics
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_19_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_19">
+<span class="md-nav__icon md-icon"></span>
+            tourism_statistics
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tourism_statistics/tourism_statistics_calculation/">
+<span class="md-ellipsis">
+    tourism_statistics_calculation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_20" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_20" id="__nav_5_1_1_20_label" tabindex="0">
+<span class="md-ellipsis">
+    tourism_stays_estimation
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_20_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_20">
+<span class="md-nav__icon md-icon"></span>
+            tourism_stays_estimation
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../tourism_stays_estimation/tourism_stays_estimation/">
+<span class="md-ellipsis">
+    tourism_stays_estimation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_21" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_21" id="__nav_5_1_1_21_label" tabindex="0">
+<span class="md-ellipsis">
+    usual_environment_aggregation
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_21_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_21">
+<span class="md-nav__icon md-icon"></span>
+            usual_environment_aggregation
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usual_environment_aggregation/usual_environment_aggregation/">
+<span class="md-ellipsis">
+    usual_environment_aggregation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_22" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_1_22" id="__nav_5_1_1_22_label" tabindex="0">
+<span class="md-ellipsis">
+    usual_environment_labeling
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_22_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_22">
+<span class="md-nav__icon md-icon"></span>
+            usual_environment_labeling
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../usual_environment_labeling/usual_environment_labeling/">
+<span class="md-ellipsis">
+    usual_environment_labeling
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_2" id="__nav_5_1_2_label" tabindex="0">
+<span class="md-ellipsis">
+    ingestion
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_5_1_2">
+<span class="md-nav__icon md-icon"></span>
+            ingestion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_2_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_2_1" id="__nav_5_1_2_1_label" tabindex="0">
+<span class="md-ellipsis">
+    data_filtering
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_2_1_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_2_1">
+<span class="md-nav__icon md-icon"></span>
+            data_filtering
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../ingestion/data_filtering/data_filtering/">
+<span class="md-ellipsis">
+    data_filtering
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_2_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_2_2" id="__nav_5_1_2_2_label" tabindex="0">
+<span class="md-ellipsis">
+    grid_generation
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_2_2_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_2_2">
+<span class="md-nav__icon md-icon"></span>
+            grid_generation
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../ingestion/grid_generation/inspire_grid_generation/">
+<span class="md-ellipsis">
+    inspire_grid_generation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_2_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_2_3" id="__nav_5_1_2_3_label" tabindex="0">
+<span class="md-ellipsis">
+    spatial_data_ingestion
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_2_3_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_2_3">
+<span class="md-nav__icon md-icon"></span>
+            spatial_data_ingestion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../ingestion/spatial_data_ingestion/gisco_data_ingestion/">
+<span class="md-ellipsis">
+    gisco_data_ingestion
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../ingestion/spatial_data_ingestion/overture_data_ingestion/">
+<span class="md-ellipsis">
+    overture_data_ingestion
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../ingestion/spatial_data_ingestion/overture_data_transformation/">
+<span class="md-ellipsis">
+    overture_data_transformation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_2_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_2_4" id="__nav_5_1_2_4_label" tabindex="0">
+<span class="md-ellipsis">
+    synthetic
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_2_4_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_2_4">
+<span class="md-nav__icon md-icon"></span>
+            synthetic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../ingestion/synthetic/synthetic_diaries/">
+<span class="md-ellipsis">
+    synthetic_diaries
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../ingestion/synthetic/synthetic_events/">
+<span class="md-ellipsis">
+    synthetic_events
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../ingestion/synthetic/synthetic_network/">
+<span class="md-ellipsis">
+    synthetic_network
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_3" id="__nav_5_1_3_label" tabindex="0">
+<span class="md-ellipsis">
+    quality
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_3_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_5_1_3">
+<span class="md-nav__icon md-icon"></span>
+            quality
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_3_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_3_1" id="__nav_5_1_3_1_label" tabindex="0">
+<span class="md-ellipsis">
+    cell_footprint_quality_metrics
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_3_1_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_3_1">
+<span class="md-nav__icon md-icon"></span>
+            cell_footprint_quality_metrics
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../quality/cell_footprint_quality_metrics/cell_footprint_quality_metrics/">
+<span class="md-ellipsis">
+    cell_footprint_quality_metrics
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_3_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_3_2" id="__nav_5_1_3_2_label" tabindex="0">
+<span class="md-ellipsis">
+    daily_permanence_score_quality_metrics
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_3_2_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_3_2">
+<span class="md-nav__icon md-icon"></span>
+            daily_permanence_score_quality_metrics
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../quality/daily_permanence_score_quality_metrics/daily_permanence_score_quality_metrics/">
+<span class="md-ellipsis">
+    daily_permanence_score_quality_metrics
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_3_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_3_3" id="__nav_5_1_3_3_label" tabindex="0">
+<span class="md-ellipsis">
+    event_quality_warnings
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_3_3_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_3_3">
+<span class="md-nav__icon md-icon"></span>
+            event_quality_warnings
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../quality/event_quality_warnings/event_quality_warnings/">
+<span class="md-ellipsis">
+    event_quality_warnings
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_3_4" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_3_4" id="__nav_5_1_3_4_label" tabindex="0">
+<span class="md-ellipsis">
+    network_quality_warnings
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_3_4_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_3_4">
+<span class="md-nav__icon md-icon"></span>
+            network_quality_warnings
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../quality/network_quality_warnings/network_quality_warnings/">
+<span class="md-ellipsis">
+    network_quality_warnings
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_3_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_1_3_5" id="__nav_5_1_3_5_label" tabindex="0">
+<span class="md-ellipsis">
+    semantic_quality_warnings
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_3_5_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_3_5">
+<span class="md-nav__icon md-icon"></span>
+            semantic_quality_warnings
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../quality/semantic_quality_warnings/semantic_quality_warnings/">
+<span class="md-ellipsis">
+    semantic_quality_warnings
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-ellipsis">
+    core
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            core
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2_1" id="__nav_5_2_1_label" tabindex="0">
+<span class="md-ellipsis">
+    constants
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_1_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_5_2_1">
+<span class="md-nav__icon md-icon"></span>
+            constants
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/constants/columns/">
+<span class="md-ellipsis">
+    columns
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/constants/conditions/">
+<span class="md-ellipsis">
+    conditions
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/constants/domain_names/">
+<span class="md-ellipsis">
+    domain_names
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/constants/error_types/">
+<span class="md-ellipsis">
+    error_types
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/constants/measure_definitions/">
+<span class="md-ellipsis">
+    measure_definitions
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/constants/network_default_thresholds/">
+<span class="md-ellipsis">
+    network_default_thresholds
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/constants/period_names/">
+<span class="md-ellipsis">
+    period_names
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/constants/reserved_dataset_ids/">
+<span class="md-ellipsis">
+    reserved_dataset_ids
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/constants/semantic_qw_default_thresholds/">
+<span class="md-ellipsis">
+    semantic_qw_default_thresholds
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/constants/spatial/">
+<span class="md-ellipsis">
+    spatial
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/constants/transformations/">
+<span class="md-ellipsis">
+    transformations
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/constants/warnings/">
+<span class="md-ellipsis">
+    warnings
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2_2" id="__nav_5_2_2_label" tabindex="0">
+<span class="md-ellipsis">
+    data_objects
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_5_2_2">
+<span class="md-nav__icon md-icon"></span>
+            data_objects
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2_2_1" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2_2_1" id="__nav_5_2_2_1_label" tabindex="0">
+<span class="md-ellipsis">
+    bronze
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_2_1_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_2_2_1">
+<span class="md-nav__icon md-icon"></span>
+            bronze
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/bronze/bronze_admin_units_data_object/">
+<span class="md-ellipsis">
+    bronze_admin_units_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/bronze/bronze_buildings_data_object/">
+<span class="md-ellipsis">
+    bronze_buildings_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/bronze/bronze_countries_data_object/">
+<span class="md-ellipsis">
+    bronze_countries_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/bronze/bronze_event_data_object/">
+<span class="md-ellipsis">
+    bronze_event_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/bronze/bronze_geographic_zones_data_object/">
+<span class="md-ellipsis">
+    bronze_geographic_zones_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/bronze/bronze_holiday_calendar_data_object/">
+<span class="md-ellipsis">
+    bronze_holiday_calendar_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/bronze/bronze_inbound_estimation_factors_data_object/">
+<span class="md-ellipsis">
+    bronze_inbound_estimation_factors_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/bronze/bronze_landuse_data_object/">
+<span class="md-ellipsis">
+    bronze_landuse_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/bronze/bronze_mcc_iso_tz_map/">
+<span class="md-ellipsis">
+    bronze_mcc_iso_tz_map
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/bronze/bronze_network_physical_data_object/">
+<span class="md-ellipsis">
+    bronze_network_physical_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/bronze/bronze_synthetic_diaries_data_object/">
+<span class="md-ellipsis">
+    bronze_synthetic_diaries_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/bronze/bronze_transportation_data_object/">
+<span class="md-ellipsis">
+    bronze_transportation_data_object
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2_2_2" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2_2_2" id="__nav_5_2_2_2_label" tabindex="0">
+<span class="md-ellipsis">
+    landing
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_2_2_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_2_2_2">
+<span class="md-nav__icon md-icon"></span>
+            landing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/landing/landing_geoparquet_data_object/">
+<span class="md-ellipsis">
+    landing_geoparquet_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/landing/landing_http_geojson_data_object/">
+<span class="md-ellipsis">
+    landing_http_geojson_data_object
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2_2_3" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5_2_2_3" id="__nav_5_2_2_3_label" tabindex="0">
+<span class="md-ellipsis">
+    silver
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_2_3_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_2_2_3">
+<span class="md-nav__icon md-icon"></span>
+            silver
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/event_cache_data_object/">
+<span class="md-ellipsis">
+    event_cache_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_aggregated_usual_environments_data_object/">
+<span class="md-ellipsis">
+    silver_aggregated_usual_environments_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_aggregated_usual_environments_zones_data_object/">
+<span class="md-ellipsis">
+    silver_aggregated_usual_environments_zones_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_cell_connection_probabilities_data_object/">
+<span class="md-ellipsis">
+    silver_cell_connection_probabilities_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_cell_distance_data_object/">
+<span class="md-ellipsis">
+    silver_cell_distance_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_cell_footprint_data_object/">
+<span class="md-ellipsis">
+    silver_cell_footprint_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_cell_footprint_quality_metrics_data_object/">
+<span class="md-ellipsis">
+    silver_cell_footprint_quality_metrics_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_cell_intersection_groups_data_object/">
+<span class="md-ellipsis">
+    silver_cell_intersection_groups_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_daily_permanence_score_data_object/">
+<span class="md-ellipsis">
+    silver_daily_permanence_score_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_daily_permanence_score_quality_metrics_data_object/">
+<span class="md-ellipsis">
+    silver_daily_permanence_score_quality_metrics_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_device_activity_statistics/">
+<span class="md-ellipsis">
+    silver_device_activity_statistics
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_enriched_grid_data_object/">
+<span class="md-ellipsis">
+    silver_enriched_grid_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_event_data_object/">
+<span class="md-ellipsis">
+    silver_event_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_event_data_syntactic_quality_metrics_by_column/">
+<span class="md-ellipsis">
+    silver_event_data_syntactic_quality_metrics_by_column
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_event_data_syntactic_quality_metrics_frequency_distribution/">
+<span class="md-ellipsis">
+    silver_event_data_syntactic_quality_metrics_frequency_distribution
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_event_data_syntactic_quality_warnings_for_plots/">
+<span class="md-ellipsis">
+    silver_event_data_syntactic_quality_warnings_for_plots
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_event_data_syntactic_quality_warnings_log_table/">
+<span class="md-ellipsis">
+    silver_event_data_syntactic_quality_warnings_log_table
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_event_flagged_data_object/">
+<span class="md-ellipsis">
+    silver_event_flagged_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_geozones_grid_map_data_object/">
+<span class="md-ellipsis">
+    silver_geozones_grid_map_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_grid_data_object/">
+<span class="md-ellipsis">
+    silver_grid_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_internal_migration_data_object/">
+<span class="md-ellipsis">
+    silver_internal_migration_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_internal_migration_quality_metrics_data_object/">
+<span class="md-ellipsis">
+    silver_internal_migration_quality_metrics_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_longterm_permanence_score_data_object/">
+<span class="md-ellipsis">
+    silver_longterm_permanence_score_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_midterm_permanence_score_data_object/">
+<span class="md-ellipsis">
+    silver_midterm_permanence_score_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_network_data_object/">
+<span class="md-ellipsis">
+    silver_network_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_network_data_syntactic_quality_metrics_by_column/">
+<span class="md-ellipsis">
+    silver_network_data_syntactic_quality_metrics_by_column
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_network_data_top_frequent_errors_data_object/">
+<span class="md-ellipsis">
+    silver_network_data_top_frequent_errors_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_network_row_error_metrics/">
+<span class="md-ellipsis">
+    silver_network_row_error_metrics
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_network_syntactic_quality_warnings_log_table/">
+<span class="md-ellipsis">
+    silver_network_syntactic_quality_warnings_log_table
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_network_syntactic_quality_warnings_plot_data/">
+<span class="md-ellipsis">
+    silver_network_syntactic_quality_warnings_plot_data
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_present_population_data_object/">
+<span class="md-ellipsis">
+    silver_present_population_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_present_population_zone_data_object/">
+<span class="md-ellipsis">
+    silver_present_population_zone_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_semantic_quality_metrics/">
+<span class="md-ellipsis">
+    silver_semantic_quality_metrics
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_semantic_quality_warnings_log_table/">
+<span class="md-ellipsis">
+    silver_semantic_quality_warnings_log_table
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_semantic_quality_warnings_plot_data/">
+<span class="md-ellipsis">
+    silver_semantic_quality_warnings_plot_data
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_time_segments_data_object/">
+<span class="md-ellipsis">
+    silver_time_segments_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_tourism_outbound_nights_spent_data_object/">
+<span class="md-ellipsis">
+    silver_tourism_outbound_nights_spent_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_tourism_stays_data_object/">
+<span class="md-ellipsis">
+    silver_tourism_stays_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_tourism_trip_avg_destinations_nights_spent_data_object/">
+<span class="md-ellipsis">
+    silver_tourism_trip_avg_destinations_nights_spent_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_tourism_trip_data_object/">
+<span class="md-ellipsis">
+    silver_tourism_trip_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_tourism_zone_departures_nights_spent_data_object/">
+<span class="md-ellipsis">
+    silver_tourism_zone_departures_nights_spent_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_usual_environment_labeling_quality_metrics_data_object/">
+<span class="md-ellipsis">
+    silver_usual_environment_labeling_quality_metrics_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/silver/silver_usual_environment_labels_data_object/">
+<span class="md-ellipsis">
+    silver_usual_environment_labels_data_object
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/data_objects/data_object/">
+<span class="md-ellipsis">
+    data_object
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/component/">
+<span class="md-ellipsis">
+    component
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/configuration/">
+<span class="md-ellipsis">
+    configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/exceptions/">
+<span class="md-ellipsis">
+    exceptions
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/grid/">
+<span class="md-ellipsis">
+    grid
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/io_interface/">
+<span class="md-ellipsis">
+    io_interface
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/log/">
+<span class="md-ellipsis">
+    log
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/quadkey_utils/">
+<span class="md-ellipsis">
+    quadkey_utils
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/settings/">
+<span class="md-ellipsis">
+    settings
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/spark_session/">
+<span class="md-ellipsis">
+    spark_session
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../core/utils/">
+<span class="md-ellipsis">
+    utils
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../main_multimno/">
+<span class="md-ellipsis">
+    main_multimno
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../orchestrator_multimno/">
+<span class="md-ellipsis">
+    orchestrator_multimno
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../system_requirements/">
+<span class="md-ellipsis">
+    System Requirements
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../LICENSE/">
+<span class="md-ellipsis">
+    License
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../autodoc/test_report/">
+<span class="md-ellipsis">
+    Test Report
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1>grid_enrichment</h1>
+<div class="doc doc-object doc-module">
+<a id="components.execution.grid_enrichment.grid_enrichment"></a>
+<div class="doc doc-contents first">
+<p>This module is responsible for enrichment of the operational grid with elevation and landuse data.</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-class">
+<h2 class="doc doc-heading" id="components.execution.grid_enrichment.grid_enrichment.GridEnrichment">
+<code>GridEnrichment</code>
+</h2>
+<div class="doc doc-contents">
+<p class="doc doc-class-bases">
+              Bases: <code><span title="multimno.core.component.Component">Component</span></code></p>
+<p>This class is responsible for enrichment of the operational grid with elevation and landuse data.</p>
+<details class="quote">
+<summary>Source code in <code>multimno/components/execution/grid_enrichment/grid_enrichment.py</code></summary>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 42</span>
+<span class="normal"> 43</span>
+<span class="normal"> 44</span>
+<span class="normal"> 45</span>
+<span class="normal"> 46</span>
+<span class="normal"> 47</span>
+<span class="normal"> 48</span>
+<span class="normal"> 49</span>
+<span class="normal"> 50</span>
+<span class="normal"> 51</span>
+<span class="normal"> 52</span>
+<span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span>
+<span class="normal">299</span>
+<span class="normal">300</span>
+<span class="normal">301</span>
+<span class="normal">302</span>
+<span class="normal">303</span>
+<span class="normal">304</span>
+<span class="normal">305</span>
+<span class="normal">306</span>
+<span class="normal">307</span>
+<span class="normal">308</span>
+<span class="normal">309</span>
+<span class="normal">310</span>
+<span class="normal">311</span>
+<span class="normal">312</span>
+<span class="normal">313</span>
+<span class="normal">314</span>
+<span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span>
+<span class="normal">318</span>
+<span class="normal">319</span>
+<span class="normal">320</span>
+<span class="normal">321</span>
+<span class="normal">322</span>
+<span class="normal">323</span>
+<span class="normal">324</span>
+<span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
+<span class="normal">331</span>
+<span class="normal">332</span>
+<span class="normal">333</span>
+<span class="normal">334</span>
+<span class="normal">335</span>
+<span class="normal">336</span>
+<span class="normal">337</span>
+<span class="normal">338</span>
+<span class="normal">339</span>
+<span class="normal">340</span>
+<span class="normal">341</span>
+<span class="normal">342</span>
+<span class="normal">343</span>
+<span class="normal">344</span>
+<span class="normal">345</span>
+<span class="normal">346</span>
+<span class="normal">347</span>
+<span class="normal">348</span>
+<span class="normal">349</span>
+<span class="normal">350</span>
+<span class="normal">351</span>
+<span class="normal">352</span>
+<span class="normal">353</span>
+<span class="normal">354</span>
+<span class="normal">355</span>
+<span class="normal">356</span>
+<span class="normal">357</span>
+<span class="normal">358</span>
+<span class="normal">359</span>
+<span class="normal">360</span>
+<span class="normal">361</span>
+<span class="normal">362</span>
+<span class="normal">363</span>
+<span class="normal">364</span>
+<span class="normal">365</span>
+<span class="normal">366</span>
+<span class="normal">367</span>
+<span class="normal">368</span>
+<span class="normal">369</span>
+<span class="normal">370</span>
+<span class="normal">371</span>
+<span class="normal">372</span>
+<span class="normal">373</span>
+<span class="normal">374</span>
+<span class="normal">375</span>
+<span class="normal">376</span>
+<span class="normal">377</span>
+<span class="normal">378</span>
+<span class="normal">379</span>
+<span class="normal">380</span>
+<span class="normal">381</span>
+<span class="normal">382</span>
+<span class="normal">383</span>
+<span class="normal">384</span>
+<span class="normal">385</span>
+<span class="normal">386</span>
+<span class="normal">387</span>
+<span class="normal">388</span>
+<span class="normal">389</span>
+<span class="normal">390</span>
+<span class="normal">391</span>
+<span class="normal">392</span>
+<span class="normal">393</span>
+<span class="normal">394</span>
+<span class="normal">395</span>
+<span class="normal">396</span>
+<span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span>
+<span class="normal">403</span>
+<span class="normal">404</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">GridEnrichment</span><span class="p">(</span><span class="n">Component</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    This class is responsible for enrichment of the operational grid with elevation and landuse data.</span>
+<span class="sd">    """</span>
+
+    <span class="n">COMPONENT_ID</span> <span class="o">=</span> <span class="s2">"GridEnrichment"</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">general_config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">component_config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">general_config_path</span><span class="p">,</span> <span class="n">component_config_path</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">do_landuse_enrichment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COMPONENT_ID</span><span class="p">,</span> <span class="s2">"do_landuse_enrichment"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transportation_category_buffer_m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">geteval</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">COMPONENT_ID</span><span class="p">,</span> <span class="s2">"transportation_category_buffer_m"</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">do_elevation_enrichment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COMPONENT_ID</span><span class="p">,</span> <span class="s2">"do_elevation_enrichment"</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">quadkey_batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COMPONENT_ID</span><span class="p">,</span> <span class="s2">"quadkey_batch_size"</span><span class="p">)</span>
+
+        <span class="c1"># TODO: For now set to default 100, but can be dynamic from config in future</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grid_resolution</span> <span class="o">=</span> <span class="mi">100</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">grid_generator</span> <span class="o">=</span> <span class="n">InspireGridGenerator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spark</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">initalize_data_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># inputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_destination_directory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span>
+            <span class="n">GridEnrichment</span><span class="o">.</span><span class="n">COMPONENT_ID</span><span class="p">,</span> <span class="s2">"clear_destination_directory"</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_data_objects</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"grid_data_silver"</span><span class="p">:</span> <span class="n">SilverGridDataObject</span><span class="p">,</span>
+            <span class="s2">"transportation_data_bronze"</span><span class="p">:</span> <span class="n">BronzeTransportationDataObject</span><span class="p">,</span>
+            <span class="s2">"landuse_data_bronze"</span><span class="p">:</span> <span class="n">BronzeLanduseDataObject</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">inputs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">has_option</span><span class="p">(</span><span class="n">CONFIG_BRONZE_PATHS_KEY</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CONFIG_BRONZE_PATHS_KEY</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CONFIG_SILVER_PATHS_KEY</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">check_if_data_path_exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spark</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">input_data_objects</span><span class="p">[</span><span class="n">value</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spark</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Expected path </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> to exist but it does not"</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Invalid path for </span><span class="si">{</span><span class="n">value</span><span class="o">.</span><span class="n">ID</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+        <span class="c1"># outputs</span>
+
+        <span class="n">grid_do_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CONFIG_SILVER_PATHS_KEY</span><span class="p">,</span> <span class="s2">"enriched_grid_data_silver"</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clear_destination_directory</span><span class="p">:</span>
+            <span class="n">delete_file_or_folder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spark</span><span class="p">,</span> <span class="n">grid_do_path</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_data_objects</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_data_objects</span><span class="p">[</span><span class="n">SilverEnrichedGridDataObject</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">SilverEnrichedGridDataObject</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spark</span><span class="p">,</span> <span class="n">grid_do_path</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Starting </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">COMPONENT_ID</span><span class="si">}</span><span class="s2">..."</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="c1"># get quadkeys to process to list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quadkeys_to_process</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">input_data_objects</span><span class="p">[</span><span class="n">SilverGridDataObject</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span>
+            <span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">"quadkey"</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">distinct</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">rdd</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">quadkey</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Quadkeys to process: "</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">quadkeys_to_process</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="c1"># generate quadkey batches</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quadkey_batches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_batches</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">quadkeys_to_process</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">quadkey_batch_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Will be processrd in: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">quadkey_batches</span><span class="p">)</span><span class="si">}</span><span class="s2"> parts"</span><span class="p">)</span>
+        <span class="n">processed</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">origin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_data_objects</span><span class="p">[</span><span class="n">SilverGridDataObject</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">origin</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">origin</span>
+        <span class="k">for</span> <span class="n">quadkey_batch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">quadkey_batches</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Processing quadkeys </span><span class="si">{</span><span class="n">quadkey_batch</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_quadkey_batch</span> <span class="o">=</span> <span class="n">quadkey_batch</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spark</span><span class="o">.</span><span class="n">catalog</span><span class="o">.</span><span class="n">clearCache</span><span class="p">()</span>
+            <span class="n">processed</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Processed </span><span class="si">{</span><span class="n">processed</span><span class="si">}</span><span class="s2"> out of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">quadkey_batches</span><span class="p">)</span><span class="si">}</span><span class="s2"> batches"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Finished </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">COMPONENT_ID</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_batches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elements_list</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Generates batches of elements from list.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">elements_list</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">elements_list</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">)]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Transform method </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">COMPONENT_ID</span><span class="si">}</span><span class="s2">..."</span><span class="p">)</span>
+
+        <span class="n">current_grid_part_sdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_data_objects</span><span class="p">[</span><span class="n">SilverGridDataObject</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_quadkey_batch</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">current_grid_part_sdf</span> <span class="o">=</span> <span class="n">current_grid_part_sdf</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">elevation</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_elevation_enrichment</span><span class="p">:</span>
+            <span class="n">current_grid_part_sdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_elevation_to_grid</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_landuse_enrichment</span><span class="p">:</span>
+
+            <span class="c1"># preapre transportation data</span>
+            <span class="n">transportation_sdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepare_transportation_data</span><span class="p">()</span>
+            <span class="n">transportation_sdf</span><span class="o">.</span><span class="n">persist</span><span class="p">()</span>
+            <span class="n">transportation_count</span> <span class="o">=</span> <span class="n">transportation_sdf</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Transportation data prepared..."</span><span class="p">)</span>
+            <span class="c1"># # prepare landuse</span>
+            <span class="n">landuse_sdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_data_objects</span><span class="p">[</span><span class="n">BronzeLanduseDataObject</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_quadkey_batch</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="c1"># merge landuse and transportation</span>
+            <span class="k">if</span> <span class="n">transportation_count</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">landuse_sdf</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">clip_polygons_with_mask_polygons</span><span class="p">(</span>
+                    <span class="n">landuse_sdf</span><span class="p">,</span>
+                    <span class="n">transportation_sdf</span><span class="p">,</span>
+                    <span class="p">[</span>
+                        <span class="n">ColNames</span><span class="o">.</span><span class="n">category</span><span class="p">,</span>
+                        <span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span>
+                        <span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">,</span>
+                    <span class="p">],</span>
+                    <span class="kc">False</span><span class="p">,</span>
+                    <span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="n">landuse_roads_sdf</span> <span class="o">=</span> <span class="n">landuse_sdf</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">transportation_sdf</span><span class="p">)</span>
+            <span class="n">landuse_roads_sdf</span><span class="o">.</span><span class="n">persist</span><span class="p">()</span>
+            <span class="n">land_use_count</span> <span class="o">=</span> <span class="n">landuse_roads_sdf</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Landuse data prepared..."</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">land_use_count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"No landuse data found for quadkey </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">current_quadkey_batch</span><span class="si">}</span><span class="s2">. Assigning default open_area"</span>
+                <span class="p">)</span>
+                <span class="n">current_grid_part_sdf</span> <span class="o">=</span> <span class="n">current_grid_part_sdf</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+                    <span class="n">ColNames</span><span class="o">.</span><span class="n">main_landuse_category</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s2">"open_area"</span><span class="p">)</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+                    <span class="n">ColNames</span><span class="o">.</span><span class="n">landuse_area_ratios</span><span class="p">,</span>
+                    <span class="n">F</span><span class="o">.</span><span class="n">create_map</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s2">"open_area"</span><span class="p">),</span> <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)),</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># count landuse types ratios in grid cells</span>
+                <span class="n">current_grid_part_sdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid_generator</span><span class="o">.</span><span class="n">grid_ids_to_grid_tiles</span><span class="p">(</span>
+                    <span class="n">current_grid_part_sdf</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">origin</span>
+                <span class="p">)</span>
+                <span class="n">current_grid_part_sdf</span> <span class="o">=</span> <span class="n">current_grid_part_sdf</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">"area"</span><span class="p">,</span> <span class="n">STF</span><span class="o">.</span><span class="n">ST_Area</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span><span class="p">))</span>
+
+                <span class="n">landuse_roads_sdf</span> <span class="o">=</span> <span class="n">landuse_roads_sdf</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+                    <span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span> <span class="n">STF</span><span class="o">.</span><span class="n">ST_SubDivideExplode</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+                <span class="p">)</span>
+
+                <span class="n">tiles_with_landuse_sdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_grid_landuse_area_ratios</span><span class="p">(</span>
+                    <span class="n">current_grid_part_sdf</span><span class="p">,</span> <span class="n">landuse_roads_sdf</span>
+                <span class="p">)</span>
+
+                <span class="c1"># get all other tiles that do not have landuse data</span>
+                <span class="n">all_tiles_sdf</span> <span class="o">=</span> <span class="n">current_grid_part_sdf</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="n">tiles_with_landuse_sdf</span><span class="p">,</span>
+                    <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="n">ColNames</span><span class="o">.</span><span class="n">grid_id</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">],</span>
+                    <span class="n">how</span><span class="o">=</span><span class="s2">"left"</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="c1"># and assign default open_area</span>
+                <span class="n">all_tiles_sdf</span> <span class="o">=</span> <span class="n">all_tiles_sdf</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+                    <span class="n">ColNames</span><span class="o">.</span><span class="n">category</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">coalesce</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">category</span><span class="p">),</span> <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s2">"open_area"</span><span class="p">))</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">"area_ratio"</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">coalesce</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"area_ratio"</span><span class="p">),</span> <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)))</span>
+
+                <span class="c1"># get main landuse category and landuse area ratios for each grid tile</span>
+                <span class="n">current_grid_part_sdf</span> <span class="o">=</span> <span class="n">all_tiles_sdf</span><span class="o">.</span><span class="n">groupBy</span><span class="p">(</span>
+                    <span class="n">ColNames</span><span class="o">.</span><span class="n">grid_id</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">elevation</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span>
+                    <span class="n">F</span><span class="o">.</span><span class="n">map_from_entries</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">collect_list</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">struct</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">category</span><span class="p">,</span> <span class="s2">"area_ratio"</span><span class="p">)))</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span>
+                        <span class="n">ColNames</span><span class="o">.</span><span class="n">landuse_area_ratios</span>
+                    <span class="p">),</span>
+                    <span class="n">F</span><span class="o">.</span><span class="n">max_by</span><span class="p">(</span>
+                        <span class="n">F</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"area_ratio"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"category"</span><span class="p">))</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"area_ratio"</span><span class="p">)</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">main_landuse_category</span><span class="p">),</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Then also assign mauin landuse category to open_area if it is not assigned</span>
+                <span class="n">current_grid_part_sdf</span> <span class="o">=</span> <span class="n">current_grid_part_sdf</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+                    <span class="n">ColNames</span><span class="o">.</span><span class="n">main_landuse_category</span><span class="p">,</span>
+                    <span class="n">F</span><span class="o">.</span><span class="n">coalesce</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">main_landuse_category</span><span class="p">),</span> <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s2">"open_area"</span><span class="p">)),</span>
+                <span class="p">)</span>
+
+            <span class="n">current_grid_part_sdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid_generator</span><span class="o">.</span><span class="n">grid_ids_to_grid_centroids</span><span class="p">(</span>
+                <span class="n">current_grid_part_sdf</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">origin</span>
+            <span class="p">)</span>
+
+        <span class="n">current_grid_part_sdf</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">apply_schema_casting</span><span class="p">(</span><span class="n">current_grid_part_sdf</span><span class="p">,</span> <span class="n">SilverEnrichedGridDataObject</span><span class="o">.</span><span class="n">SCHEMA</span><span class="p">)</span>
+        <span class="n">current_grid_part_sdf</span> <span class="o">=</span> <span class="n">current_grid_part_sdf</span><span class="o">.</span><span class="n">repartition</span><span class="p">(</span><span class="o">*</span><span class="n">SilverEnrichedGridDataObject</span><span class="o">.</span><span class="n">PARTITION_COLUMNS</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_data_objects</span><span class="p">[</span><span class="n">SilverEnrichedGridDataObject</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">current_grid_part_sdf</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_elevation_to_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># TODO: implement elevation enrichment</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_transportation_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Prepares transportation data for mapping to a grid.</span>
+
+<span class="sd">        This function takes the transportation data DataFrame, filters it to the extent of the current quadkey,</span>
+<span class="sd">        and then calculates a buffer around each transportation feature based on its category.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pyspark.sql.DataFrame: The prepared transportation data.</span>
+<span class="sd">        """</span>
+
+        <span class="n">transportation_sdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_data_objects</span><span class="p">[</span><span class="n">BronzeTransportationDataObject</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span><span class="o">.</span><span class="n">df</span>
+        <span class="n">transportation_sdf</span> <span class="o">=</span> <span class="n">transportation_sdf</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_quadkey_batch</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">transportation_sdf</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No transportation data found for quadkey </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">current_quadkey_batch</span><span class="si">}</span><span class="s2">. Skipping"</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spark</span><span class="o">.</span><span class="n">createDataFrame</span><span class="p">([],</span> <span class="n">transportation_sdf</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span>
+
+        <span class="n">transportation_sdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_transportation_buffer</span><span class="p">(</span>
+            <span class="n">transportation_sdf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transportation_category_buffer_m</span>
+        <span class="p">)</span>
+
+        <span class="c1"># prepare quadkeys geometries to merge roads</span>
+        <span class="n">child_quadkeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">quadkey_utils</span><span class="o">.</span><span class="n">get_children_quadkeys</span><span class="p">(</span><span class="n">quadkey</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span> <span class="k">for</span> <span class="n">quadkey</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_quadkey_batch</span><span class="p">]</span>
+        <span class="n">child_quadkeys</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">add</span><span class="p">,</span> <span class="n">child_quadkeys</span><span class="p">,</span> <span class="p">[])</span>
+
+        <span class="n">quadkeys_mask_sdf</span> <span class="o">=</span> <span class="n">quadkey_utils</span><span class="o">.</span><span class="n">quadkeys_to_extent_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spark</span><span class="p">,</span> <span class="n">child_quadkeys</span><span class="p">,</span> <span class="mi">3035</span><span class="p">)</span>
+        <span class="n">quadkeys_mask_sdf</span> <span class="o">=</span> <span class="n">quadkeys_mask_sdf</span><span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">,</span> <span class="s2">"mask_quadkey"</span><span class="p">)</span>
+
+        <span class="n">transportation_sdf</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">merge_geom_within_mask_geom</span><span class="p">(</span>
+            <span class="n">transportation_sdf</span><span class="p">,</span> <span class="n">quadkeys_mask_sdf</span><span class="p">,</span> <span class="p">[</span><span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">,</span> <span class="s2">"mask_quadkey"</span><span class="p">],</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">transportation_sdf</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s2">"roads"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">category</span><span class="p">),</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_transportation_buffer</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">transportation_sdf</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">category_buffer_m</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Calculates the buffer for each transportation feature based on its category.</span>
+
+<span class="sd">        This function takes a DataFrame of transportation features and a dictionary mapping categories to buffer distances.</span>
+<span class="sd">        It assigns the appropriate buffer distance to each feature based on its category and then calculates the buffer geometry.</span>
+<span class="sd">        The buffer geometry replaces the original geometry of each feature.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            transportation_sdf (pyspark.sql.DataFrame): The DataFrame of transportation features.</span>
+<span class="sd">            category_buffer_m (dict): A dictionary mapping categories to buffer distances.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pyspark.sql.DataFrame: The DataFrame of transportation features with the buffer geometries.</span>
+<span class="sd">        """</span>
+
+        <span class="n">transportation_sdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assign_mapping_values</span><span class="p">(</span>
+            <span class="n">transportation_sdf</span><span class="p">,</span>
+            <span class="n">category_buffer_m</span><span class="p">,</span>
+            <span class="n">ColNames</span><span class="o">.</span><span class="n">category</span><span class="p">,</span>
+            <span class="s2">"buffer_dist"</span><span class="p">,</span>
+            <span class="n">category_buffer_m</span><span class="p">[</span><span class="s2">"unknown"</span><span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="n">transportation_sdf</span> <span class="o">=</span> <span class="n">transportation_sdf</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"buffer_dist"</span><span class="p">)</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">)</span>
+
+        <span class="n">transportation_sdf</span> <span class="o">=</span> <span class="n">transportation_sdf</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+            <span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span>
+            <span class="n">STF</span><span class="o">.</span><span class="n">ST_Buffer</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"buffer_dist"</span><span class="p">)),</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">"buffer_dist"</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">transportation_sdf</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_grid_landuse_area_ratios</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grid_tiles</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">landuse</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Finds the intersection ratio of a specific land use class for each tile in a grid.</span>
+
+<span class="sd">        This function takes a DataFrame of grid tiles, a DataFrame of land use data, and a land use class.</span>
+<span class="sd">        It finds the intersection of each grid tile with the land use data for the specified class,</span>
+<span class="sd">        calculates the area of the intersection, and divides this by the area of the tile to find the intersection ratio.</span>
+<span class="sd">        The intersection ratio is added as a new column to the grid DataFrame.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            grid_tiles (pyspark.sql.DataFrame): The DataFrame of grid tiles.</span>
+<span class="sd">            landuse (pyspark.sql.DataFrame): The DataFrame of land use data.</span>
+<span class="sd">            landuse_class (str): The land use class to find the intersection ratio for.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pyspark.sql.DataFrame: The DataFrame of grid tiles with the new column of intersection ratios.</span>
+<span class="sd">        """</span>
+
+        <span class="n">grid_tiles</span> <span class="o">=</span> <span class="n">grid_tiles</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"grid_geometry"</span><span class="p">),</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">grid_id</span><span class="p">,</span> <span class="s2">"area"</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">landuse</span><span class="p">,</span>
+            <span class="n">STP</span><span class="o">.</span><span class="n">ST_Intersects</span><span class="p">(</span><span class="s2">"grid_geometry"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span><span class="si">}</span><span class="s2">"</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">grid_tiles</span> <span class="o">=</span> <span class="n">grid_tiles</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+            <span class="s2">"shared_geom"</span><span class="p">,</span>
+            <span class="n">STF</span><span class="o">.</span><span class="n">ST_Intersection</span><span class="p">(</span><span class="s2">"grid_geometry"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span><span class="si">}</span><span class="s2">"</span><span class="p">),</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">category</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">grid_id</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">,</span> <span class="s2">"area"</span><span class="p">,</span> <span class="s2">"shared_geom"</span><span class="p">)</span>
+
+        <span class="n">grid_tiles</span> <span class="o">=</span> <span class="n">grid_tiles</span><span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">grid_id</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">category</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">,</span> <span class="s2">"area"</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span>
+            <span class="n">F</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">STF</span><span class="o">.</span><span class="n">ST_Area</span><span class="p">(</span><span class="s2">"shared_geom"</span><span class="p">))</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="sa">f</span><span class="s2">"category_area"</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">grid_tiles</span> <span class="o">=</span> <span class="n">grid_tiles</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">"area_ratio"</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="sa">f</span><span class="s2">"category_area"</span><span class="p">)</span> <span class="o">/</span> <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"area"</span><span class="p">))</span>
+
+        <span class="c1"># Define window spec for sum calculation per grid cell</span>
+        <span class="n">window_spec</span> <span class="o">=</span> <span class="n">Window</span><span class="o">.</span><span class="n">partitionBy</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">grid_id</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">)</span>
+
+        <span class="c1"># Calculate total ratio and normalize areas if total ratio is greater than 1</span>
+        <span class="n">grid_tiles</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">grid_tiles</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">"total_ratio"</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s2">"area_ratio"</span><span class="p">)</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">window_spec</span><span class="p">))</span>
+            <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+                <span class="s2">"area_ratio"</span><span class="p">,</span>
+                <span class="n">F</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"total_ratio"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"area_ratio"</span><span class="p">)</span> <span class="o">/</span> <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"total_ratio"</span><span class="p">))</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span>
+                    <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"area_ratio"</span><span class="p">)</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">"total_ratio"</span><span class="p">,</span> <span class="s2">"category_area"</span><span class="p">,</span> <span class="s2">"area"</span><span class="p">)</span>
+        <span class="p">)</span>  <span class="c1"># Drop unnecessary columns</span>
+
+        <span class="k">return</span> <span class="n">grid_tiles</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">grid_id</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">category</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">,</span> <span class="s2">"area_ratio"</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">assign_mapping_values</span><span class="p">(</span>
+        <span class="n">sdf</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">values_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">map_column</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">values_column</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">default_value</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Assigns mapping values to a DataFrame based on a specified column.</span>
+
+<span class="sd">        This function takes a DataFrame, a dictionary of mapping values, a column to map from,</span>
+<span class="sd">        a column to map to, and a default value. It creates a new column in the DataFrame by mapping values</span>
+<span class="sd">        from the map column to the values column using the values map.</span>
+<span class="sd">        If a value in the map column is not found in the values map, the default value is used.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sdf (pyspark.sql.DataFrame): The DataFrame to assign mapping values to.</span>
+<span class="sd">            values_map (dict): The dictionary of mapping values.</span>
+<span class="sd">            map_column (str): The column to map from.</span>
+<span class="sd">            values_column (str): The column to map to.</span>
+<span class="sd">            default_value (any, optional): The default value to use if a value in the map column is not found in the values map. Defaults to 2.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pyspark.sql.DataFrame: The DataFrame with the new column of mapped values.</span>
+<span class="sd">        """</span>
+
+        <span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">values_map</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">reclass_expr</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">map_column</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">values_map</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">reclass_expr</span> <span class="o">=</span> <span class="n">reclass_expr</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">map_column</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">values_map</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+
+        <span class="n">reclass_expr</span> <span class="o">=</span> <span class="n">reclass_expr</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="n">default_value</span><span class="p">)</span>
+        <span class="n">sdf</span> <span class="o">=</span> <span class="n">sdf</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">values_column</span><span class="p">,</span> <span class="n">reclass_expr</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">sdf</span>
+</code></pre></div></td></tr></table></div>
+</details>
+<div class="doc doc-children">
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="components.execution.grid_enrichment.grid_enrichment.GridEnrichment.assign_mapping_values">
+<code class="highlight language-python"><span class="n">assign_mapping_values</span><span class="p">(</span><span class="n">sdf</span><span class="p">,</span> <span class="n">values_map</span><span class="p">,</span> <span class="n">map_column</span><span class="p">,</span> <span class="n">values_column</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span></code>
+<span class="doc doc-labels">
+<small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+</span>
+</h3>
+<div class="doc doc-contents">
+<p>Assigns mapping values to a DataFrame based on a specified column.</p>
+<p>This function takes a DataFrame, a dictionary of mapping values, a column to map from,
+a column to map to, and a default value. It creates a new column in the DataFrame by mapping values
+from the map column to the values column using the values map.
+If a value in the map column is not found in the values map, the default value is used.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>sdf</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame" title="pyspark.sql.DataFrame">DataFrame</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The DataFrame to assign mapping values to.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>values_map</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The dictionary of mapping values.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>map_column</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The column to map from.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>values_column</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The column to map to.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>default_value</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#any">any</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The default value to use if a value in the map column is not found in the values map. Defaults to 2.</p>
+</div>
+</td>
+<td>
+<code>2</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><a class="autorefs autorefs-external" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame" title="pyspark.sql.DataFrame">DataFrame</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>pyspark.sql.DataFrame: The DataFrame with the new column of mapped values.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="quote">
+<summary>Source code in <code>multimno/components/execution/grid_enrichment/grid_enrichment.py</code></summary>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">368</span>
+<span class="normal">369</span>
+<span class="normal">370</span>
+<span class="normal">371</span>
+<span class="normal">372</span>
+<span class="normal">373</span>
+<span class="normal">374</span>
+<span class="normal">375</span>
+<span class="normal">376</span>
+<span class="normal">377</span>
+<span class="normal">378</span>
+<span class="normal">379</span>
+<span class="normal">380</span>
+<span class="normal">381</span>
+<span class="normal">382</span>
+<span class="normal">383</span>
+<span class="normal">384</span>
+<span class="normal">385</span>
+<span class="normal">386</span>
+<span class="normal">387</span>
+<span class="normal">388</span>
+<span class="normal">389</span>
+<span class="normal">390</span>
+<span class="normal">391</span>
+<span class="normal">392</span>
+<span class="normal">393</span>
+<span class="normal">394</span>
+<span class="normal">395</span>
+<span class="normal">396</span>
+<span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span>
+<span class="normal">403</span>
+<span class="normal">404</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@staticmethod</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">assign_mapping_values</span><span class="p">(</span>
+    <span class="n">sdf</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">values_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">map_column</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">values_column</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">default_value</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Assigns mapping values to a DataFrame based on a specified column.</span>
+
+<span class="sd">    This function takes a DataFrame, a dictionary of mapping values, a column to map from,</span>
+<span class="sd">    a column to map to, and a default value. It creates a new column in the DataFrame by mapping values</span>
+<span class="sd">    from the map column to the values column using the values map.</span>
+<span class="sd">    If a value in the map column is not found in the values map, the default value is used.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        sdf (pyspark.sql.DataFrame): The DataFrame to assign mapping values to.</span>
+<span class="sd">        values_map (dict): The dictionary of mapping values.</span>
+<span class="sd">        map_column (str): The column to map from.</span>
+<span class="sd">        values_column (str): The column to map to.</span>
+<span class="sd">        default_value (any, optional): The default value to use if a value in the map column is not found in the values map. Defaults to 2.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pyspark.sql.DataFrame: The DataFrame with the new column of mapped values.</span>
+<span class="sd">    """</span>
+
+    <span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">values_map</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">reclass_expr</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">map_column</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">values_map</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="n">reclass_expr</span> <span class="o">=</span> <span class="n">reclass_expr</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">map_column</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">values_map</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+
+    <span class="n">reclass_expr</span> <span class="o">=</span> <span class="n">reclass_expr</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="n">default_value</span><span class="p">)</span>
+    <span class="n">sdf</span> <span class="o">=</span> <span class="n">sdf</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">values_column</span><span class="p">,</span> <span class="n">reclass_expr</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sdf</span>
+</code></pre></div></td></tr></table></div>
+</details>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="components.execution.grid_enrichment.grid_enrichment.GridEnrichment.calculate_grid_landuse_area_ratios">
+<code class="highlight language-python"><span class="n">calculate_grid_landuse_area_ratios</span><span class="p">(</span><span class="n">grid_tiles</span><span class="p">,</span> <span class="n">landuse</span><span class="p">)</span></code>
+</h3>
+<div class="doc doc-contents">
+<p>Finds the intersection ratio of a specific land use class for each tile in a grid.</p>
+<p>This function takes a DataFrame of grid tiles, a DataFrame of land use data, and a land use class.
+It finds the intersection of each grid tile with the land use data for the specified class,
+calculates the area of the intersection, and divides this by the area of the tile to find the intersection ratio.
+The intersection ratio is added as a new column to the grid DataFrame.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>grid_tiles</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame" title="pyspark.sql.DataFrame">DataFrame</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The DataFrame of grid tiles.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>landuse</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame" title="pyspark.sql.DataFrame">DataFrame</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The DataFrame of land use data.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>landuse_class</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The land use class to find the intersection ratio for.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><a class="autorefs autorefs-external" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame" title="pyspark.sql.DataFrame">DataFrame</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>pyspark.sql.DataFrame: The DataFrame of grid tiles with the new column of intersection ratios.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="quote">
+<summary>Source code in <code>multimno/components/execution/grid_enrichment/grid_enrichment.py</code></summary>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">317</span>
+<span class="normal">318</span>
+<span class="normal">319</span>
+<span class="normal">320</span>
+<span class="normal">321</span>
+<span class="normal">322</span>
+<span class="normal">323</span>
+<span class="normal">324</span>
+<span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
+<span class="normal">331</span>
+<span class="normal">332</span>
+<span class="normal">333</span>
+<span class="normal">334</span>
+<span class="normal">335</span>
+<span class="normal">336</span>
+<span class="normal">337</span>
+<span class="normal">338</span>
+<span class="normal">339</span>
+<span class="normal">340</span>
+<span class="normal">341</span>
+<span class="normal">342</span>
+<span class="normal">343</span>
+<span class="normal">344</span>
+<span class="normal">345</span>
+<span class="normal">346</span>
+<span class="normal">347</span>
+<span class="normal">348</span>
+<span class="normal">349</span>
+<span class="normal">350</span>
+<span class="normal">351</span>
+<span class="normal">352</span>
+<span class="normal">353</span>
+<span class="normal">354</span>
+<span class="normal">355</span>
+<span class="normal">356</span>
+<span class="normal">357</span>
+<span class="normal">358</span>
+<span class="normal">359</span>
+<span class="normal">360</span>
+<span class="normal">361</span>
+<span class="normal">362</span>
+<span class="normal">363</span>
+<span class="normal">364</span>
+<span class="normal">365</span>
+<span class="normal">366</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_grid_landuse_area_ratios</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grid_tiles</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">landuse</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Finds the intersection ratio of a specific land use class for each tile in a grid.</span>
+
+<span class="sd">    This function takes a DataFrame of grid tiles, a DataFrame of land use data, and a land use class.</span>
+<span class="sd">    It finds the intersection of each grid tile with the land use data for the specified class,</span>
+<span class="sd">    calculates the area of the intersection, and divides this by the area of the tile to find the intersection ratio.</span>
+<span class="sd">    The intersection ratio is added as a new column to the grid DataFrame.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        grid_tiles (pyspark.sql.DataFrame): The DataFrame of grid tiles.</span>
+<span class="sd">        landuse (pyspark.sql.DataFrame): The DataFrame of land use data.</span>
+<span class="sd">        landuse_class (str): The land use class to find the intersection ratio for.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pyspark.sql.DataFrame: The DataFrame of grid tiles with the new column of intersection ratios.</span>
+<span class="sd">    """</span>
+
+    <span class="n">grid_tiles</span> <span class="o">=</span> <span class="n">grid_tiles</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"grid_geometry"</span><span class="p">),</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">grid_id</span><span class="p">,</span> <span class="s2">"area"</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">landuse</span><span class="p">,</span>
+        <span class="n">STP</span><span class="o">.</span><span class="n">ST_Intersects</span><span class="p">(</span><span class="s2">"grid_geometry"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span><span class="si">}</span><span class="s2">"</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="n">grid_tiles</span> <span class="o">=</span> <span class="n">grid_tiles</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+        <span class="s2">"shared_geom"</span><span class="p">,</span>
+        <span class="n">STF</span><span class="o">.</span><span class="n">ST_Intersection</span><span class="p">(</span><span class="s2">"grid_geometry"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span><span class="si">}</span><span class="s2">"</span><span class="p">),</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">category</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">grid_id</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">,</span> <span class="s2">"area"</span><span class="p">,</span> <span class="s2">"shared_geom"</span><span class="p">)</span>
+
+    <span class="n">grid_tiles</span> <span class="o">=</span> <span class="n">grid_tiles</span><span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">grid_id</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">category</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">,</span> <span class="s2">"area"</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span>
+        <span class="n">F</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">STF</span><span class="o">.</span><span class="n">ST_Area</span><span class="p">(</span><span class="s2">"shared_geom"</span><span class="p">))</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="sa">f</span><span class="s2">"category_area"</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">grid_tiles</span> <span class="o">=</span> <span class="n">grid_tiles</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">"area_ratio"</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="sa">f</span><span class="s2">"category_area"</span><span class="p">)</span> <span class="o">/</span> <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"area"</span><span class="p">))</span>
+
+    <span class="c1"># Define window spec for sum calculation per grid cell</span>
+    <span class="n">window_spec</span> <span class="o">=</span> <span class="n">Window</span><span class="o">.</span><span class="n">partitionBy</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">grid_id</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">)</span>
+
+    <span class="c1"># Calculate total ratio and normalize areas if total ratio is greater than 1</span>
+    <span class="n">grid_tiles</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">grid_tiles</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">"total_ratio"</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s2">"area_ratio"</span><span class="p">)</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">window_spec</span><span class="p">))</span>
+        <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+            <span class="s2">"area_ratio"</span><span class="p">,</span>
+            <span class="n">F</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"total_ratio"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"area_ratio"</span><span class="p">)</span> <span class="o">/</span> <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"total_ratio"</span><span class="p">))</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span>
+                <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"area_ratio"</span><span class="p">)</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+        <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">"total_ratio"</span><span class="p">,</span> <span class="s2">"category_area"</span><span class="p">,</span> <span class="s2">"area"</span><span class="p">)</span>
+    <span class="p">)</span>  <span class="c1"># Drop unnecessary columns</span>
+
+    <span class="k">return</span> <span class="n">grid_tiles</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">grid_id</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">category</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">,</span> <span class="s2">"area_ratio"</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+</details>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="components.execution.grid_enrichment.grid_enrichment.GridEnrichment.calculate_transportation_buffer">
+<code class="highlight language-python"><span class="n">calculate_transportation_buffer</span><span class="p">(</span><span class="n">transportation_sdf</span><span class="p">,</span> <span class="n">category_buffer_m</span><span class="p">)</span></code>
+</h3>
+<div class="doc doc-contents">
+<p>Calculates the buffer for each transportation feature based on its category.</p>
+<p>This function takes a DataFrame of transportation features and a dictionary mapping categories to buffer distances.
+It assigns the appropriate buffer distance to each feature based on its category and then calculates the buffer geometry.
+The buffer geometry replaces the original geometry of each feature.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>transportation_sdf</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame" title="pyspark.sql.DataFrame">DataFrame</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The DataFrame of transportation features.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>category_buffer_m</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>A dictionary mapping categories to buffer distances.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><a class="autorefs autorefs-external" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame" title="pyspark.sql.DataFrame">DataFrame</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>pyspark.sql.DataFrame: The DataFrame of transportation features with the buffer geometries.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="quote">
+<summary>Source code in <code>multimno/components/execution/grid_enrichment/grid_enrichment.py</code></summary>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span>
+<span class="normal">299</span>
+<span class="normal">300</span>
+<span class="normal">301</span>
+<span class="normal">302</span>
+<span class="normal">303</span>
+<span class="normal">304</span>
+<span class="normal">305</span>
+<span class="normal">306</span>
+<span class="normal">307</span>
+<span class="normal">308</span>
+<span class="normal">309</span>
+<span class="normal">310</span>
+<span class="normal">311</span>
+<span class="normal">312</span>
+<span class="normal">313</span>
+<span class="normal">314</span>
+<span class="normal">315</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">calculate_transportation_buffer</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span> <span class="n">transportation_sdf</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">category_buffer_m</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Calculates the buffer for each transportation feature based on its category.</span>
+
+<span class="sd">    This function takes a DataFrame of transportation features and a dictionary mapping categories to buffer distances.</span>
+<span class="sd">    It assigns the appropriate buffer distance to each feature based on its category and then calculates the buffer geometry.</span>
+<span class="sd">    The buffer geometry replaces the original geometry of each feature.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        transportation_sdf (pyspark.sql.DataFrame): The DataFrame of transportation features.</span>
+<span class="sd">        category_buffer_m (dict): A dictionary mapping categories to buffer distances.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pyspark.sql.DataFrame: The DataFrame of transportation features with the buffer geometries.</span>
+<span class="sd">    """</span>
+
+    <span class="n">transportation_sdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assign_mapping_values</span><span class="p">(</span>
+        <span class="n">transportation_sdf</span><span class="p">,</span>
+        <span class="n">category_buffer_m</span><span class="p">,</span>
+        <span class="n">ColNames</span><span class="o">.</span><span class="n">category</span><span class="p">,</span>
+        <span class="s2">"buffer_dist"</span><span class="p">,</span>
+        <span class="n">category_buffer_m</span><span class="p">[</span><span class="s2">"unknown"</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="n">transportation_sdf</span> <span class="o">=</span> <span class="n">transportation_sdf</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"buffer_dist"</span><span class="p">)</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="n">transportation_sdf</span> <span class="o">=</span> <span class="n">transportation_sdf</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+        <span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span>
+        <span class="n">STF</span><span class="o">.</span><span class="n">ST_Buffer</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"buffer_dist"</span><span class="p">)),</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">"buffer_dist"</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">transportation_sdf</span>
+</code></pre></div></td></tr></table></div>
+</details>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="components.execution.grid_enrichment.grid_enrichment.GridEnrichment.generate_batches">
+<code class="highlight language-python"><span class="n">generate_batches</span><span class="p">(</span><span class="n">elements_list</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span></code>
+</h3>
+<div class="doc doc-contents">
+<p>Generates batches of elements from list.</p>
+<details class="quote">
+<summary>Source code in <code>multimno/components/execution/grid_enrichment/grid_enrichment.py</code></summary>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">generate_batches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elements_list</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Generates batches of elements from list.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">elements_list</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">elements_list</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">)]</span>
+</code></pre></div></td></tr></table></div>
+</details>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h3 class="doc doc-heading" id="components.execution.grid_enrichment.grid_enrichment.GridEnrichment.prepare_transportation_data">
+<code class="highlight language-python"><span class="n">prepare_transportation_data</span><span class="p">()</span></code>
+</h3>
+<div class="doc doc-contents">
+<p>Prepares transportation data for mapping to a grid.</p>
+<p>This function takes the transportation data DataFrame, filters it to the extent of the current quadkey,
+and then calculates a buffer around each transportation feature based on its category.</p>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><a class="autorefs autorefs-external" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame" title="pyspark.sql.DataFrame">DataFrame</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>pyspark.sql.DataFrame: The prepared transportation data.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="quote">
+<summary>Source code in <code>multimno/components/execution/grid_enrichment/grid_enrichment.py</code></summary>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">prepare_transportation_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Prepares transportation data for mapping to a grid.</span>
+
+<span class="sd">    This function takes the transportation data DataFrame, filters it to the extent of the current quadkey,</span>
+<span class="sd">    and then calculates a buffer around each transportation feature based on its category.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pyspark.sql.DataFrame: The prepared transportation data.</span>
+<span class="sd">    """</span>
+
+    <span class="n">transportation_sdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_data_objects</span><span class="p">[</span><span class="n">BronzeTransportationDataObject</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span><span class="o">.</span><span class="n">df</span>
+    <span class="n">transportation_sdf</span> <span class="o">=</span> <span class="n">transportation_sdf</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_quadkey_batch</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">transportation_sdf</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No transportation data found for quadkey </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">current_quadkey_batch</span><span class="si">}</span><span class="s2">. Skipping"</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spark</span><span class="o">.</span><span class="n">createDataFrame</span><span class="p">([],</span> <span class="n">transportation_sdf</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span>
+
+    <span class="n">transportation_sdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_transportation_buffer</span><span class="p">(</span>
+        <span class="n">transportation_sdf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transportation_category_buffer_m</span>
+    <span class="p">)</span>
+
+    <span class="c1"># prepare quadkeys geometries to merge roads</span>
+    <span class="n">child_quadkeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">quadkey_utils</span><span class="o">.</span><span class="n">get_children_quadkeys</span><span class="p">(</span><span class="n">quadkey</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span> <span class="k">for</span> <span class="n">quadkey</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_quadkey_batch</span><span class="p">]</span>
+    <span class="n">child_quadkeys</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">add</span><span class="p">,</span> <span class="n">child_quadkeys</span><span class="p">,</span> <span class="p">[])</span>
+
+    <span class="n">quadkeys_mask_sdf</span> <span class="o">=</span> <span class="n">quadkey_utils</span><span class="o">.</span><span class="n">quadkeys_to_extent_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spark</span><span class="p">,</span> <span class="n">child_quadkeys</span><span class="p">,</span> <span class="mi">3035</span><span class="p">)</span>
+    <span class="n">quadkeys_mask_sdf</span> <span class="o">=</span> <span class="n">quadkeys_mask_sdf</span><span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">,</span> <span class="s2">"mask_quadkey"</span><span class="p">)</span>
+
+    <span class="n">transportation_sdf</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">merge_geom_within_mask_geom</span><span class="p">(</span>
+        <span class="n">transportation_sdf</span><span class="p">,</span> <span class="n">quadkeys_mask_sdf</span><span class="p">,</span> <span class="p">[</span><span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">,</span> <span class="s2">"mask_quadkey"</span><span class="p">],</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">transportation_sdf</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s2">"roads"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">category</span><span class="p">),</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span> <span class="n">ColNames</span><span class="o">.</span><span class="n">quadkey</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+</details>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</article>
+</div>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../../../../..", "features": ["toc.integrate", "navigation.path", "navigation.tabs", "navigation.tabs.sticky"], "search": "../../../../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+<script src="../../../../../assets/javascripts/bundle.c8b220af.min.js"></script>
+<script src="../../../../../assets/javascripts/panzoom.min.js"></script><script src="../../../../../assets/javascripts/zoompan.js"></script></body>
+</html>
