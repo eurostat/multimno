@@ -22,10 +22,6 @@ class ColNames:
     affected_field = "affected_field"
     domain = "domain"
     is_last_event = "is_last_event"  # 0: initial, 1: final
-    # default values for domain col
-    domestic = 1
-    inbound = 2
-    outbound = 3
 
     altitude = "altitude"
     antenna_height = "antenna_height"
@@ -86,9 +82,13 @@ class ColNames:
     # for grid generation
     geometry = "geometry"
     grid_id = "grid_id"
+    inspire_id = "INSPIRE_id"
+    origin = "origin"
     elevation = "elevation"
     land_use = "land_use"
     type_code = "type_code"
+    main_landuse_category = "main_landuse_category"
+    landuse_area_ratios = "landuse_areas"
     prior_probability = "prior_probability"
     ple_coefficient = "environment_ple_coefficient"
     quadkey = "quadkey"
@@ -131,6 +131,7 @@ class ColNames:
     time_segment_id = "time_segment_id"
     start_timestamp = "start_timestamp"
     end_timestamp = "end_timestamp"
+    last_event_timestamp = "last_event_timestamp"
     state = "state"
     is_last = "is_last"
 

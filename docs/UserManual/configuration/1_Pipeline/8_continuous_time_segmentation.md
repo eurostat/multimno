@@ -34,6 +34,8 @@ In time_segments.ini parameters are as follows:
 
 - **pad_time_s** - integer, half the size of an isolated time segment: between two “unknowns” time segments. It expands the isolated event in time, by “padding” from the “unknown” time segments on both sides. Default value is 5 minutes.
 
+- **domains_to_include** - list[string], List of event domains that will be processed. Allowed values "inbound", "domestic", "outbound".
+
 
 ## Configuration example
 
@@ -50,4 +52,6 @@ max_time_missing_stay_s = 43200
 max_time_missing_move_s = 7200
 max_time_missing_abroad_s = 259200
 pad_time_s = 300
+
+domains_to_include = ["inbound", "domestic", "outbound"]
 ```

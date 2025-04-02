@@ -5,6 +5,7 @@ Module that computes semantic checks on event data and adds error flags
 import datetime
 
 
+from multimno.core.constants.domain_names import Domains
 from pyspark import StorageLevel
 from pyspark.sql import Window, DataFrame, Row
 from pyspark.sql.types import LongType, ShortType, ByteType, IntegerType, StructType
@@ -12,6 +13,7 @@ import pyspark.sql.functions as F
 import sedona.sql.st_functions as STF
 import sedona.sql.st_constructors as STC
 
+import multimno.core.utils as utils
 from multimno.core.component import Component
 from multimno.core.constants.columns import ColNames
 from multimno.core.constants.error_types import SemanticErrorType
@@ -174,7 +176,7 @@ class SemanticCleaning(Component):
         df = self._flag_non_errors(df)
 
         # Keep only the necessary columns and remove auxiliar ones
-        df = df.select(SilverEventFlaggedDataObject.SCHEMA.names)
+        df = utils.apply_schema_casting(df, SilverEventFlaggedDataObject.SCHEMA)
 
         df = df.repartition(*SilverEventFlaggedDataObject.PARTITION_COLUMNS)
 
@@ -236,8 +238,8 @@ class SemanticCleaning(Component):
 
     def _flag_outbound(self, df: DataFrame) -> DataFrame:
         """Method to mark all outbound records as valid.
-        Outbound records have a PLMN value where the MCC component differs from the MCC of the record.
-        Outbound records are exempt from other error checks (except same location duplicates).
+        Outbound records should have their domain marked as OUTBOUND in the previous event processing component.
+        Outbound records are exempt from further error checks (except same location duplicates) in this component.
 
         Args:
             df (DataFrame): Spark DataFrame of event records.
@@ -245,11 +247,8 @@ class SemanticCleaning(Component):
         Returns:
             DataFrame: Same DataFram with added error_flag column, with outbound records marked as NO_ERROR
         """
-        local_mcc = self.config.getint(GENERAL_CONFIG_KEY, "local_mcc")
+        is_outbound_record_cond = F.col(ColNames.domain) == Domains.OUTBOUND
 
-        is_outbound_record_cond = (F.col(ColNames.plmn).isNotNull()) & (
-            F.substring(F.col(ColNames.plmn), 0, 3).cast(IntegerType()) != local_mcc
-        )
         df = df.withColumn(
             ColNames.error_flag,
             F.when(F.col(ColNames.error_flag).isNotNull(), F.col(ColNames.error_flag)).when(

@@ -1,25 +1,25 @@
 # MultiMNO <!-- omit from toc -->
 
-This repository contains code that processes MNO Data to generate population and mobility insights using 
-the Spark framework. 
+This repository contains code that processes MNO Data to generate population and mobility insights indicators using the Spark framework. 
 
 
-- [📄 Description](#-description)
+- [📒 Description](#-description)
 - [🗃️ Repository Structure](#️-repository-structure)
-- [📜 Code Documentation](#-code-documentation)
+- [📄 Documentation](#-documentation)
+  - [📓 User Manual](#-user-manual)
+  - [🤝 Contribute](#-contribute)
+  - [🖥️ Developement Guidelines](#️-developement-guidelines)
+- [📜 Licensing](#-licensing)
+  - [Licensing Files](#licensing-files)
 - [🅿️ Pipeline](#️-pipeline)
 - [🛠️ Mandatory Requirements](#️-mandatory-requirements)
 - [📦 Synthetic data](#-synthetic-data)
 - [🏁 Quickstart](#-quickstart)
   - [Setup](#setup)
   - [Execution](#execution)
-    - [Dockerfile Lite](#dockerfile-lite)
-- [📓 User Manual](#-user-manual)
-- [🤝 Contribute](#-contribute)
-- [🖥️ Developement Guidelines](#️-developement-guidelines)
 
 
-# 📄 Description
+# 📒 Description
 
 This repository contains a python application that uses the PySpark library to process Big Data pipelines of MNO Data
 and generate multiple stadistical products related to mobility and sociodemographic analysis.
@@ -40,6 +40,7 @@ The repository contains the following directories:
 | **.devcontainer** | $${\color{#ac8e03}Development}$$             | Directory with config files for setting up a dev-environment using [Dev-Containers.](https://containers.dev) |
 | **.vscode**       | $${\color{#ac8e03}Development}$$             | Directory containing config files for developers using VsCode.                                               |
 | **docs**          | $${\color{#7030a0}Technical-Documentation}$$ | Documentation source files that will be used for the documentation site. Mainly markdown files.              |
+| **license**          | $${\color{#7030a0}Technical-Documentation}$$ | Directory containing the Software Bill of Materials (SBOM) and associated licensing documentation for software dependencies.     |
 | **multimno**      | $${\color{#ff0000}Open-source-software}$$    | Main directory of the repository. It contains the Python source code of the application.                     |
 | **pipe_configs**  | $${\color{#0070c0}Data}$$                    | Directory containing examples of configuration files for the execution of the pipeline.                      |
 | **sample_data**   | $${\color{#0070c0}Data}$$                    | Directory containing Synthetic MNO-Data to be used to test the software.                                     |
@@ -48,9 +49,42 @@ The repository contains the following directories:
 
 ---
 
-# 📜 Code Documentation
+# 📄 Documentation
 
-Please refer to the following website: https://eurostat.github.io/multimno/latest/
+The multimno documentation is divided into two main documents.
+
+- [Technical documentation](https://cros.ec.europa.eu/group/6/files/2490/download): PDF file deatiling the software requirements, design and data objects.
+- [User/Developer manual](https://eurostat.github.io/multimno/latest/): Webpage containing the user and developer manuals, including the contribute guide.
+
+## 📓 User Manual
+
+A user manual is provided composed of three sections:
+* [Configuration](docs/UserManual/configuration/index.md): Section containing the explanation of all the configuration files used by the software. 
+* [Setup Guide](docs/UserManual/setup_guide.md): How to prepare the system for the software execution.
+* [Execution Guide](docs/UserManual/execution.md): How to execute the software.   
+
+## 🤝 Contribute
+
+Please follow the [contribute guide](docs/DevGuide/1_contribute.md) to see the rules and guidelines on 
+how to contribute to the multimno repository.
+
+## 🖥️ Developement Guidelines
+
+Please follow the [development guidelines](docs/DevGuide/2_dev_guidelines.md) to setup a dev-environment and 
+see the recommended best practices for development, testing and documentation.
+
+# 📜 Licensing
+
+Multimno software is licensed under the European Union Public License (EUPL) 1.2 as declared by its [LICENSE](./LICENSE) file. To ensure transparency in its dependencies, a Software Bill of Materials (SBOM) is provided at [license/sbom.json](license/sbom.json). This SBOM was generated on March 18, 2025, using [CycloneDX](https://cyclonedx.org).
+
+## Licensing Files
+The SBOM is generated using CycloneDX, and an accompanying Python script is provided to facilitate further analysis. This script processes the SBOM file and produces the `licenses.csv` file and the `unique_licenses.txt`. All license related files are stored at the `licenses/` directory, containing:
+
+- `licenses.csv` – A concise CSV file containing the list of dependencies, including their versions and associated licenses.
+- `sbom.json` – A comprehensive SBOM detailing all dependencies and their respective licenses.
+- `unique_licenses.txt` – A file enumerating the distinct licenses used within the software.
+
+As of March 18, 2025, the licensing data has been included in the repository and validated against the [EUPL matrix of compatible open-source licenses](https://interoperable-europe.ec.europa.eu/collection/eupl/matrix-eupl-compatible-open-source-licences).
 
 # 🅿️ Pipeline
 
@@ -108,26 +142,3 @@ as the one in the repository.
 
 > NOTE: It is necessary to adjusts paths in the pipeline.json and in the general_configuration.ini 
 > file if the destination paths are altered.
-
-### Dockerfile Lite
-
-As the multimno software is a python application designed to be executed in a Spark cluster, a lightweight Dockerfile called `Dockerfile-lite` is given for execution of the software in existing Spark clusters.
-
-Please refer to [Lite section](docs/UserManual/setup_guide.md#docker-lite-version) of the setup guide on details on how to use this deployment. 
-
-# 📓 User Manual
-
-A user manual is provided composed of three sections:
-* [Configuration](docs/UserManual/configuration/index.md): Section containing the explanation of all the configuration files used by the software. 
-* [Setup Guide](docs/UserManual/setup_guide.md): How to prepare the system for the software execution.
-* [Execution Guide](docs/UserManual/execution.md): How to execute the software.   
-
-# 🤝 Contribute
-
-Please follow the [contribute guide](docs/DevGuide/1_contribute.md) to see the rules and guidelines on 
-how to contribute to the multimno repository.
-
-# 🖥️ Developement Guidelines
-
-Please follow the [development guidelines](docs/DevGuide/2_dev_guidelines.md) to setup a dev-environment and 
-see the recommended best practices for development, testing and documentation.

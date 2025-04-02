@@ -1,0 +1,30 @@
+{
+    "general_config_path": "pipe_configs/configurations/general_config.ini",
+    "spark_submit_args": [],
+    "pipeline": [
+        {
+            "component_id": "LongtermPermanenceScore",
+            "component_config_path": "pipe_configs/configurations/3_longterm/1_usual_environment/longterm_permanence_score.ini"
+        },
+        {
+            "component_id": "UsualEnvironmentLabeling",
+            "component_config_path": "pipe_configs/configurations/3_longterm/1_usual_environment/usual_environment_labeling.ini"
+        },
+        {
+            "component_id": "UsualEnvironmentAggregation",
+            "component_config_path": "pipe_configs/configurations/3_longterm/1_usual_environment/usual_environment_aggregation.ini"
+        },
+        {
+            "component_id": "TourismStatisticsCalculation",
+            "component_config_path": "pipe_configs/configurations/3_longterm/2_tourism/tourism_statistics_calculation.ini"
+        },
+        {
+            "component_id": "TourismOutboundStatisticsCalculation",
+            "component_config_path": "pipe_configs/configurations/3_longterm/2_tourism/tourism_outbound_statistics_calculation.ini"
+        },
+        {
+            "component_id": "InternalMigration",
+            "component_config_path": "pipe_configs/configurations/3_longterm/3_internal_migration/internal_migration.ini"
+        }
+    ]
+}

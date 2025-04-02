@@ -17,6 +17,7 @@ from tests.test_code.multimno.components.execution.tourism_stays_estimation.aux_
     input_geozones_grid_mapping_id,
     expected_tourism_stays_id,
     input_ue_labels_id,
+    input_grid_id,
 )
 from tests.test_code.multimno.components.execution.tourism_stays_estimation.aux_tourism_stays_estimation import (
     data_test_0001,
@@ -56,6 +57,7 @@ def test_tourism_stays_estimation(spark, get_test_data):
         test_data_dict[input_cell_connection_probabilities_id],
         test_data_dict[input_geozones_grid_mapping_id],
         test_data_dict[input_ue_labels_id],
+        test_data_dict[input_grid_id],
     )
 
     ## Init component class

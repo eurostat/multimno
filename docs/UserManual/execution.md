@@ -13,31 +13,17 @@ pipeline of components sequentially using `spark-submit` commands.
 
 The execution process can be divided into four steps:
 
-## 1. Setting - Input Data
+## 1. Setting Input Data
 
 The following input data is required to execute the multimno software addtionally from the MNO Data:
+- [National Holidays data]
+- [Mcc ISO Timezone mapping data]
+- [Countries data]
+- [Geographic zones data]
+- [Inbound Estimation factors data]
 
-#### National Holidays data
-
-National holiday data is required to execute the software. This data must be in parquet format and contain the following
-schema:
-
-| **Column** | **Format** | **Value**                                  |
-| ---------- | ---------- | ------------------------------------------ |
-| iso2       | str        | Country code in iso2 format                |
-| date       | date       | Date of the festivity in yyyy-mm-dd format |
-| name       | str        | Festivity description                      |
-
-
-Example:
-| **iso2** | **date**   | **name**           |
-| -------- | ---------- | ------------------ |
-| ES       | 2022-01-01 | Año Nuevo          |
-| ES       | 2022-01-06 | Epifanía del Señor |
-| ES       | 2022-04-15 | Viernes Santo      |
-
-The path to this data must be specified in the `holiday_calendar_data_bronze` variable under the section `[Paths.Bronze]` 
-in the general_configuration.ini file of the apllication.
+The details of this data are defined at the Tecnical documentation: [Report D4.2](https://cros.ec.europa.eu/group/6/files/2490/download)
+at Annex I. An example of each of this datasets are included in the repository at: `sample_data/lakehouse/bronze`. 
 
 ## 2. Pipeline definition
 
@@ -100,11 +86,11 @@ To define Spark session specific configurations, edit the `[Spark]` section in t
 
 ### Pipeline execution
 For executing a pipeline the `orchestrator_multimno.py` entrypoint shall be used. This takes as input a path to a json file
-with the pipeline definition as defined in the previous [Pipeline definition](execution.md#pipeline-definition) section. 
+with the pipeline definition as defined in the previous [Pipeline definition](./execution.md#2-pipeline-definition) section. 
 
 Example:
 ```bash
-./orchestrator_multimno.py pipe_configs/pipelines/pipeline.json
+./multimno/orchestrator_multimno.py pipe_configs/pipelines/pipeline.json
 ```
 
 !!! warning

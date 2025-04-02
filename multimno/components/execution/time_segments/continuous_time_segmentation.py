@@ -4,12 +4,12 @@ Module that implements the Continuous Time Segmentations functionality
 
 from datetime import datetime, timedelta, time, date
 from functools import partial
-from typing import List, Optional, Tuple, Dict, Any
+from typing import List, Tuple, Dict, Any
 import hashlib
 import pandas as pd
 from pandas import DataFrame as pdDataFrame
 
-from pyspark.sql import DataFrame, Window
+from multimno.core.constants.domain_names import Domains
 import pyspark.sql.functions as F
 from pyspark.sql.types import (
     StructType,
@@ -66,12 +66,24 @@ class ContinuousTimeSegmentation(Component):
         self.pad_time = timedelta(seconds=self.config.getint(self.COMPONENT_ID, "pad_time_s"))
 
         self.event_error_flags_to_include = self.config.geteval(self.COMPONENT_ID, "event_error_flags_to_include")
+        self.domains_to_include = ContinuousTimeSegmentation._get_domains_to_include(
+            self.config.geteval(self.COMPONENT_ID, "domains_to_include")
+        )
+
+        # When only outbound results are requested, we still want to use domestic events to determine outbound segment end times.
+        # Thus we read them, but omit the domestic (stay and move) segments from the output.
+        if (Domains.OUTBOUND in self.domains_to_include) & (Domains.DOMESTIC not in self.domains_to_include):
+            self.do_outbound_only = True
+        else:
+            self.do_outbound_only = False
+
         self.local_mcc = self.config.getint(self.COMPONENT_ID, "local_mcc")
         # this is for UDF
         self.segmentation_return_schema = StructType(
             [
                 StructField(ColNames.start_timestamp, TimestampType()),
                 StructField(ColNames.end_timestamp, TimestampType()),
+                StructField(ColNames.last_event_timestamp, TimestampType()),
                 StructField(ColNames.cells, ArrayType(StringType())),
                 StructField(ColNames.state, ByteType()),
                 StructField(ColNames.is_last, BooleanType()),
@@ -143,6 +155,7 @@ class ContinuousTimeSegmentation(Component):
             self.current_input_events_sdf = self.input_data_objects[SilverEventFlaggedDataObject.ID].df.filter(
                 (F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day)) == F.lit(current_date))
                 & (F.col(ColNames.error_flag).isin(self.event_error_flags_to_include))
+                & (F.col(ColNames.domain).isin(self.domains_to_include))
             )
 
             self.current_interesection_groups_sdf = (
@@ -174,6 +187,40 @@ class ContinuousTimeSegmentation(Component):
                     & (F.col(ColNames.is_last) == True)
                 )
 
+            # If only outbound domain is requested, we additionally include the domestic events of outbound users (if any are present).
+            if self.do_outbound_only:
+                # Select distinct users in current outbound events.
+                # If previous date time segments are present, also include distinct users with ABROAD state in previous date.
+                if self.last_time_segments is not None:
+                    distinct_outbound_user_ids_df = (
+                        self.current_input_events_sdf.select(F.col(ColNames.user_id))
+                        .union(
+                            self.last_time_segments.where(F.col(ColNames.state) == F.lit(SegmentStates.ABROAD)).select(
+                                F.col(ColNames.user_id)
+                            )
+                        )
+                        .distinct()
+                    )
+                else:
+                    distinct_outbound_user_ids_df = self.current_input_events_sdf.select(
+                        F.col(ColNames.user_id)
+                    ).distinct()
+                # Retrieve domestic events of these users.
+                additional_domestic_events_df = (
+                    self.input_data_objects[SilverEventFlaggedDataObject.ID]
+                    .df.filter(
+                        (
+                            F.make_date(F.col(ColNames.year), F.col(ColNames.month), F.col(ColNames.day))
+                            == F.lit(current_date)
+                        )
+                        & (F.col(ColNames.error_flag).isin(self.event_error_flags_to_include))
+                        & (F.col(ColNames.domain) == F.lit(Domains.DOMESTIC)).alias("df1")
+                    )
+                    .join(distinct_outbound_user_ids_df.alias("df2"), on=[ColNames.user_id], how="left_semi")
+                    .select("df1.*")
+                )
+                self.current_input_events_sdf = self.current_input_events_sdf.union(additional_domestic_events_df)
+
             self.transform()
             self.write()
             self.input_data_objects[SilverTimeSegmentsDataObject.ID] = self.output_data_objects[
@@ -204,6 +251,7 @@ class ContinuousTimeSegmentation(Component):
                 f"df1.{ColNames.mcc}",
                 f"df1.{ColNames.mnc}",
                 f"df1.{ColNames.plmn}",
+                f"df1.{ColNames.domain}",
                 f"df1.{ColNames.cell_id}",
                 f"df1.{ColNames.user_id_modulo}",
                 ColNames.overlapping_cell_ids,
@@ -220,6 +268,7 @@ class ContinuousTimeSegmentation(Component):
         else:
             last_time_segments_sdf = last_time_segments_sdf.select(
                 ColNames.end_timestamp,
+                ColNames.last_event_timestamp,
                 ColNames.cells,
                 ColNames.state,
                 ColNames.user_id,
@@ -247,8 +296,7 @@ class ContinuousTimeSegmentation(Component):
         current_events_sdf = current_events_sdf.withColumn(ColNames.user_id, F.hex(F.col(ColNames.user_id)))
 
         current_events_sdf = current_events_sdf.withColumn(
-            "is_abroad_event",
-            (F.col(ColNames.plmn).isNotNull()) & (F.col(ColNames.plmn).substr(1, 3) != F.lit(self.local_mcc)),
+            "is_abroad_event", F.col(ColNames.domain) == F.lit(Domains.OUTBOUND)
         )
 
         # Partial function to pass the current date and other parameters to the aggregation function
@@ -392,20 +440,30 @@ class ContinuousTimeSegmentation(Component):
             previous_segment_end_time = pdf[ColNames.end_timestamp].iloc[0]
             previous_segment_state = pdf[ColNames.state].iloc[0]
             previous_segment_plmn = pdf["segment_plmn"].iloc[0]
+            previous_segment_last_event_timestamp = pdf[ColNames.last_event_timestamp].iloc[0]
 
+            # If time since the last event timestamp is below threshold, create whole-day ABROAD segment
             if (previous_segment_state == SegmentStates.ABROAD) and (
-                day_end - previous_segment_end_time <= max_time_missing_abroad
+                day_end - previous_segment_last_event_timestamp <= max_time_missing_abroad
             ):
                 seg = ContinuousTimeSegmentation._create_time_segment(
-                    day_start, day_end, [], previous_segment_plmn, SegmentStates.ABROAD, user_id
+                    day_start,
+                    day_end,
+                    previous_segment_last_event_timestamp,
+                    [],
+                    previous_segment_plmn,
+                    SegmentStates.ABROAD,
+                    user_id,
                 )
+            # If time since the last event timestamp is above threshold, create whole-day UNKNOWN segment
             else:
                 seg = ContinuousTimeSegmentation._create_time_segment(
-                    day_start, day_end, [], None, SegmentStates.UNKNOWN, user_id
+                    day_start, day_end, None, [], None, SegmentStates.UNKNOWN, user_id
                 )
+        # If no previous time segment, create whole-day UNKNOWN segment
         else:
             seg = ContinuousTimeSegmentation._create_time_segment(
-                day_start, day_end, [], None, SegmentStates.UNKNOWN, user_id
+                day_start, day_end, None, [], None, SegmentStates.UNKNOWN, user_id
             )
 
         seg[ColNames.is_last] = True
@@ -452,6 +510,7 @@ class ContinuousTimeSegmentation(Component):
             return ContinuousTimeSegmentation._create_time_segment(
                 day_start,
                 first_event_time - adjusted_pad,
+                None,
                 [],
                 None,
                 SegmentStates.UNKNOWN,
@@ -465,6 +524,7 @@ class ContinuousTimeSegmentation(Component):
             return ContinuousTimeSegmentation._create_time_segment(
                 day_start,
                 first_event_time,
+                previous_segment_state[ColNames.last_event_timestamp],
                 previous_segment_cells,
                 previous_segment_plmn,
                 SegmentStates.STAY,
@@ -474,6 +534,7 @@ class ContinuousTimeSegmentation(Component):
             return ContinuousTimeSegmentation._create_time_segment(
                 day_start,
                 first_event_time,
+                previous_segment_state[ColNames.last_event_timestamp],
                 previous_segment_cells,
                 previous_segment_plmn,
                 SegmentStates.MOVE,
@@ -483,6 +544,7 @@ class ContinuousTimeSegmentation(Component):
             return ContinuousTimeSegmentation._create_time_segment(
                 day_start,
                 first_event_time,
+                previous_segment_state[ColNames.last_event_timestamp],
                 [],
                 previous_segment_plmn,
                 SegmentStates.ABROAD,
@@ -493,6 +555,7 @@ class ContinuousTimeSegmentation(Component):
             return ContinuousTimeSegmentation._create_time_segment(
                 day_start,
                 first_event_time - adjusted_pad,
+                None,
                 [],
                 None,
                 SegmentStates.UNKNOWN,
@@ -608,6 +671,7 @@ class ContinuousTimeSegmentation(Component):
             current_ts = ContinuousTimeSegmentation._create_time_segment(
                 current_ts[ColNames.end_timestamp],
                 event_timestamp,
+                current_ts[ColNames.last_event_timestamp],
                 [],
                 event_plmn,
                 SegmentStates.ABROAD,
@@ -617,12 +681,14 @@ class ContinuousTimeSegmentation(Component):
         elif is_mcc_matched and (gap <= max_time_missing_abroad):
             # Extend existing ABROAD
             current_ts = ContinuousTimeSegmentation._extend_segment(current_ts, event_timestamp)
+            current_ts[ColNames.last_event_timestamp] = event_timestamp
 
         elif (not is_mcc_matched) and (gap <= max_time_missing_abroad):
             # Different MCC but within the gap => new ABROAD segment
             segments_to_add.append(current_ts)
             current_ts = ContinuousTimeSegmentation._create_time_segment(
                 current_ts[ColNames.end_timestamp],
+                event_timestamp,
                 event_timestamp,
                 [],
                 event_plmn,
@@ -636,6 +702,7 @@ class ContinuousTimeSegmentation(Component):
             current_ts = ContinuousTimeSegmentation._create_time_segment(
                 current_ts[ColNames.end_timestamp],
                 event_timestamp,
+                None,
                 [],
                 event_plmn,
                 SegmentStates.UNKNOWN,
@@ -666,7 +733,7 @@ class ContinuousTimeSegmentation(Component):
         gap = event_timestamp - current_ts[ColNames.end_timestamp]
         if overlapping_cell_ids is None:
             overlapping_cell_ids = []
-        new_cells = overlapping_cell_ids.tolist()
+        new_cells = list(overlapping_cell_ids)
         new_cells.append(event_cell)
 
         is_intersected = ContinuousTimeSegmentation._check_intersection(
@@ -680,6 +747,7 @@ class ContinuousTimeSegmentation(Component):
             current_ts = ContinuousTimeSegmentation._create_time_segment(
                 current_ts[ColNames.end_timestamp],
                 event_timestamp,
+                event_timestamp,
                 [event_cell],
                 event_plmn,
                 SegmentStates.UNDETERMINED,
@@ -691,6 +759,7 @@ class ContinuousTimeSegmentation(Component):
             if current_ts[ColNames.state] in [SegmentStates.UNDETERMINED, SegmentStates.STAY]:
                 # Extend in place
                 current_ts = ContinuousTimeSegmentation._extend_segment(current_ts, event_timestamp, [event_cell])
+                current_ts[ColNames.last_event_timestamp] = event_timestamp
                 duration = current_ts[ColNames.end_timestamp] - current_ts[ColNames.start_timestamp]
                 if duration > min_time_stay:
                     current_ts[ColNames.state] = SegmentStates.STAY
@@ -700,6 +769,7 @@ class ContinuousTimeSegmentation(Component):
                 segments_to_add.append(current_ts)
                 current_ts = ContinuousTimeSegmentation._create_time_segment(
                     current_ts[ColNames.end_timestamp],
+                    event_timestamp,
                     event_timestamp,
                     [event_cell],
                     event_plmn,
@@ -713,6 +783,7 @@ class ContinuousTimeSegmentation(Component):
             move_ts_1 = ContinuousTimeSegmentation._create_time_segment(
                 current_ts[ColNames.end_timestamp],
                 midpoint,
+                current_ts[ColNames.last_event_timestamp],
                 current_ts[ColNames.cells],
                 event_plmn,
                 SegmentStates.MOVE,
@@ -722,6 +793,7 @@ class ContinuousTimeSegmentation(Component):
 
             current_ts = ContinuousTimeSegmentation._create_time_segment(
                 midpoint,
+                event_timestamp,
                 event_timestamp,
                 [event_cell],
                 event_plmn,
@@ -739,6 +811,7 @@ class ContinuousTimeSegmentation(Component):
             unknown_segment = ContinuousTimeSegmentation._create_time_segment(
                 extended_ts[ColNames.end_timestamp],
                 event_timestamp - pad_time,
+                None,
                 [],
                 event_plmn,
                 SegmentStates.UNKNOWN,
@@ -749,6 +822,7 @@ class ContinuousTimeSegmentation(Component):
 
             current_ts = ContinuousTimeSegmentation._create_time_segment(
                 event_timestamp - pad_time,
+                event_timestamp,
                 event_timestamp,
                 [event_cell],
                 event_plmn,
@@ -762,6 +836,7 @@ class ContinuousTimeSegmentation(Component):
     def _create_time_segment(
         start_timestamp: datetime,
         end_timestamp: datetime,
+        last_event_timestamp: datetime,
         cells: List[str],
         plmn: int,
         state: str,
@@ -776,6 +851,7 @@ class ContinuousTimeSegmentation(Component):
         Parameters:
         start_timestamp (datetime): The start timestamp of the time segment.
         end_timestamp (datetime): The end timestamp of the time segment.
+        last_event_timestamp (datetime): The timestamp of the last event of the time segment.
         cells (List[str]): The cells of the time segment.
         state (str): The state of the time segment.
         previous_segment_id (Optional[int]): The ID of the previous time segment, if any.
@@ -788,6 +864,7 @@ class ContinuousTimeSegmentation(Component):
             ColNames.time_segment_id: hashlib.md5(segment_id_string.encode()).hexdigest(),
             ColNames.start_timestamp: start_timestamp,
             ColNames.end_timestamp: end_timestamp,
+            ColNames.last_event_timestamp: last_event_timestamp,
             ColNames.cells: cells,
             ColNames.plmn: plmn,
             ColNames.state: state,
@@ -838,3 +915,34 @@ class ContinuousTimeSegmentation(Component):
         else:
             is_intersected = set(previous_ts_cells).issubset(set(current_event_overlapping_cell_ids))
         return is_intersected
+
+    @staticmethod
+    def _get_domains_to_include(
+        config_domains_to_include: List[str],
+    ) -> List[str]:
+        """
+        Returns a list of domains to include in the component.
+
+        Parses the configuration for domain names (inbound, domestic, outbound) and maps to the corresponding Domains constants.
+
+        Parameters:
+        config_domains_to_include (List[str]): List of domains to include from the configuration file.
+
+        Returns:
+        List[str]: List of Domains to include in the segmentation.
+        """
+        domains_to_include = []
+        for val in config_domains_to_include:
+            if val == "outbound":
+                domains_to_include.append(Domains.OUTBOUND)
+            elif val == "inbound":
+                domains_to_include.append(Domains.INBOUND)
+            elif val == "domestic":
+                domains_to_include.append(Domains.DOMESTIC)
+            else:
+                raise ValueError(f"Value {val} does not match any domain name (inbound, domestic, outbound)")
+
+        if len(domains_to_include) == 0:
+            raise ValueError("No domain names specfied in configuration")
+
+        return domains_to_include

@@ -1,11 +1,11 @@
 import pytest
 from configparser import ConfigParser
-from multimno.core.data_objects.silver.silver_grid_data_object import SilverGridDataObject
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql import DataFrame, Row
 from multimno.core.constants.columns import ColNames
 
+from multimno.core.data_objects.silver.silver_grid_data_object import SilverGridDataObject
 from multimno.core.data_objects.silver.silver_aggregated_usual_environments_data_object import (
     SilverAggregatedUsualEnvironmentsDataObject,
 )
@@ -149,7 +149,7 @@ def set_input_data_uniform(spark: SparkSession, config: ConfigParser):
     grid_data_path = config["Paths.Silver"]["grid_data_silver"]
     input_data = SilverGridDataObject(spark, grid_data_path)
     GRID_DATA = [
-        {k: v for k, v in el.items() if k in [ColNames.grid_id, ColNames.geometry, ColNames.quadkey]}
+        {k: v for k, v in el.items() if k in [ColNames.grid_id, ColNames.geometry, ColNames.origin, ColNames.quadkey]}
         for el in ENRICHED_GRID_DATA
     ]
     grid_df = spark.createDataFrame([Row(**el) for el in GRID_DATA], SilverGridDataObject.SCHEMA)

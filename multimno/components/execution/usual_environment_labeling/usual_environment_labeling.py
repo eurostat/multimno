@@ -204,7 +204,7 @@ class UsualEnvironmentLabeling(Component):
         Get the configuration of the labeling process.
 
         Returns:
-            Dict: configuration of the labeling process.
+            (dict): configuration of the labeling process.
         """
         ue_labels = {
             "label_code": "ue",
@@ -433,7 +433,12 @@ class UsualEnvironmentLabeling(Component):
         # Repartition
         if self.disaggregate_to_100m_grid:
             self.logger.info("Dissagregating 200m to 100m grid")
-            labeled_tiles_df = self.grid_gen.get_children_grid_ids(labeled_tiles_df, 200, 100)
+            labeled_tiles_df = self.grid_gen.grid_id_from_coarser_resolution(
+                sdf=labeled_tiles_df,
+                coarse_resolution=200,
+                coarse_grid_id_col=ColNames.grid_id,
+                new_grid_id_col=ColNames.grid_id,
+            )
         labeled_tiles_df = labeled_tiles_df.repartition(*SilverUsualEnvironmentLabelsDataObject.PARTITION_COLUMNS)
 
         labeled_tiles_df = apply_schema_casting(labeled_tiles_df, SilverUsualEnvironmentLabelsDataObject.SCHEMA)
@@ -456,7 +461,8 @@ class UsualEnvironmentLabeling(Component):
         Args:
             total_observations_df (DataFrame): Long-Term Permanence Score dataset, filtered by the
                 corresponding start and end dates, and filtered by id_type == 'device_observation'.
-            total_device_ps_threshold (int): ps threshold.
+            total_device_threshold (int): ps threshold.
+            threshold_col (str): column to use for the threshold.
 
         Returns:
             DataFrame: two-column dataframe with the ids of the devices to discard and the corresponding user modulos.
@@ -705,11 +711,12 @@ class UsualEnvironmentLabeling(Component):
         configured percentage (perc_ps_threshold).
 
         Args:
-            ltps_df_i (DataFrame): Long-Term Permanence Metrics dataset, for a specific day type and time interval
+            device_observation (DataFrame): Long-Term Permanence Metrics dataset, for a specific day type and time interval
                 combination.
             target_rows_ltps_df (DataFrame): Long-Term Permanence Metrics dataset, for a specific day type and time
                 interval combination, with one 'id_type' == 'grid'.
-            perc_ps_threshold (float): specified ps threshold (in percentage).
+            perc_threshold (float): specified ps threshold (in percentage).
+            threshold_col (str): column name of the total device value.
 
         Returns:
             DataFrame: Long-Term Permanence Metrics dataset, for a specific day type and time interval combination,
@@ -727,9 +734,6 @@ class UsualEnvironmentLabeling(Component):
     def compute_quality_metrics(self) -> DataFrame:
         """
         Build usual environment labeling quality metrics dataframe.
-
-        Args:
-            ue_labels_df (DataFrame): usual environment labels dataframe.
 
         Returns:
             DataFrame: quality metrics dataframe.

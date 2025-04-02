@@ -6,16 +6,17 @@ python_version=3.11
 min_python_version=3.8
 
 # Select Spark version
-spark_version=$SPARK_VERSION
+spark_version="3.5.1"
 # Select Scala version
-scala_version=$SCALA_VERSION
+scala_version="2.12"
 # Select Sedona version
-sedona_version=$SEDONA_VERSION
-geotools_wrapper_version=$GEOTOOLS_WRAPPER_VERSION
+sedona_version="1.6.1"
+geotools_wrapper_version="28.2"
 
 # Paths
 upload_dir="upload"
 code_dir="$upload_dir/code"
+env_dir="$upload_dir/env"
 
 # Funcions
 usage () {
@@ -23,7 +24,8 @@ usage () {
     echo "Options:"
     echo "  -d: Download dependencies"
     echo "  -p: Python version (default: $python_version) (min: $min_python_version)"
-    echo "  -s: Download pyspark dependencies. Only works with -d option"
+    echo "  -s: Download pyspark python dependencies. Only works with -d option"
+    echo "  -j: Download spark jars dependencies"
     echo "  -v: Verbose"
     echo "  -h: Help"
     echo "Examples:"
@@ -41,8 +43,14 @@ download_python_deps() {
     echo "[*] Downloading python dependencies..."
     tmp_requirements_path=/tmp/multimno_requirements.txt
 
+    if [ -z "$download_spark" ]; then
+        optional_lists=""
+    else
+        optional_lists="--optional-lists $download_spark"
+    fi
+
     python${python_version} -m pip install toml-to-requirements $download_spark > $log_descriptor 2>&1
-    toml-to-req --toml-file pyproject.toml --requirements-file $tmp_requirements_path --optional-lists $download_spark > $log_descriptor 2>&1
+    toml-to-req --toml-file pyproject.toml --requirements-file $tmp_requirements_path $optional_lists > $log_descriptor 2>&1
     python${python_version} -m pip download -d $python_deps_dir -r $tmp_requirements_path > $log_descriptor 2>&1
     if [ $? -ne 0 ]; then
         echo "[!] Error downloading python dependencies"
@@ -52,11 +60,12 @@ download_python_deps() {
 
 # Default values
 download_deps=false
+download_jars=false
 download_spark="" 
 log_descriptor="/dev/null"
 
 # Arguments parse
-while getopts "dhp:sv" opt; do
+while getopts "dhp:sjv" opt; do
     case ${opt} in
         d)
             download_deps=true ;;
@@ -67,6 +76,8 @@ while getopts "dhp:sv" opt; do
             python_version="${OPTARG}" ;;
         s) 
             download_spark="spark" ;;
+        j)
+            download_jars=true ;;
         v) 
             log_descriptor="/dev/stdout" ;;
         \?)
@@ -102,19 +113,23 @@ if [ "$is_python_version_installed" != 0 ]; then
 fi
 
 # 1) Add dependencies if required
-if [ "$download_deps" = true ]; then
-    # add jars
+
+# Download jars
+if [ "$download_jars" = true ]; then
     echo "[*] Adding jars dependencies..."
-    jars_deps_dir="$code_dir/jars"
+    jars_deps_dir="$env_dir/jars"
     mkdir -p $jars_deps_dir
-    ./resources/scripts/install_sedona_jars.sh ${SPARK_VERSION} ${SCALA_VERSION} ${SEDONA_VERSION} ${GEOTOOLS_WRAPPER_VERSION} $jars_deps_dir > $log_descriptor 2>&1
+    ./resources/scripts/install_sedona_jars.sh ${spark_version} ${scala_version} ${sedona_version} ${geotools_wrapper_version} $jars_deps_dir > $log_descriptor 2>&1
     if [ $? -ne 0 ]; then
         echo "[!] Error downloading jars"
         exit 1
     fi
-    # add python deps
+fi
+
+# Download python deps
+if [ "$download_deps" = true ]; then
     echo "[*] Adding python dependencies..."
-    python_deps_dir="$code_dir/python_dependencies"
+    python_deps_dir="$env_dir/python_dependencies"
     download_python_deps $python_deps_dir $python_version
 else
     echo "[*] Skipping dependencies download..."

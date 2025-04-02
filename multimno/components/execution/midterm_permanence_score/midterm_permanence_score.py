@@ -11,7 +11,7 @@ from multimno.core.constants.error_types import UeGridIdType
 from multimno.core.spark_session import delete_file_or_folder
 from multimno.core.utils import apply_schema_casting
 from pyspark.sql import DataFrame
-from pyspark.sql.types import DateType, ArrayType, FloatType, IntegerType, ShortType, ByteType
+from pyspark.sql.types import DateType, FloatType, IntegerType, ShortType, ByteType
 import pyspark.sql.functions as F
 
 from multimno.core.component import Component
@@ -22,7 +22,6 @@ from multimno.core.data_objects.silver.silver_daily_permanence_score_data_object
 from multimno.core.data_objects.silver.silver_midterm_permanence_score_data_object import (
     SilverMidtermPermanenceScoreDataObject,
 )
-from multimno.core.data_objects.silver.silver_cell_footprint_data_object import SilverCellFootprintDataObject
 from multimno.core.settings import CONFIG_BRONZE_PATHS_KEY, CONFIG_SILVER_PATHS_KEY
 from multimno.core.constants.columns import ColNames
 from multimno.core.constants.period_names import TimeIntervals, DayTypes, Seasons
@@ -176,7 +175,6 @@ class MidtermPermanenceScore(Component):
         self.current_mt_period = None
         self.current_dps_data = None
         self.current_dps_data_chunk = None
-        self.footprint = None
 
     def _get_midterm_periods(self) -> List[dict]:
         """Computes the date limits of each mid-term period, together with the limits of the regularity metrics' extra
@@ -264,7 +262,6 @@ class MidtermPermanenceScore(Component):
         # Initialize data objects
         input_silver_daily_ps_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "daily_permanence_score_data_silver")
         input_bronze_holiday_calendar_path = self.config.get(CONFIG_BRONZE_PATHS_KEY, "holiday_calendar_data_bronze")
-        input_silver_cell_footprint = self.config.get(CONFIG_SILVER_PATHS_KEY, "cell_footprint_data_silver")
         output_silver_midterm_ps_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "midterm_permanence_score_data_silver")
 
         # Clear destination directory if needed
@@ -277,13 +274,11 @@ class MidtermPermanenceScore(Component):
 
         daily_ps = SilverDailyPermanenceScoreDataObject(self.spark, input_silver_daily_ps_path)
         holiday_calendar = BronzeHolidayCalendarDataObject(self.spark, input_bronze_holiday_calendar_path)
-        cell_footprint = SilverCellFootprintDataObject(self.spark, input_silver_cell_footprint)
         midterm_ps = SilverMidtermPermanenceScoreDataObject(self.spark, output_silver_midterm_ps_path)
 
         self.input_data_objects = {
             holiday_calendar.ID: holiday_calendar,
             daily_ps.ID: daily_ps,
-            cell_footprint.ID: cell_footprint,
         }
         self.output_data_objects = {midterm_ps.ID: midterm_ps}
 
@@ -773,16 +768,6 @@ class MidtermPermanenceScore(Component):
             self.current_mt_period = mt_period
             self.current_dps_data = midterm_daily_data[i]
             self.logger.info(f"... working on month {mt_period['month_start']} to {mt_period['month_end']}")
-
-            self.footprint = self.input_data_objects[SilverCellFootprintDataObject.ID].df
-            self.footprint = self.footprint.select(
-                ColNames.cell_id, ColNames.grid_id, ColNames.year, ColNames.month, ColNames.day
-            ).filter(
-                F.make_date(ColNames.year, ColNames.month, ColNames.day).between(
-                    self.current_mt_period["extended_month_start"] - dt.timedelta(days=1),
-                    self.current_mt_period["extended_month_end"] + dt.timedelta(days=1),
-                )
-            )
 
             for day_type, time_intervals in self.period_combinations.items():
                 self.day_type = day_type

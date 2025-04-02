@@ -97,25 +97,24 @@ class CellProximityEstimation(Component):
             .select(ColNames.cell_id, ColNames.grid_id)
         )
         # Shortcut to next date if no data is present.
+
         if cell_grid_ids_df.isEmpty():
             self.logger.info(f"No input data for date {current_date}.")
-            self.output_data_objects[SilverCellIntersectionGroupsDataObject.ID].df = self.output_data_objects[
-                SilverCellIntersectionGroupsDataObject.ID
-            ].df.limit(0)
-            self.output_data_objects[SilverCellDistanceDataObject.ID].df = self.output_data_objects[
-                SilverCellDistanceDataObject.ID
-            ].df.limit(0)
+            self.output_data_objects[SilverCellIntersectionGroupsDataObject.ID].df = self.spark.createDataFrame(
+                [], schema=SilverCellIntersectionGroupsDataObject.SCHEMA
+            )
+            self.output_data_objects[SilverCellDistanceDataObject.ID].df = self.spark.createDataFrame(
+                [], schema=SilverCellDistanceDataObject.SCHEMA
+            )
             return
 
-        # Aggregate and sort list of grid ids per cell.
-        df = cell_grid_ids_df.groupBy(ColNames.cell_id).agg(
-            F.array_sort(F.collect_list(ColNames.grid_id)).alias("grid_id_list")
-        )
         # For each cell, calculate the geometry from grid (concave hull of grid centroids, with buffer zone).
-        df_with_geom = self.calculate_cell_geometry_with_buffer(df)
+        df_with_geom = self.calculate_cell_geometry_with_buffer(cell_grid_ids_df)
         # Repartition to avoid exploding partition count on following self join.
         # Note: using a partition count other than the output partition count may be desirable.
         df_with_geom = df_with_geom.repartition(self.n_output_partitions, ColNames.cell_id)
+
+        # TODO: consider caching the dataframe at this point
 
         # Perform dataframe self join to get cell pairs where distance is below max distance threshold.
         df = self.calculate_nearby_cell_pairs(df_with_geom)
@@ -226,8 +225,13 @@ class CellProximityEstimation(Component):
         Returns:
             DataFrame: (cell_id, geometry)
         """
-        df_with_geom = df.select(ColNames.cell_id, F.explode("grid_id_list").alias(ColNames.grid_id))
-        df_with_geom = self.grid_gen.grid_ids_to_centroids(df_with_geom)
+        # In order to compute the centroids we need an origin for the 4-byte grid IDs. However, since we are only
+        # working with distances in this component, we can use any origin, so there is no need to read any
+        # grid data object to retrieve the origin
+        df_with_geom = self.grid_gen.grid_ids_to_grid_centroids(
+            sdf=df.withColumn(ColNames.origin, F.lit(0).cast("long")),
+            grid_resolution=100,
+        ).drop(ColNames.origin)
         df_with_geom = df_with_geom.groupBy([ColNames.cell_id]).agg(
             STF.ST_ConcaveHull(STF.ST_Collect(F.collect_list(ColNames.geometry)), 0.5).alias(ColNames.geometry)
         )

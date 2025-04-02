@@ -2,7 +2,7 @@
 
 """
 
-from pyspark.sql.types import StructType, StructField, StringType, FloatType, ShortType, ByteType, LongType
+from pyspark.sql.types import StructType, StructField, StringType, FloatType, ShortType, ByteType, IntegerType
 
 from multimno.core.data_objects.data_object import ParquetDataObject
 from multimno.core.constants.columns import ColNames
@@ -15,7 +15,7 @@ class SilverCellFootprintDataObject(ParquetDataObject):
     SCHEMA = StructType(
         [
             StructField(ColNames.cell_id, StringType(), nullable=True),
-            StructField(ColNames.grid_id, LongType(), nullable=True),
+            StructField(ColNames.grid_id, IntegerType(), nullable=True),
             # StructField(ColNames.valid_date_start, DateType(), nullable=True),
             # StructField(ColNames.valid_date_end, DateType(), nullable=True),
             StructField(ColNames.signal_dominance, FloatType(), nullable=True),

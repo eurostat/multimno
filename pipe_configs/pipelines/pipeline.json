@@ -4,99 +4,103 @@
     "pipeline": [
         {
             "component_id": "InspireGridGeneration",
-            "component_config_path": "pipe_configs/configurations/grid/grid_generation.ini"
+            "component_config_path": "pipe_configs/configurations/0_setup/grid/grid_generation.ini"
         },
         {
             "component_id": "GeozonesGridMapping",
-            "component_config_path": "pipe_configs/configurations/grid/geozones_grid_mapping.ini"
+            "component_config_path": "pipe_configs/configurations/0_setup/grid/geozones_grid_mapping.ini"
         },
         {
             "component_id": "EventCleaning",
-            "component_config_path": "pipe_configs/configurations/event/event_cleaning.ini"
+            "component_config_path": "pipe_configs/configurations/1_daily/1_cleaning/event_cleaning.ini"
         },
         {
             "component_id": "NetworkCleaning",
-            "component_config_path": "pipe_configs/configurations/network/network_cleaning.ini"
+            "component_config_path": "pipe_configs/configurations/1_daily/1_cleaning/network_cleaning.ini"
         },
         {
             "component_id": "SemanticCleaning",
-            "component_config_path": "pipe_configs/configurations/event/event_semantic_cleaning.ini"
+            "component_config_path": "pipe_configs/configurations/1_daily/1_cleaning/event_semantic_cleaning.ini"
         },
         {
             "component_id": "DeviceActivityStatistics",
-            "component_config_path": "pipe_configs/configurations/device_activity_statistics/device_activity_statistics.ini"
+            "component_config_path": "pipe_configs/configurations/X_quality/1_cleaning/device_activity_statistics.ini"
         },
         {
             "component_id": "CellFootprintEstimation",
-            "component_config_path": "pipe_configs/configurations/network/cell_footprint_estimation.ini"
+            "component_config_path": "pipe_configs/configurations/1_daily/2_network_coverage/cell_footprint_estimation.ini"
         },
         {
             "component_id": "CellConnectionProbabilityEstimation",
-            "component_config_path": "pipe_configs/configurations/network/cell_connection_probability_estimation.ini"
+            "component_config_path": "pipe_configs/configurations/1_daily/2_network_coverage/cell_connection_probability_estimation.ini"
         },
         {
             "component_id": "CellProximityEstimation",
-            "component_config_path": "pipe_configs/configurations/network/cell_proximity_estimation.ini"
+            "component_config_path": "pipe_configs/configurations/1_daily/2_network_coverage/cell_proximity_estimation.ini"
         },
         {
             "component_id": "PresentPopulationEstimation",
-            "component_config_path": "pipe_configs/configurations/daily_aggregations/present_population_estimation.ini"
+            "component_config_path": "pipe_configs/configurations/1_daily/3_present_population/present_population_estimation.ini"
         },
         {
             "component_id": "DailyPermanenceScore",
-            "component_config_path": "pipe_configs/configurations/daily_aggregations/daily_permanence_score.ini"
-        },
-        {
-            "component_id": "MidtermPermanenceScore",
-            "component_config_path": "pipe_configs/configurations/midterm_analysis/midterm_permanence_score.ini"
-        },
-        {
-            "component_id": "LongtermPermanenceScore",
-            "component_config_path": "pipe_configs/configurations/longterm_analysis/longterm_permanence_score.ini"
-        },
-        {
-            "component_id": "UsualEnvironmentLabeling",
-            "component_config_path": "pipe_configs/configurations/longterm_analysis/usual_environment_labeling.ini"
-        },
-        {
-            "component_id": "UsualEnvironmentAggregation",
-            "component_config_path": "pipe_configs/configurations/longterm_analysis/usual_environment_aggregation.ini"
+            "component_config_path": "pipe_configs/configurations/1_daily/4_usual_environment/daily_permanence_score.ini"
         },
         {
             "component_id": "ContinuousTimeSegmentation",
-            "component_config_path": "pipe_configs/configurations/daily_aggregations/continuous_time_segmentation.ini"
+            "component_config_path": "pipe_configs/configurations/1_daily/5_tourism/continuous_time_segmentation.ini"
         },
         {
             "component_id": "TourismStaysEstimation",
-            "component_config_path": "pipe_configs/configurations/tourism_stays_estimation/tourism_stays_estimation.ini"
+            "component_config_path": "pipe_configs/configurations/1_daily/5_tourism/tourism_stays_estimation.ini"
+        },
+        {
+            "component_id": "MidtermPermanenceScore",
+            "component_config_path": "pipe_configs/configurations/2_midterm/midterm_permanence_score.ini"
+        },
+        {
+            "component_id": "LongtermPermanenceScore",
+            "component_config_path": "pipe_configs/configurations/3_longterm/1_usual_environment/longterm_permanence_score.ini"
+        },
+        {
+            "component_id": "UsualEnvironmentLabeling",
+            "component_config_path": "pipe_configs/configurations/3_longterm/1_usual_environment/usual_environment_labeling.ini"
+        },
+        {
+            "component_id": "UsualEnvironmentAggregation",
+            "component_config_path": "pipe_configs/configurations/3_longterm/1_usual_environment/usual_environment_aggregation.ini"
         },
         {
             "component_id": "TourismStatisticsCalculation",
-            "component_config_path": "pipe_configs/configurations/tourism_aggregation/tourism_statistics_calculation.ini"
+            "component_config_path": "pipe_configs/configurations/3_longterm/2_tourism/tourism_statistics_calculation.ini"
         },
         {
             "component_id": "TourismOutboundStatisticsCalculation",
-            "component_config_path": "pipe_configs/configurations/tourism_aggregation/tourism_outbound_statistics_calculation.ini"
+            "component_config_path": "pipe_configs/configurations/3_longterm/2_tourism/tourism_outbound_statistics_calculation.ini"
+        },
+        {
+            "component_id": "InternalMigration",
+            "component_config_path": "pipe_configs/configurations/3_longterm/3_internal_migration/internal_migration.ini"
         },
         {
             "component_id": "OutputIndicators",
-            "component_config_path": "pipe_configs/configurations/output_indicators/output_indicators_pp.ini"
+            "component_config_path": "pipe_configs/configurations/4_export/output_indicators/output_indicators_pp.ini"
         },
         {
             "component_id": "OutputIndicators",
-            "component_config_path": "pipe_configs/configurations/output_indicators/output_indicators_ue.ini"
+            "component_config_path": "pipe_configs/configurations/4_export/output_indicators/output_indicators_ue.ini"
         },
         {
             "component_id": "OutputIndicators",
-            "component_config_path": "pipe_configs/configurations/output_indicators/output_indicators_mig.ini"
+            "component_config_path": "pipe_configs/configurations/4_export/output_indicators/output_indicators_mig.ini"
         },
         {
             "component_id": "OutputIndicators",
-            "component_config_path": "pipe_configs/configurations/output_indicators/output_indicators_tou_in.ini"
+            "component_config_path": "pipe_configs/configurations/4_export/output_indicators/output_indicators_tou_in.ini"
         },
         {
             "component_id": "OutputIndicators",
-            "component_config_path": "pipe_configs/configurations/output_indicators/output_indicators_tou_out.ini"
+            "component_config_path": "pipe_configs/configurations/4_export/output_indicators/output_indicators_tou_out.ini"
         }
     ]
 }

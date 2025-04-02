@@ -2,8 +2,6 @@ from pyspark.sql.types import (
     StructType,
     StructField,
     StringType,
-    IntegerType,
-    ArrayType,
     ShortType,
     ByteType,
     FloatType,

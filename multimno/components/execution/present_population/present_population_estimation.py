@@ -1,14 +1,11 @@
 """Module for estimating the present population of a geographical area at a given time.
 """
 
-import sys
-from typing import List, Tuple
+from typing import List
 from datetime import datetime, timedelta
 
 from multimno.core.exceptions import PpNoDevicesException
-from pyspark.sql.types import (
-    FloatType,
-)
+
 from pyspark.sql.window import Window
 from pyspark.sql.dataframe import DataFrame
 import pyspark.sql.functions as F

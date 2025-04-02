@@ -2,7 +2,7 @@
 Silver Usual Environment Labels data object module
 """
 
-from pyspark.sql.types import StructField, StructType, BinaryType, IntegerType, StringType, DateType, LongType
+from pyspark.sql.types import StructField, StructType, BinaryType, IntegerType, StringType, DateType
 
 from multimno.core.data_objects.data_object import ParquetDataObject
 from multimno.core.constants.columns import ColNames
@@ -17,7 +17,7 @@ class SilverUsualEnvironmentLabelsDataObject(ParquetDataObject):
     SCHEMA = StructType(
         [
             StructField(ColNames.user_id, BinaryType(), nullable=False),
-            StructField(ColNames.grid_id, LongType(), nullable=False),
+            StructField(ColNames.grid_id, IntegerType(), nullable=False),
             StructField(ColNames.label, StringType(), nullable=False),
             StructField(ColNames.label_rule, StringType(), nullable=False),
             StructField(ColNames.id_type, StringType(), nullable=False),

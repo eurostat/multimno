@@ -65,6 +65,8 @@ class UsualEnvironmentAggregation(Component):
             UsualEnvironmentAggregation.COMPONENT_ID, "uniform_tile_weights"
         )
 
+        self.landuse_weights = self.config.geteval(self.COMPONENT_ID, "landuse_weights")
+
         self.season = self.config.get(self.COMPONENT_ID, "season")
         if not Seasons.is_valid_type(self.season):
             error_msg = f"season: expected one of: {', '.join(Seasons.values())} - found: {self.season}"
@@ -121,14 +123,11 @@ class UsualEnvironmentAggregation(Component):
         # prepare grid with tile weights
         if self.uniform_tile_weights:
             grid_sdf = self.input_data_objects[SilverGridDataObject.ID].df
+            grid_sdf = grid_sdf.withColumn(ColNames.tile_weight, F.lit(1.0))
         else:
-            grid_sdf = self.input_data_objects[SilverEnrichedGridDataObject.ID].df
-            grid_sdf = grid_sdf.select(
-                ColNames.grid_id,
-                ColNames.prior_probability,
+            grid_sdf = self.calculate_landuse_tile_weights(
+                self.input_data_objects[SilverEnrichedGridDataObject.ID].df, self.landuse_weights
             )
-
-        grid_sdf = self.assign_tile_weights(grid_sdf, self.uniform_tile_weights)
 
         # prepare usual environment labels
         ue_labels_sdf = self.input_data_objects[SilverUsualEnvironmentLabelsDataObject.ID].df
@@ -161,29 +160,29 @@ class UsualEnvironmentAggregation(Component):
 
         self.output_data_objects[SilverAggregatedUsualEnvironmentsDataObject.ID].df = aggregated_labels_sdf
 
-    def assign_tile_weights(self, grid_sdf: DataFrame, uniform_tile_weights: bool) -> DataFrame:
+    def calculate_landuse_tile_weights(
+        self,
+        enriched_grid_sdf: DataFrame,
+        landuse_prior_weights: Dict[str, float],
+    ) -> DataFrame:
         """
-        Assigns weights to each tile in a DataFrame based on the specified weighting strategy.
-
-        This method updates the input DataFrame by adding a new column that contains the weight of each tile.
-        The weighting strategy is determined by the `uniform_tile_weights` parameter. If `uniform_tile_weights` is True,
-        all tiles are assigned a uniform weight of 1.0. Otherwise, the tile weights are set to the values derrived from landuse
-        information in an input grid data object.
-
-        Parameters:
-        - grid_sdf (DataFrame): The input grid DataFrame.
-        - uniform_tile_weights (bool): A flag indicating whether to assign uniform weights to all tiles (True)
-        or to use the values from grid data object column as weights (False).
-
-        Returns:
-        - DataFrame: The updated DataFrame with a new column containing the weights of each tile.
+        Calculates the tile weights based on landuse information in the enriched grid DataFrame.
         """
-        if uniform_tile_weights:
-            grid_sdf = grid_sdf.withColumn(ColNames.tile_weight, F.lit(1.0))
-        else:
-            grid_sdf = grid_sdf.withColumn(ColNames.tile_weight, F.col(ColNames.prior_probability))
 
-        return grid_sdf
+        grid_sdf = self.input_data_objects[SilverEnrichedGridDataObject.ID].df
+        grid_sdf = grid_sdf.select(
+            ColNames.grid_id,
+            F.col(ColNames.main_landuse_category),
+        )
+
+        # Create a DataFrame from the weights dictionary
+        weights_list = [(k, float(v)) for k, v in landuse_prior_weights.items()]
+        weights_df = self.spark.createDataFrame(weights_list, [ColNames.main_landuse_category, "weight"])
+        weighted_df = enriched_grid_sdf.join(weights_df, on=ColNames.main_landuse_category, how="left").withColumn(
+            ColNames.tile_weight, F.coalesce(F.col("weight"), F.lit(0.0))
+        )  # Default 0.0 for missing weights
+
+        return weighted_df
 
     def get_device_tile_weights(self, ue_labels_sdf: DataFrame, grid_sdf: DataFrame) -> DataFrame:
         """
@@ -207,7 +206,9 @@ class UsualEnvironmentAggregation(Component):
         - DataFrame: A DataFrame containing the calculated weights for each device tile.
         """
 
-        ue_labels_sdf = ue_labels_sdf.join(grid_sdf, on=ColNames.grid_id, how="inner")
+        ue_labels_sdf = ue_labels_sdf.join(grid_sdf, on=ColNames.grid_id, how="left")
+        # Assign a default tile weight of 0.001 to missing tile weights to avoid division by zero
+        ue_labels_sdf = ue_labels_sdf.withColumn(ColNames.tile_weight, F.coalesce(ColNames.tile_weight, F.lit(0.001)))
         window_spec = Window.partitionBy(ColNames.user_id_modulo, ColNames.user_id, ColNames.label)
         ue_labels_sdf = ue_labels_sdf.withColumn(
             ColNames.device_tile_weight, F.col(ColNames.tile_weight) / F.sum(ColNames.tile_weight).over(window_spec)

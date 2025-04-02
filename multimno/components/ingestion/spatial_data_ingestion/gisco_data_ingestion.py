@@ -1,6 +1,4 @@
-"""
-
-"""
+""" """
 
 import math
 from typing import Dict, List, Optional, Tuple
@@ -63,8 +61,6 @@ class GiscoDataIngestion(Component):
             self.output_data_objects[BronzeCountriesDataObject.ID] = BronzeCountriesDataObject(
                 self.spark,
                 countries_do_path,
-                [],
-                self.default_crs,
             )
 
         if self.get_nuts:
@@ -86,8 +82,6 @@ class GiscoDataIngestion(Component):
             self.output_data_objects[BronzeGeographicZonesDataObject.ID] = BronzeGeographicZonesDataObject(
                 self.spark,
                 geographic_zones_do_path,
-                [ColNames.dataset_id],
-                self.default_crs,
             )
 
         self.clear_destination_directory = self.config.getboolean(

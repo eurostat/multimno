@@ -175,6 +175,8 @@ sample_data/lakehouse/bronze/*
 !sample_data/lakehouse/bronze/mno_events
 !sample_data/lakehouse/bronze/holiday_calendar
 !sample_data/lakehouse/bronze/spatial
+!sample_data/lakehouse/bronze/inbound_estimation_factors
+!sample_data/lakehouse/bronze/mcc_iso_tz
 !sample_data/output/
 
 docs/autodoc

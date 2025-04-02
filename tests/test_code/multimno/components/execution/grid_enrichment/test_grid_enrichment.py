@@ -1,4 +1,7 @@
 from multimno.components.execution.grid_enrichment.grid_enrichment import GridEnrichment
+from multimno.core.constants.columns import ColNames
+import sedona.sql.st_constructors as STC
+from multimno.core.utils import apply_schema_casting
 from multimno.core.data_objects.bronze.bronze_transportation_data_object import (
     BronzeTransportationDataObject,
 )
@@ -12,6 +15,7 @@ from multimno.core.data_objects.silver.silver_enriched_grid_data_object import (
     SilverEnrichedGridDataObject,
 )
 
+from tests.test_code.multimno.components.execution.grid_enrichment.aux_grid_enrichment import generate_input_grid_data
 from tests.test_code.fixtures import spark_session as spark
 from multimno.core.configuration import parse_configuration
 from tests.test_code.test_common import (
@@ -64,13 +68,15 @@ def prepare_test_data(spark):
     landuse_do = BronzeLanduseDataObject(spark, config.get(CONFIG_BRONZE_PATHS_KEY, "landuse_data_bronze"))
 
     landuse_sdf = spark.read.format("geoparquet").load(f"{STATIC_TEST_DATA_PATH}/spatial_data/landuse")
-
     landuse_do.df = landuse_sdf
     landuse_do.write()
 
-    grid_do = SilverGridDataObject(spark, config.get(CONFIG_SILVER_PATHS_KEY, "grid_data_silver"), ["quadkey"])
+    grid_do = SilverGridDataObject(spark, config.get(CONFIG_SILVER_PATHS_KEY, "grid_data_silver"))
 
-    grid_sdf = spark.read.format("geoparquet").load(f"{STATIC_TEST_DATA_PATH}/grid/expected_extent_grid")
+    grid_sdf = spark.createDataFrame(generate_input_grid_data())
+    grid_sdf = grid_sdf.withColumn(ColNames.geometry, STC.ST_GeomFromEWKT("geometry"))
+
+    grid_sdf = apply_schema_casting(grid_sdf, SilverGridDataObject.SCHEMA)
 
     grid_do.df = grid_sdf
     grid_do.write()
@@ -108,7 +114,7 @@ def test_inspire_grid_enrichment(spark):
     test_component = GridEnrichment(TEST_GENERAL_CONFIG_PATH, component_config_path)
 
     # Expected
-    expected_do = SilverEnrichedGridDataObject(spark, f"{STATIC_TEST_DATA_PATH}/grid/expected_grid_enriched")
+    expected_do = SilverEnrichedGridDataObject(spark, f"{STATIC_TEST_DATA_PATH}/grid/expected_enriched_grid")
     expected_do.read()
     expected_sdf = expected_do.df
 

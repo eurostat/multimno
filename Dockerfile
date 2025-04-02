@@ -41,6 +41,7 @@ RUN apt-get update && \
 
 # ---------- SPARK ----------
 # Setup the directories for Spark/Hadoop installation
+ARG SPARK_HOME
 ENV SPARK_HOME=${SPARK_HOME:-"/opt/spark"}
 
 # Create spark folder
@@ -66,12 +67,11 @@ ENV SEDONA_VERSION=${SEDONA_VERSION}
 ENV GEOTOOLS_WRAPPER_VERSION=${GEOTOOLS_WRAPPER_VERSION}
 
 # Install sedona jars
+ARG install_dir=/tmp/install
 COPY resources/scripts/install_sedona_jars.sh ${install_dir}/scripts/install_sedona_jars.sh
 RUN ${install_dir}/scripts/install_sedona_jars.sh ${SPARK_VERSION} ${SCALA_VERSION} ${SEDONA_VERSION} ${GEOTOOLS_WRAPPER_VERSION} 
 
 # ---------- PYTHON DEPENDENCIES ----------
-# Install requirements
-ARG install_dir=/tmp/install
 
 # Upgrade pip to latest version
 RUN pip install --upgrade pip
@@ -134,14 +134,11 @@ EXPOSE 8888
 CMD ["bash"]
 
 ##########################################################################
-# MULTIMNO - Production
+# MULTIMNO - Test Production
 ##########################################################################
 FROM multimno-base AS multimno-prod
 
 RUN mkdir -p /tmp/spark-events
-
 COPY multimno /opt/app/multimno
-COPY pipe_configs /opt/app/pipe_configs
-COPY orchestrator_multimno.py /opt/app/orchestrator_multimno.py
 
-# ENTRYPOINT ["python", "/opt/app/orchestrator_multimno.py"]
+ENTRYPOINT ["python", "/opt/app/multimno/orchestrator_multimno.py"]

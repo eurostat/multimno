@@ -1,5 +1,7 @@
 import pytest
+from multimno.core.data_objects.silver.silver_grid_data_object import SilverGridDataObject
 from pyspark.sql import DataFrame, Row
+from pyspark.sql.types import StructType, StructField, IntegerType, LongType, StringType
 from pyspark.testing.utils import assertDataFrameEqual
 import pyspark.sql.functions as psf
 from sedona.sql import st_constructors as STC
@@ -153,3 +155,43 @@ def test_grid_ids_to_centroids(grid_generator, centroid_grid):
 #         assert_sparkgeodataframe_equal(tile_grid, grid_ids_to_tiles)
 
 #     assert_geodataframe_almost_equal(tile_grid, grid_ids_to_tiles)
+
+
+def test_grid_id_to_inspire_id(spark):
+    # Create test DataFrame
+    data = [
+        Row(grid_id=100, origin=0),
+        Row(grid_id=200, origin=0),
+        Row(grid_id=300, origin=0),
+    ]
+    schema = StructType(
+        [
+            StructField("grid_id", IntegerType(), True),
+            StructField("origin", IntegerType(), True),
+        ]
+    )
+    df = spark.createDataFrame(data, schema=schema)
+
+    # Create InspireGridGenerator instance
+    grid_generator = InspireGridGenerator(spark)
+
+    # Call the grid_id_to_inspire_id function
+    result = grid_generator.grid_id_to_inspire_id(df, inspire_resolution=100)
+
+    # Define the expected result DataFrame
+    expected_data = [
+        Row(grid_id=100, origin=0, INSPIRE_id="100mN0E100"),
+        Row(grid_id=200, origin=0, INSPIRE_id="100mN0E200"),
+        Row(grid_id=300, origin=0, INSPIRE_id="100mN0E300"),
+    ]
+    schema = StructType(
+        [
+            StructField("grid_id", IntegerType(), True),
+            StructField("origin", IntegerType(), True),
+            StructField("INSPIRE_id", StringType(), True),
+        ]
+    )
+    expected_df = spark.createDataFrame(expected_data, schema=schema)
+
+    # Assert that the result DataFrame is equal to the expected DataFrame
+    assertDataFrameEqual(result, expected_df)

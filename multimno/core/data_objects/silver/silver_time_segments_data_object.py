@@ -31,6 +31,7 @@ class SilverTimeSegmentsDataObject(ParquetDataObject):
             StructField(ColNames.time_segment_id, StringType(), nullable=False),
             StructField(ColNames.start_timestamp, TimestampType(), nullable=False),
             StructField(ColNames.end_timestamp, TimestampType(), nullable=False),
+            StructField(ColNames.last_event_timestamp, TimestampType(), nullable=True),
             StructField(ColNames.mcc, ShortType(), nullable=False),
             StructField(ColNames.mnc, StringType(), nullable=False),
             StructField(ColNames.plmn, IntegerType(), nullable=True),

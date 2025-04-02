@@ -1,0 +1,14 @@
+{
+    "general_config_path": "pipe_configs/configurations/general_config.ini",
+    "spark_submit_args": [],
+    "pipeline": [
+        {
+            "component_id": "InspireGridGeneration",
+            "component_config_path": "pipe_configs/configurations/0_setup/grid/grid_generation.ini"
+        },
+        {
+            "component_id": "GeozonesGridMapping",
+            "component_config_path": "pipe_configs/configurations/0_setup/grid/geozones_grid_mapping.ini"
+        }
+    ]
+}

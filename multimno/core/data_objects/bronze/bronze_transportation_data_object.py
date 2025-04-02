@@ -26,11 +26,8 @@ class BronzeTransportationDataObject(GeoParquetDataObject):
             StructField(ColNames.category, StringType(), nullable=False),
             StructField(ColNames.geometry, GeometryType(), nullable=False),
             # partition columns
-            StructField(ColNames.year, ShortType(), nullable=False),
-            StructField(ColNames.month, ByteType(), nullable=False),
-            StructField(ColNames.day, ByteType(), nullable=False),
             StructField(ColNames.quadkey, StringType(), nullable=False),
         ]
     )
 
-    PARTITION_COLUMNS = [ColNames.year, ColNames.month, ColNames.day, ColNames.quadkey]
+    PARTITION_COLUMNS = [ColNames.quadkey]

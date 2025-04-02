@@ -45,6 +45,7 @@ from multimno.core.data_objects.bronze.bronze_inbound_estimation_factors_data_ob
 from multimno.core.data_objects.silver.silver_tourism_outbound_nights_spent_data_object import (
     SilverTourismOutboundNightsSpentDataObject,
 )
+from multimno.core.data_objects.silver.silver_grid_data_object import SilverGridDataObject
 
 from multimno.core.spark_session import check_if_data_path_exists, delete_file_or_folder
 from multimno.core.component import Component
@@ -184,6 +185,8 @@ class OutputIndicators(Component):
         elif self.use_case == TourismOutboundStatisticsCalculation.COMPONENT_ID:
             self.init_outbound_tourism()
 
+        # Grid ID origin
+        self.origin = None
         # Working df
         self.dfs = None
 
@@ -226,19 +229,23 @@ class OutputIndicators(Component):
 
         # Present population and UE aggregation might have INSPIRE 100m or INSPIRE 1km grid as zoning dataset, and they
         # have to be mapped and aggregated for them in this component, so load geozones grid map data object
-        if self.zoning_dataset not in ReservedDatasetIDs() and self.use_case in [
+        if self.use_case in [
             PresentPopulationEstimation.COMPONENT_ID,
             UsualEnvironmentAggregation.COMPONENT_ID,
         ]:
-            input_zone_grid_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "geozones_grid_map_data_silver")
+            if self.zoning_dataset not in ReservedDatasetIDs():
+                input_zone_grid_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "geozones_grid_map_data_silver")
 
-            if not check_if_data_path_exists(self.spark, input_zone_grid_path):
-                self.logger.warning(f"Expected path {input_zone_grid_path} to exist but it does not")
-                raise ValueError(f"Invalid path for {SilverGeozonesGridMapDataObject.ID}: {input_zone_grid_path}")
+                if not check_if_data_path_exists(self.spark, input_zone_grid_path):
+                    self.logger.warning(f"Expected path {input_zone_grid_path} to exist but it does not")
+                    raise ValueError(f"Invalid path for {SilverGeozonesGridMapDataObject.ID}: {input_zone_grid_path}")
 
-            self.input_data_objects[SilverGeozonesGridMapDataObject.ID] = SilverGeozonesGridMapDataObject(
-                self.spark, input_zone_grid_path
-            )
+                self.input_data_objects[SilverGeozonesGridMapDataObject.ID] = SilverGeozonesGridMapDataObject(
+                    self.spark, input_zone_grid_path
+                )
+            else:
+                grid_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "grid_data_silver")
+                self.input_data_objects[SilverGridDataObject.ID] = SilverGridDataObject(self.spark, grid_path)
 
         # inbound tourism use case also loads estimation factors (deduplication and mno-to-target-pop factors) for
         # different countries of origin. Missing factors or countries in the data object will use default factors
@@ -459,7 +466,10 @@ class OutputIndicators(Component):
 
         # If dataset is one of INSPIRE 100m or 1km grid, initialise grid generator object
         if self.zoning_dataset in ReservedDatasetIDs():
-            grid_gen = InspireGridGenerator(spark=self.spark, resolution=100)
+            grid_gen = InspireGridGenerator(spark=self.spark)
+
+            # We need to get the origin in order to correctly obtain the INSPIRE IDs
+            self.origin = self.input_data_objects[SilverGridDataObject.ID].df.first()["origin"]
         else:  # if not, prepare grid-to-zone dataset
             zoning_df = self.input_data_objects[SilverGeozonesGridMapDataObject.ID].df
             zoning_df = zoning_df.filter(F.col(ColNames.dataset_id) == self.zoning_dataset).select(
@@ -483,19 +493,20 @@ class OutputIndicators(Component):
                     ColNames.level, F.lit(1)
                 )
                 # convert internal grid ID to INSPIRE specification, and rename column to zone_id
-                df = grid_gen.convert_internal_id_to_inspire_specs(df, resolution=100, grid_id_col=ColNames.grid_id)
-                df = df.withColumnRenamed(ColNames.grid_id, ColNames.zone_id)
+                df = grid_gen.grid_id_to_inspire_id(
+                    sdf=df, inspire_resolution=100, grid_id_col=ColNames.grid_id, origin=self.origin
+                )
+                df = df.withColumnRenamed(ColNames.inspire_id, ColNames.zone_id).drop(ColNames.grid_id)
 
                 self.dfs[dfID] = df
                 continue
             # INSPIRE 1km grid
             elif self.zoning_dataset == ReservedDatasetIDs.INSPIRE_1km:
-                # Replace 100m grid ID for 1km grid ID
-                df = grid_gen.get_parent_grid_ids(df, resolution=1000, parent_col_name=ColNames.grid_id)
-
                 # Transform to INSPIRE representation
-                df = grid_gen.convert_internal_id_to_inspire_specs(df, resolution=1000, grid_id_col=ColNames.grid_id)
-                df = df.withColumnRenamed(ColNames.grid_id, ColNames.zone_id)
+                df = grid_gen.grid_id_to_inspire_id(
+                    sdf=df, inspire_resolution=1000, grid_id_col=ColNames.grid_id, origin=self.origin
+                )
+                df = df.withColumnRenamed(ColNames.inspire_id, ColNames.zone_id).drop(ColNames.grid_id)
                 # Aggregate
                 agg_df = df.groupBy(*segment_columns).agg(*value_expressions)
                 # Add hierarchical level 1 and dataset ID columns

@@ -2,13 +2,14 @@ import pytest
 from configparser import ConfigParser
 from datetime import datetime, timedelta, date
 from multimno.core.constants.columns import ColNames
+from multimno.core.constants.domain_names import Domains
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.types import Row
-from pyspark.sql.types import StructType, StructField, StringType, FloatType, IntegerType, LongType
-
+from pyspark.sql.types import StructType, StructField, StringType, FloatType, LongType
 import pyspark.sql.functions as F
 
-
+from multimno.core.utils import apply_schema_casting
+from multimno.core.constants.columns import ColNames
 from multimno.core.data_objects.silver.silver_event_flagged_data_object import (
     SilverEventFlaggedDataObject,
 )
@@ -18,10 +19,6 @@ from multimno.core.data_objects.silver.silver_cell_connection_probabilities_data
 from multimno.core.data_objects.silver.silver_grid_data_object import (
     SilverGridDataObject,
 )
-from multimno.core.data_objects.silver.silver_geozones_grid_map_data_object import (
-    SilverGeozonesGridMapDataObject,
-)
-
 from tests.test_code.fixtures import spark_session as spark
 
 # Dummy to avoid linting errors using pytest
@@ -82,21 +79,13 @@ def set_input_data(
     ### Write input grid data to test resources dir
     # Have to parse geometry string to geometry type after df creation, so we can't use the DO schema right away
     grid_data_path = config["Paths.Silver"]["grid_data_silver"]
-    grid_schema = StructType(
-        [
-            StructField(ColNames.geometry, StringType(), nullable=False),
-            StructField(ColNames.grid_id, LongType(), nullable=False),
-            StructField(ColNames.elevation, FloatType(), nullable=True),
-            StructField(ColNames.land_use, StringType(), nullable=True),
-            StructField(ColNames.prior_probability, FloatType(), nullable=True),
-        ]
-    )
+
     input_grid_do = SilverGridDataObject(spark, grid_data_path)
-    grid_df = spark.createDataFrame(
-        grid_data,
-        schema=grid_schema,
+    grid_df = spark.createDataFrame(grid_data).withColumn(
+        ColNames.geometry, F.expr(f"ST_GeomFromWKT({ColNames.geometry})")
     )
-    input_grid_do.df = grid_df.withColumn(ColNames.geometry, F.expr(f"ST_GeomFromWKT({ColNames.geometry})"))
+    input_grid_do.df = apply_schema_casting(grid_df, SilverGridDataObject.SCHEMA)
+
     input_grid_do.write(partition_columns=[])
 
     ### Write input cell connection probability data to test resources dir
@@ -226,9 +215,8 @@ def generate_grid_data_0001():
             Row(
                 geometry="POINT(0.0 0.0)",
                 grid_id=i,
-                elevation=None,
-                land_use=None,
-                prior_probability=None,
+                origin=0,
+                quadkey="1234567",
             )
         )
     return grid_data
@@ -238,8 +226,7 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
     """
     Generate one collection of testing cell connection probabilities data. 0001
     """
-    validity_date_start = datetime.strptime(validity_period_start, "%Y-%m-%d")
-    validity_date_end = datetime.strptime(validity_period_end, "%Y-%m-%d")
+
     out = []
     for date in dates:
         year = date.year
@@ -250,7 +237,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=1,
                     grid_id=1,
-                    # valid_date_end=validity_date_end,
                     cell_connection_probability=0.3,
                     posterior_probability=0.3,
                     year=year,
@@ -260,7 +246,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=4,
                     grid_id=1,
-                    # valid_date_end=validity_date_end,
                     cell_connection_probability=0.7,
                     posterior_probability=0.7,
                     year=year,
@@ -270,7 +255,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=1,
                     grid_id=2,
-                    # valid_date_end=validity_date_end,
                     cell_connection_probability=0.6,
                     posterior_probability=0.6,
                     year=year,
@@ -280,7 +264,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=2,
                     grid_id=2,
-                    # valid_date_end=validity_date_end,
                     cell_connection_probability=0.4,
                     posterior_probability=0.4,
                     year=year,
@@ -290,7 +273,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=1,
                     grid_id=3,
-                    # valid_date_end=validity_date_end,
                     cell_connection_probability=0.25,
                     posterior_probability=0.25,
                     year=year,
@@ -300,7 +282,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=2,
                     grid_id=3,
-                    # valid_date_end=validity_date_end,
                     cell_connection_probability=0.75,
                     posterior_probability=0.75,
                     year=year,
@@ -310,7 +291,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=2,
                     grid_id=4,
-                    # valid_date_end=validity_date_end,
                     cell_connection_probability=0.9,
                     posterior_probability=0.9,
                     year=year,
@@ -320,7 +300,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=3,
                     grid_id=4,
-                    # valid_date_end=validity_date_end,
                     cell_connection_probability=0.1,
                     posterior_probability=0.1,
                     year=year,
@@ -330,7 +309,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=2,
                     grid_id=5,
-                    # valid_date_end=validity_date_end,
                     cell_connection_probability=0.5,
                     posterior_probability=0.5,
                     year=year,
@@ -340,7 +318,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=2,
                     grid_id=5,
-                    # valid_date_end=validity_date_end,
                     cell_connection_probability=0.5,
                     posterior_probability=0.5,
                     year=year,
@@ -350,7 +327,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=3,
                     grid_id=5,
-                    # valid_date_end=validity_date_end,
                     cell_connection_probability=0.5,
                     posterior_probability=0.5,
                     year=year,
@@ -360,7 +336,6 @@ def generate_cell_connection_probabilities_data_0001(dates, validity_period_star
                 Row(
                     cell_id=4,
                     grid_id=6,
-                    # valid_date_end=validity_date_end,
                     cell_connection_probability=1.0,
                     posterior_probability=1.0,
                     year=year,
@@ -385,6 +360,7 @@ def generate_event_data_multiple_events_in_window(user_id: str, timestamp: datet
             mcc=100,
             mnc=None,
             plmn=None,
+            domain=Domains.DOMESTIC,
             cell_id="1",
             latitude=None,
             longitude=None,
@@ -401,6 +377,7 @@ def generate_event_data_multiple_events_in_window(user_id: str, timestamp: datet
             mcc=100,
             mnc=None,
             plmn=None,
+            domain=Domains.DOMESTIC,
             cell_id="2",
             latitude=None,
             longitude=None,
@@ -417,6 +394,7 @@ def generate_event_data_multiple_events_in_window(user_id: str, timestamp: datet
             mcc=100,
             mnc=None,
             plmn=None,
+            domain=Domains.DOMESTIC,
             cell_id="3",
             latitude=None,
             longitude=None,
@@ -433,6 +411,7 @@ def generate_event_data_multiple_events_in_window(user_id: str, timestamp: datet
             mcc=100,
             mnc=None,
             plmn=None,
+            domain=Domains.DOMESTIC,
             cell_id="4",
             latitude=None,
             longitude=None,
@@ -459,6 +438,7 @@ def generate_event_data_events_outside_window(user_id: str, timestamp: datetime.
             mcc=100,
             mnc=None,
             plmn=None,
+            domain=Domains.DOMESTIC,
             cell_id="1",
             latitude=None,
             longitude=None,
@@ -475,6 +455,7 @@ def generate_event_data_events_outside_window(user_id: str, timestamp: datetime.
             mcc=100,
             mnc=None,
             plmn=None,
+            domain=Domains.DOMESTIC,
             cell_id="2",
             latitude=None,
             longitude=None,
@@ -501,6 +482,7 @@ def generate_event_data_events_in_previous_date(user_id: str, timestamp: datetim
             mcc=100,
             mnc=None,
             plmn=None,
+            domain=Domains.DOMESTIC,
             cell_id="1",
             latitude=None,
             longitude=None,
@@ -517,6 +499,7 @@ def generate_event_data_events_in_previous_date(user_id: str, timestamp: datetim
             mcc=100,
             mnc=None,
             plmn=None,
+            domain=Domains.DOMESTIC,
             cell_id="2",
             latitude=None,
             longitude=None,
@@ -543,6 +526,7 @@ def generate_event_data_events_in_next_date(user_id: str, timestamp: datetime.ti
             mcc=100,
             mnc=None,
             plmn=None,
+            domain=Domains.DOMESTIC,
             cell_id="1",
             latitude=None,
             longitude=None,
@@ -559,6 +543,7 @@ def generate_event_data_events_in_next_date(user_id: str, timestamp: datetime.ti
             mcc=100,
             mnc=None,
             plmn=None,
+            domain=Domains.DOMESTIC,
             cell_id="2",
             latitude=None,
             longitude=None,

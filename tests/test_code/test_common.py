@@ -1,4 +1,4 @@
-TEST_RESOURCES_PATH = "tests/test_resources"
+TEST_RESOURCES_PATH = "/opt/app/tests/test_resources"
 TESTING_DATA_PATH = "/opt/testing_data"
 STATIC_TEST_DATA_PATH = "tests/test_resources/test_data"
 

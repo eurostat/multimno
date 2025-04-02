@@ -8,24 +8,18 @@ from multimno.core.data_objects.silver.silver_cell_footprint_data_object import 
 from multimno.components.execution.cell_footprint.cell_footprint_estimation import (
     CellFootprintEstimation,
 )
-from multimno.core.data_objects.silver.silver_enriched_grid_data_object import (
-    SilverEnrichedGridDataObject,
-)
-from multimno.core.data_objects.silver.silver_grid_data_object import SilverGridDataObject
+from multimno.core.data_objects.silver.silver_network_data_object import SilverNetworkDataObject
 from tests.test_code.fixtures import spark_session as spark
 from tests.test_code.multimno.components.execution.cell_footprint.aux_cell_footprint_testing import (
-    EXPECTED_IMPUTE_DEFAULT_PROPERTIES,
-    get_mno_network,
-    set_input_network_data,
+    set_input_data,
+    generate_expected_cell_footprint_data,
+    generate_expected_network_impute_default_properties,
 )
 from tests.test_code.test_common import (
     TEST_RESOURCES_PATH,
     TEST_GENERAL_CONFIG_PATH,
-    STATIC_TEST_DATA_PATH,
 )
-from multimno.core.settings import (
-    CONFIG_SILVER_PATHS_KEY,
-)
+
 from tests.test_code.test_utils import setup_test_data_dir, teardown_test_data_dir
 
 
@@ -45,67 +39,41 @@ def teardown_function():
     teardown_test_data_dir()
 
 
-def prepare_test_data(spark):
-    """
-    DESCRIPTION:
-        Function to prepare the test data for the tests.
-    """
-    # Prepare test data
-    config = parse_configuration(TEST_GENERAL_CONFIG_PATH)
-
-    grid_do = SilverGridDataObject(spark, config.get(CONFIG_SILVER_PATHS_KEY, "grid_data_silver"), ["quadkey"])
-
-    grid_sdf = (
-        spark.read.format("geoparquet")
-        .schema(SilverGridDataObject.SCHEMA)
-        .load(f"{STATIC_TEST_DATA_PATH}/grid/expected_extent_grid")
-    )
-    grid_do.df = grid_sdf
-    grid_do.write()
-
-    set_input_network_data(spark, config)
-
-
 def test_cell_footprint_estimation(spark):
     """
+    Test the cell footprint estimation component.
+
     DESCRIPTION:
-        Test shall execute the CellFootprintEstimation component with a genereated cells data
-        and pregenerated enriched grid data. The test shall assert the output cell footprint data
-        is equal to the pregenerated expected cell footrpint data.
+    This test verifies the cell footprint estimation component. It initialises the necessary configurations, sets up the
+    input data, executes the cell footprint estimation process, and asserts that the output DataFrame matches the expected
+    result
 
     INPUT:
-        Test Configs:
-            general: tests/test_resources/config/general_config.ini
-            component: tests/test_resources/config/network/cell_footprint_estimation/cell_footprint_estimation.ini
-        Input Data:
-            silver_signal_strength: /opt/testing_data/lakehouse/silver/signal_strength
+    - spark: Spark session fixture provided by pytest.
 
-    OUTPUT:
-        cell_footprint_data_silver:  /opt/tests/test_resources/test_data/network/cell_footprint
+    STEPS:
+    1. Initialise configuration path and configuration
+    3. Create input datausing the test configuration
+    4. Initialise the CellFootprintEstimation component with the test configuration
+    5. Execute the component.
+    6. Read the output of the component.
+    7. Get the expected result of the execution.
+    8. Assert equality of component output and expected output.
     """
-    # Setup
+    config = parse_configuration(TEST_GENERAL_CONFIG_PATH, CELLFOOTPRINT_CONFIG_PATH)
+    set_input_data(spark, config)
 
-    ## Init configs & paths
+    cfe = CellFootprintEstimation(TEST_GENERAL_CONFIG_PATH, CELLFOOTPRINT_CONFIG_PATH)
 
-    ## Create Input data
-    prepare_test_data(spark)
+    cfe.execute()
 
-    ## Init component class
-    test_component = CellFootprintEstimation(TEST_GENERAL_CONFIG_PATH, CELLFOOTPRINT_CONFIG_PATH)
+    expected_df = spark.createDataFrame(generate_expected_cell_footprint_data(), SilverCellFootprintDataObject.SCHEMA)
 
-    # Expected
-    expected_do = SilverCellFootprintDataObject(spark, f"{STATIC_TEST_DATA_PATH}/network/cell_footprint/")
-    expected_do.read()
-    expected_sdf = expected_do.df
-    # Execution
-    test_component.execute()
-
-    # Assertion
-    # read from test data output
-    output_footprint_data_object = test_component.output_data_objects[SilverCellFootprintDataObject.ID]
+    output_footprint_data_object = cfe.output_data_objects[SilverCellFootprintDataObject.ID]
     output_footprint_data_object.read()
+
     # assert read data == expected
-    assertDataFrameEqual(output_footprint_data_object.df, expected_sdf)
+    assertDataFrameEqual(output_footprint_data_object.df, expected_df)
 
 
 def test_impute_default_cell_properties(spark):
@@ -119,18 +87,24 @@ def test_impute_default_cell_properties(spark):
     OUTPUT:
         sdf_imputed: DataFrame with imputed default cell properties.
     """
-    prepare_test_data(spark)
-    # Create test input DataFrame
-    sdf = get_mno_network(spark)
+    config = parse_configuration(TEST_GENERAL_CONFIG_PATH, CELLFOOTPRINT_CONFIG_PATH)
+    set_input_data(spark, config)
 
     # Create instance of CellFootprintEstimation class
-    component = CellFootprintEstimation(TEST_GENERAL_CONFIG_PATH, CELLFOOTPRINT_CONFIG_PATH)
+    cfe = CellFootprintEstimation(TEST_GENERAL_CONFIG_PATH, CELLFOOTPRINT_CONFIG_PATH)
+
+    # Create test input DataFrame
+    net_do = cfe.input_data_objects[SilverNetworkDataObject.ID]
+    net_do.read()
+    input_df = net_do.df
 
     # Call the impute_default_cell_properties method
-    sdf_imputed = component.impute_default_cell_properties(sdf)
+    sdf_imputed = cfe.impute_default_cell_properties(input_df)
 
     # Define expected output DataFrame
-    expected_sdf = spark.createDataFrame(EXPECTED_IMPUTE_DEFAULT_PROPERTIES, schema=sdf_imputed.schema)
+    expected_sdf = spark.createDataFrame(
+        generate_expected_network_impute_default_properties(), schema=sdf_imputed.schema
+    )
 
     # Assert that the output DataFrame matches the expected DataFrame
     assertDataFrameEqual(sdf_imputed, expected_sdf)

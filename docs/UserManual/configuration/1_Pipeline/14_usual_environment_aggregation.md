@@ -12,6 +12,8 @@ To initialise and run the component two configs are used - `general_config.ini` 
 usual_environment_labels_data_silver = ${Paths:silver_dir}/usual_environment_labels
 grid_data_silver = ${Paths:silver_dir}/grid
 aggregated_usual_environments_silver = ${Paths:silver_dir}/aggregated_usual_environment
+# only if used
+enriched_grid_data_silver = ${Paths:silver_dir}/grid_enriched
 ...
 ```
 
@@ -32,6 +34,15 @@ The expected parameters in `ue_aggregation.ini` are as follows:
 
  - **uniform_tile_weights**: int, if to use uniform tile weights in the aggregation process. If `True`, the weights of the tiles are equal. If `False`, the weights of the tiles are calculated based on landuse information.
 
+- **landuse_prior_weights** - dictionary, keys are land use types, values are weights for these landuse types. The land use types are: 
+    - residential_builtup
+    - other_builtup
+    - roads
+    - other_human_activity
+    - open_area
+    - forest
+    - water
+
 ## Configuration example
 
 ```ini
@@ -46,4 +57,13 @@ end_month = 2023-03
 
 season = all
 uniform_tile_weights = True
+landuse_weights = {
+    "residential_builtup": 1.0,
+    "other_builtup": 1.0,
+    "roads": 0.5,
+    "other_human_activity": 0.1,
+    "open_area": 0.0,
+    "forest": 0.0,
+    "water": 0.0
+    }
 ```

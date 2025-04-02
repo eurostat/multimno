@@ -8,8 +8,7 @@ import logging
 
 @pytest.fixture(scope="session")
 def spark_session(request):
-    config = parse_configuration(TEST_GENERAL_CONFIG_PATH)
-    spark = generate_spark_session(config)
+    spark = get_spark_testing_session()
 
     def teardown():
         spark.stop()
@@ -17,4 +16,10 @@ def spark_session(request):
     logging.getLogger("py4j").setLevel(logging.ERROR)
 
     request.addfinalizer(teardown)
+    return spark
+
+
+def get_spark_testing_session():
+    config = parse_configuration(TEST_GENERAL_CONFIG_PATH)
+    spark = generate_spark_session(config)
     return spark

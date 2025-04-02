@@ -28,11 +28,9 @@ with your preferences:
 
 ```ini
 # ------------------- Docker Build parameters -------------------
-PYTHON_VERSION=3.11 # Python version.
-JDK_VERSION=17 # Java version.
-SPARK_VERSION=3.4.1 # Spark/Pyspark version.
+SPARK_VERSION=3.5.1 # Spark/Pyspark version.
 SCALA_VERSION=2.12 # Spark dependency.
-SEDONA_VERSION=1.5.1 # Sedona
+SEDONA_VERSION=1.6.1 # Sedona
 GEOTOOLS_WRAPPER_VERSION=28.2 # Sedona dependency
 
 # ------------------- Docker run parameters -------------------
@@ -40,8 +38,10 @@ CONTAINER_NAME=multimno_dev_container # Container name.
 DATA_DIR=../sample_data # Path of the host machine to the data to be used within the container.
 SPARK_LOGS_DIR=../sample_data/logs # Path of the host machine to where the spark logs will be stored.
 JL_PORT=8888 # Port of the host machine to deploy a jupyterlab.
-JL_CPU=4 # CPU cores of the container.
-JL_MEM=16g # RAM of the container.
+SUI_PORT=4040 # Port for the Spark UI.
+SHS_PORT=18080 # Port for the Spark History Server.
+CONTAINER_CPU=4 # CPU cores of the container.
+CONTAINER_MEM=24g # RAM of the container.
 ```
 
 ### Starting the dev environment 
@@ -91,26 +91,26 @@ docker compose -f .devcontainer/docker-compose.yml --env-file=.devcontainer/.env
 In a terminal execute the command:  
   
 ```bash
-spark-submit multimno/main.py <component_id> <path_to_general_config> <path_to_component_config> 
+spark-submit multimno/main_multimno.py <component_id> <path_to_general_config> <path_to_component_config> 
 ```
 
 Example:  
   
 ```bash
-spark-submit multimno/main.py SyntheticEvents pipe_configs/configurations/general_config.ini pipe_configs/configurations/synthetic_events/synth_config.ini 
+spark-submit multimno/main_multimno.py SyntheticEvents pipe_configs/configurations/general_config.ini pipe_configs/configurations/synthetic_events/synth_config.ini 
 ```
 
 ### Launching a pipeline
 In a terminal execute the command:  
 
 ```bash
-python multimno/orchestrator.py <pipeline_json_path>
+python multimno/orchestrator_multimno.py <pipeline_json_path>
 ```
 
 Example:  
 
 ```
-python multimno/orchestrator.py pipe_configs/pipelines/pipeline.json 
+python multimno/orchestrator_multimno.py pipe_configs/pipelines/pipeline.json 
 ```
 
 ## 🔍 Monitoring/Debug
@@ -146,6 +146,21 @@ docstrings which facilitates readability and collaboration in open-source projec
 Developed code shall be formatted and jupyter notebooks shall be cleaned of outputs to guarantee consistency and reduce 
 unnecessary differences between commits.
 
+### Pre-Commit Git Hook
+The repository includes a pre-commit Git hook located at `resources/hooks/pre-commit`. This hook is designed to be executed automatically before any commit to the repository. It performs code linting and Jupyter notebook cleaning as defined in the subsequent sections.
+
+#### Automatic Setup
+The pre-commit hook is automatically configured when launching the devcontainer through Visual Studio Code.
+
+#### Manual Setup
+To manually set up the pre-commit hook, execute the following command:
+
+```bash
+./resources/hooks/set_git_hooks.sh
+```
+
+This ensures that the pre-commit hook is properly installed and executable, thereby maintaining code quality and consistency across the repository.
+
 ### Code Linting
 
 The python code generated shall be formatted with black. For formatting all source code execute the
@@ -160,6 +175,7 @@ black -l 120 multimno tests/test_code/
 ```bash
 find ./notebooks/ -type f -name \*.ipynb | xargs jupyter nbconvert --clear-output --inplace
 ```
+
 
 ### Code Security Scan
 
@@ -246,6 +262,21 @@ Example:
 mike deploy --push --update-aliases 0.2 latest
 ```
 
+# 📜 Licensing
 
+## Generating License Data
 
+Licensing data can be regenerated using the development container (devcontainer) and the scripts located in the `resources/scripts/license/` directory. These scripts include:
+
+- `generate_license.sh` – A Bash script that invokes CycloneDX to generate the SBOM.
+- `generate_concise_license_data.py` – A Python script that parses the SBOM and produces the concise licensing data. This script is automatically executed by `generate_license.sh`.
+
+### Usage
+To generate the licensing data, execute the following commands within the devcontainer terminal:
+
+```bash
+./resources/scripts/license/generate_license.sh
+```
+
+This process will update the licensing files accordingly.
 

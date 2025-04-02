@@ -1,6 +1,12 @@
 from configparser import ConfigParser
 from datetime import datetime
+
+from pyspark.sql import SparkSession, DataFrame
+from pyspark.sql.types import Row
+import sedona.sql.st_constructors as STC
+
 from multimno.core.constants.columns import ColNames, SegmentStates
+from multimno.core.utils import apply_schema_casting
 from multimno.core.data_objects.silver.silver_cell_connection_probabilities_data_object import (
     SilverCellConnectionProbabilitiesDataObject,
 )
@@ -9,16 +15,15 @@ from multimno.core.data_objects.silver.silver_usual_environment_labels_data_obje
     SilverUsualEnvironmentLabelsDataObject,
 )
 from multimno.core.data_objects.silver.silver_time_segments_data_object import SilverTimeSegmentsDataObject
+from multimno.core.data_objects.silver.silver_grid_data_object import SilverGridDataObject
 from multimno.core.data_objects.silver.silver_tourism_stays_data_object import SilverTourismStaysDataObject
-from pyspark.sql import SparkSession, DataFrame
-from pyspark.sql.types import Row
-from tests.test_code.fixtures import spark_session as spark
 
 
 input_time_segments_id = "input_time_segments"
 input_cell_connection_probabilities_id = "input_cell_connection_probabilities"
 input_geozones_grid_mapping_id = "input_geozones_grid_mapping"
 input_ue_labels_id = "input_ue_labels"
+input_grid_id = "input_grid"
 expected_tourism_stays_id = "expected_tourism_stays"
 
 
@@ -45,6 +50,7 @@ def set_input_data(
     cell_connection_probabilities_data: list[Row],
     geozones_grid_map_data: list[Row],
     ue_labels_data: list[Row],
+    grid_data=list[Row],
 ):
     """
     Function to write test-specific provided dataframes to input directories.
@@ -55,6 +61,7 @@ def set_input_data(
         time_segments_data (list[Row]): list of time segments data rows
         cell_connection_probabilities_data (list[Row]): list of cell to grid connection probabilities data rows
         geozones_grid_map_data (list[Row]): list of geozone to grid mapping data rows
+        grid_data (list[Row]): lost of grid data for retrieving origin
     """
 
     ### Write input time segments data to test resources dir
@@ -74,6 +81,14 @@ def set_input_data(
         cell_connection_probabilities_data, schema=SilverCellConnectionProbabilitiesDataObject.SCHEMA
     )
     cell_connection_probabilities_do.write()
+
+    grid_path = config["Paths.Silver"]["grid_data_silver"]
+    grid_do = SilverGridDataObject(spark, grid_path)
+    grid_df = spark.createDataFrame(grid_data).withColumn("geometry", STC.ST_GeomFromEWKT("geometry"))
+
+    grid_df = apply_schema_casting(grid_df, schema=SilverGridDataObject.SCHEMA)
+    grid_do.df = grid_df
+    grid_do.write()
 
     ### Write input geozones to grid mapping data to test resources dir
     geozones_grid_map_data_path = config["Paths.Silver"]["geozones_grid_map_data_silver"]
@@ -128,6 +143,7 @@ def data_test_0001() -> dict:
             time_segment_id=1,
             start_timestamp=datetime.strptime("2023-01-02T00:00:00", date_format),
             end_timestamp=datetime.strptime("2023-01-02T23:59:59", date_format),
+            last_event_timestamp=None,
             mcc=mcc,
             mnc=mnc,
             plmn=plmn,
@@ -144,6 +160,7 @@ def data_test_0001() -> dict:
             time_segment_id=1,
             start_timestamp=datetime.strptime("2023-01-03T00:00:00", date_format),
             end_timestamp=datetime.strptime("2023-01-03T00:55:00", date_format),
+            last_event_timestamp=None,
             mcc=mcc,
             mnc=mnc,
             plmn=plmn,
@@ -160,6 +177,7 @@ def data_test_0001() -> dict:
             time_segment_id=2,
             start_timestamp=datetime.strptime("2023-01-03T00:55:00", date_format),
             end_timestamp=datetime.strptime("2023-01-03T05:55:00", date_format),
+            last_event_timestamp=None,
             mcc=mcc,
             mnc=mnc,
             plmn=plmn,
@@ -176,6 +194,7 @@ def data_test_0001() -> dict:
             time_segment_id=2,
             start_timestamp=datetime.strptime("2023-01-03T00:55:00", date_format),
             end_timestamp=datetime.strptime("2023-01-03T13:55:00", date_format),
+            last_event_timestamp=None,
             mcc=mcc,
             mnc=mnc,
             plmn=plmn,
@@ -192,6 +211,7 @@ def data_test_0001() -> dict:
             time_segment_id=3,
             start_timestamp=datetime.strptime("2023-01-03T04:55:00", date_format),
             end_timestamp=datetime.strptime("2023-01-03T05:54:30", date_format),
+            last_event_timestamp=None,
             mcc=mcc,
             mnc=mnc,
             plmn=plmn,
@@ -208,6 +228,7 @@ def data_test_0001() -> dict:
             time_segment_id=4,
             start_timestamp=datetime.strptime("2023-01-03T05:54:30", date_format),
             end_timestamp=datetime.strptime("2023-01-03T09:45:00", date_format),
+            last_event_timestamp=None,
             mcc=mcc,
             mnc=mnc,
             plmn=plmn,
@@ -224,6 +245,7 @@ def data_test_0001() -> dict:
             time_segment_id=5,
             start_timestamp=datetime.strptime("2023-01-03T10:05:00", date_format),
             end_timestamp=datetime.strptime("2023-01-03T11:25:00", date_format),
+            last_event_timestamp=None,
             mcc=mcc,
             mnc=mnc,
             plmn=plmn,
@@ -237,11 +259,19 @@ def data_test_0001() -> dict:
         ),
     ]
 
-    grid_id_1 = 1 * (10**7) + 1
-    grid_id_2 = 2 * (10**7) + 2
-    grid_id_3 = 10111 * (10**7) + 11000
-    grid_id_4 = 10113 * (10**7) + 10999
-    grid_id_5 = 80000 * (10**7) + 90000
+    grid_id_1 = (0 << 16) + 0
+    grid_id_2 = (1 << 16) + 0
+    grid_id_3 = (101 << 16) + 110
+    grid_id_4 = (101 << 16) + 109
+    grid_id_5 = (800 << 16) + 900
+
+    input_grid = [
+        Row(geometry="SRID=3035;POINT (50 50)", grid_id=grid_id_1, origin=0, quadkey="1234567"),
+        Row(geometry="SRID=3035;POINT (150 50)", grid_id=grid_id_2, origin=0, quadkey="1234567"),
+        Row(geometry="SRID=3035;POINT (10150 11050)", grid_id=grid_id_3, origin=0, quadkey="1234567"),
+        Row(geometry="SRID=3035;POINT (10150 10950)", grid_id=grid_id_4, origin=0, quadkey="1234567"),
+        Row(geometry="SRID=3035;POINT (80050 90050)", grid_id=grid_id_5, origin=0, quadkey="1234567"),
+    ]
 
     input_cell_connection_probabilities_data = [
         # cell_id_a has grids 1, 2
@@ -450,4 +480,5 @@ def data_test_0001() -> dict:
         input_geozones_grid_mapping_id: input_geozones_grid_mapping_data,
         input_ue_labels_id: input_input_ue_labels_data,
         expected_tourism_stays_id: expected_tourism_stays_data,
+        input_grid_id: input_grid,
     }

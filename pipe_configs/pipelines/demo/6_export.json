@@ -1,0 +1,26 @@
+{
+    "general_config_path": "pipe_configs/configurations/general_config.ini",
+    "spark_submit_args": [],
+    "pipeline": [
+        {
+            "component_id": "OutputIndicators",
+            "component_config_path": "pipe_configs/configurations/4_export/output_indicators/output_indicators_pp.ini"
+        },
+        {
+            "component_id": "OutputIndicators",
+            "component_config_path": "pipe_configs/configurations/4_export/output_indicators/output_indicators_ue.ini"
+        },
+        {
+            "component_id": "OutputIndicators",
+            "component_config_path": "pipe_configs/configurations/4_export/output_indicators/output_indicators_mig.ini"
+        },
+        {
+            "component_id": "OutputIndicators",
+            "component_config_path": "pipe_configs/configurations/4_export/output_indicators/output_indicators_tou_in.ini"
+        },
+        {
+            "component_id": "OutputIndicators",
+            "component_config_path": "pipe_configs/configurations/4_export/output_indicators/output_indicators_tou_out.ini"
+        }
+    ]
+}

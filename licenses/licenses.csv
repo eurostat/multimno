@@ -1,0 +1,36 @@
+name,version,license
+affine,2.4.0, BSD License
+apache-sedona,1.6.1, Apache Software License
+certifi,2025.1.31,MPL-2.0
+charset-normalizer,3.4.1,MIT
+click,8.1.8, BSD License
+click-plugins,1.1.1, BSD License
+cligj,0.7.2,BSD
+geopandas,1.0.1, BSD License
+googleapis-common-protos,1.56.4,Apache-2.0
+grpcio,1.56.2, Apache Software License
+grpcio-status,1.56.2, Apache Software License
+idna,3.10, BSD License
+multimno,0.7.0,EUPL-1.2
+numpy,1.26.4, BSD License
+packaging,24.2, Apache Software License
+pandas,2.2.3, BSD License
+pip,25.0.1,MIT
+protobuf,4.25.6,3-Clause BSD License
+py4j,0.10.9.7, BSD License
+pyarrow,17.0.0, Apache Software License
+pyogrio,0.10.0,MIT
+pyparsing,3.2.1,MIT
+pyproj,3.7.1,MIT
+pyspark,3.5.1, Apache Software License
+python-dateutil,2.9.0.post0, Apache Software License
+pytz,2025.1,MIT
+rasterio,1.4.3, BSD License
+requests,2.32.3,Apache-2.0
+setuptools,76.1.0,MIT
+shapely,2.0.7, BSD License
+six,1.17.0,MIT
+toml,0.10.2,MIT
+tzdata,2025.1,Apache-2.0
+urllib3,2.3.0,MIT
+wheel,0.45.1,MIT

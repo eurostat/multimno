@@ -31,6 +31,7 @@ class SilverEventDataObject(ParquetDataObject):
             StructField(ColNames.mcc, IntegerType(), nullable=True),
             StructField(ColNames.mnc, StringType(), nullable=True),
             StructField(ColNames.plmn, IntegerType(), nullable=True),
+            StructField(ColNames.domain, StringType(), nullable=True),
             StructField(ColNames.cell_id, StringType(), nullable=True),
             StructField(ColNames.latitude, FloatType(), nullable=True),
             StructField(ColNames.longitude, FloatType(), nullable=True),

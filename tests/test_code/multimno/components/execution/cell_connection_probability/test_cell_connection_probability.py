@@ -15,7 +15,7 @@ from tests.test_code.test_utils import setup_test_data_dir, teardown_test_data_d
 from tests.test_code.multimno.components.execution.cell_connection_probability.aux_cell_connection_probability import (
     expected_cell_connection_probabilities,
     set_input_cell_footprint_data,
-    set_input_grid_data,
+    set_input_enriched_grid_data,
 )
 
 from multimno.core.configuration import parse_configuration
@@ -70,7 +70,7 @@ def test_cell_connection_probability(spark, expected_cell_connection_probabiliti
     parsed_config = parse_configuration(TEST_GENERAL_CONFIG_PATH, component_config_path)
 
     set_input_cell_footprint_data(spark, parsed_config)
-    set_input_grid_data(spark, parsed_config)
+    set_input_enriched_grid_data(spark, parsed_config)
 
     # Init component class
     cell_connection_prob_module = CellConnectionProbabilityEstimation(TEST_GENERAL_CONFIG_PATH, component_config_path)

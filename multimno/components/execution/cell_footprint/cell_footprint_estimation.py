@@ -5,15 +5,11 @@ Module that computes the grid footprint of cells
 from math import sqrt, pi
 import datetime
 from typing import Union
-from itertools import combinations
-from functools import reduce
 
 import pandas as pd
 import numpy as np
 from pyspark.sql import Row, Column, DataFrame, Window
 import pyspark.sql.functions as F
-from pyspark.sql.types import ArrayType, StringType
-from pyspark.storagelevel import StorageLevel
 from sedona.sql import st_constructors as STC
 from sedona.sql import st_functions as STF
 from sedona.sql import st_predicates as STP
@@ -233,6 +229,7 @@ class CellFootprintEstimation(Component):
                 current_cells_sdf, grid_sdf, "coverage_center", "coverage_effective_range"
             )
         else:
+            current_cells_sdf = current_cells_sdf.repartition(self.repartition_number)
             current_cell_grid_sdf = self.spatial_join_within_distance(current_cells_sdf, grid_sdf, "geometry", "range")
         # Calculate planar and 3D distances
         current_cell_grid_sdf = self.calculate_cartesian_distances(current_cell_grid_sdf)
@@ -662,10 +659,9 @@ class CellFootprintEstimation(Component):
             x (float): The point at which to evaluate the normal distribution.
             mean (float): The mean of the normal distribution.
             sd (float): The standard deviation of the normal distribution.
-            return_type (str): The desired return type, either 'np_array' or 'list'.
 
         Returns:
-            np.array or list: The value of the normal distribution at the given point,
+            (np.array | list): The value of the normal distribution at the given point,
             returned as either a numpy array or a list.
         """
         n_dist = (1.0 / (sqrt(2.0 * pi) * sd)) * np.exp(-0.5 * ((x - mean) / sd) ** 2)
@@ -755,7 +751,7 @@ class CellFootprintEstimation(Component):
             point_type (str): The type of point to calculate the signal dominance threshold for.
 
         Returns:
-            DataFrame: The updated cells DataFrame with the signal dominance threshold point added.
+            (DataFrame): The updated cells DataFrame with the signal dominance threshold point added.
         """
 
         do_azimuth_angle_adjustments = True
@@ -876,7 +872,7 @@ class CellFootprintEstimation(Component):
             do_azimuth_angle_adjustments (bool): Flag to indicate whether to perform azimuth angle adjustments.
 
         Returns:
-            GeoDataFrame: The input GeoDataFrame with an additional column for signal dominance, after applying the specified adjustments.
+            (GeoDataFrame): The input GeoDataFrame with an additional column for signal dominance, after applying the specified adjustments.
         """
 
         # calculate distance power loss
@@ -943,7 +939,7 @@ class CellFootprintEstimation(Component):
             sdf (DataFrame): A Spark DataFrame
 
         Returns:
-            DataFrame: The input DataFrame with the 'signal_strength' column adjusted and intermediate columns dropped.
+            (DataFrame): The input DataFrame with the 'signal_strength' column adjusted and intermediate columns dropped.
         """
 
         # TODO: simplify math in this function by using Sedona built in spatial methods

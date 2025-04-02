@@ -10,10 +10,10 @@ include = ["multimno*"]
 # Project metadata
 [project]
 name = "multimno"
-version = "0.7.0"
+version = "0.8.0-beta"
 description = "Big data pipeline software for mobility and sociodemographic analysis from MNO Data."
 readme = "README.md"
-license = { file = "LICENSE" }
+license = {text = "EUPL-1.2"}
 authors = [
     { name = "Juan Arranz", email = "juan.arranz@nommon.es" },
     { name = "Oliver Bollverk", email = "oliver.bollverk@positium.com" },
@@ -34,7 +34,7 @@ dependencies = [
     "pyarrow~=17.0",
     "requests~=2.31",
     "toml~=0.10",
-    "py4j>=0.10.9.7",
+    "py4j==0.10.9.7",
 
     # ------ sedona ------
     "apache-sedona==1.6.1",
@@ -79,6 +79,7 @@ dev = [
     "mkdocs-section-index~=0.3",
     "mkdocs-nav-weight~=0.2",
     "mkdocstrings-python~=1.8",
+    "mkdocs-panzoom-plugin~=0.1",
     "mike~=2.0",
 ]
 

@@ -3,31 +3,24 @@ from pyspark.testing.utils import assertDataFrameEqual
 from multimno.components.execution.geozones_grid_mapping.geozones_grid_mapping import (
     GeozonesGridMapping,
 )
-from multimno.core.data_objects.bronze.bronze_geographic_zones_data_object import (
-    BronzeGeographicZonesDataObject,
-)
-from multimno.core.data_objects.silver.silver_grid_data_object import (
-    SilverGridDataObject,
-)
+
 from multimno.core.data_objects.silver.silver_geozones_grid_map_data_object import (
     SilverGeozonesGridMapDataObject,
 )
-from tests.test_code.fixtures import spark_session as spark
 from multimno.core.configuration import parse_configuration
+from tests.test_code.fixtures import spark_session as spark
 from tests.test_code.test_common import (
     TEST_RESOURCES_PATH,
     TEST_GENERAL_CONFIG_PATH,
-    STATIC_TEST_DATA_PATH,
 )
-from multimno.core.settings import (
-    CONFIG_SILVER_PATHS_KEY,
-    CONFIG_BRONZE_PATHS_KEY,
-    CONFIG_PATHS_KEY,
-)
+
 from tests.test_code.test_utils import (
     setup_test_data_dir,
     teardown_test_data_dir,
-    assert_sparkgeodataframe_equal,
+)
+from tests.test_code.multimno.components.execution.geozones_grid_mapping.aux_geozones_grid_mapping import (
+    set_input_data,
+    generate_expected_geozones_data,
 )
 
 
@@ -41,32 +34,6 @@ def setup_function():
 
 def teardown_function():
     teardown_test_data_dir()
-
-
-def prepare_test_data(spark):
-    """
-    DESCRIPTION:
-        Function to prepare the test data for the tests.
-    """
-    # Prepare test data
-    config = parse_configuration(TEST_GENERAL_CONFIG_PATH)
-
-    zones_do = BronzeGeographicZonesDataObject(
-        spark,
-        config.get(CONFIG_BRONZE_PATHS_KEY, "geographic_zones_data_bronze"),
-    )
-
-    zones_sdf = spark.read.format("geoparquet").load(f"{STATIC_TEST_DATA_PATH}/spatial_data/nuts_zones")
-
-    zones_do.df = zones_sdf
-    zones_do.write()
-
-    grid_do = SilverGridDataObject(spark, config.get(CONFIG_SILVER_PATHS_KEY, "grid_data_silver"))
-
-    grid_sdf = spark.read.format("geoparquet").load(f"{STATIC_TEST_DATA_PATH}/grid/expected_extent_grid")
-
-    grid_do.df = grid_sdf
-    grid_do.write()
 
 
 def test_geozones_grid_mapping(spark):
@@ -93,17 +60,18 @@ def test_geozones_grid_mapping(spark):
         6.- Assert that the output DataFrame is equal to the expected DataFrame using the assertDataFrameEqual utility function
     """
     # Setup
-    prepare_test_data(spark)
     ## Init configs & paths
     component_config_path = f"{TEST_RESOURCES_PATH}/config/grid/geozones_grid_mapping.ini"
+    config = parse_configuration(TEST_GENERAL_CONFIG_PATH, component_config_path)
+    set_input_data(spark, config)
 
     ## Init component class
     test_component = GeozonesGridMapping(TEST_GENERAL_CONFIG_PATH, component_config_path)
 
     # Expected
-    expected_do = SilverGeozonesGridMapDataObject(spark, f"{STATIC_TEST_DATA_PATH}/grid/expected_geozones_grid_map")
-    expected_do.read()
-    expected_sdf = expected_do.df
+    expected_df = spark.createDataFrame(
+        generate_expected_geozones_data(), schema=SilverGeozonesGridMapDataObject.SCHEMA
+    )
 
     # Execution
     test_component.execute()
@@ -114,4 +82,4 @@ def test_geozones_grid_mapping(spark):
     output_grid_data_object.read()
 
     # assert read data == expected
-    assertDataFrameEqual(output_grid_data_object.df, expected_sdf)
+    assertDataFrameEqual(output_grid_data_object.df, expected_df)

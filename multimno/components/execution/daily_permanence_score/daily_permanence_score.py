@@ -19,7 +19,6 @@ from pyspark.sql.types import (
     IntegerType,
     ShortType,
     ByteType,
-    ArrayType,
     LongType,
     StringType,
 )
@@ -382,11 +381,17 @@ class DailyPermanenceScore(Component):
 
         cell_footprint = previous_cell_footprint.union(current_cell_footprint).union(next_cell_footprint)
 
-        cell_footprint = self.grid_gen.grid_ids_to_centroids(cell_footprint)
+        # We only use geometries to calculate distances, so we can use any origin for our 4-byte grid ID.
+        cell_footprint = self.grid_gen.grid_ids_to_grid_centroids(
+            cell_footprint.withColumn(ColNames.origin, F.lit(0).cast(LongType())),
+            grid_resolution=100,
+        ).drop(ColNames.origin)
 
         if self.use_200m_grid:
             self.logger.info("Using 200m grid for DPS calculation")
-            cell_footprint = self.grid_gen.get_parent_grid_ids(cell_footprint, 200, parent_col_name=ColNames.grid_id)
+            cell_footprint = self.grid_gen.grid_id_to_coarser_resolution(
+                sdf=cell_footprint, coarse_resolution=200, coarse_grid_id_col=ColNames.grid_id
+            )
 
         cell_footprint = cell_footprint.groupBy([ColNames.cell_id, ColNames.year, ColNames.month, ColNames.day]).agg(
             F.collect_list(ColNames.geometry).alias(ColNames.geometry),
@@ -858,7 +863,7 @@ class DailyPermanenceScore(Component):
 
         uknown_intervals = uknown_intervals.withColumn(
             ColNames.dps,
-            F.array(F.lit(UeGridIdType.UNKNOWN).cast(LongType())),
+            F.array(F.lit(UeGridIdType.UNKNOWN).cast(IntegerType())),
         ).select(
             ColNames.user_id,
             ColNames.dps,
@@ -877,7 +882,7 @@ class DailyPermanenceScore(Component):
         )
         abroad_intervals = abroad_intervals.withColumn(
             ColNames.dps,
-            F.array(F.col(ColNames.cell_id).cast(LongType())),
+            F.array(F.col(ColNames.cell_id).cast(IntegerType())),
         ).select(
             ColNames.user_id,
             ColNames.dps,

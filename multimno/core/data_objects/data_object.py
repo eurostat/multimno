@@ -151,13 +151,19 @@ class GeoParquetDataObject(PathDataObject):
         default_partition_columns: List[str] = None,
         default_mode: str = SPARK_WRITING_MODES.APPEND,
         default_crs: int = INSPIRE_GRID_EPSG,
+        set_crs: bool = True,
     ) -> None:
         super().__init__(spark, default_path, default_partition_columns, default_mode)
         self.interface: PathInterface = GeoParquetInterface()
         self.default_crs = default_crs
+        self.set_crs = set_crs
 
     def read(self):
         self.df = self.interface.read_from_interface(self.spark, self.default_path, self.SCHEMA)
-        self.df = self.df.withColumn(ColNames.geometry, STF.ST_SetSRID((ColNames.geometry), F.lit(self.default_crs)))
+
+        if self.set_crs:
+            self.df = self.df.withColumn(
+                ColNames.geometry, STF.ST_SetSRID((ColNames.geometry), F.lit(self.default_crs))
+            )
 
         return self

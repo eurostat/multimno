@@ -74,16 +74,18 @@ def test_cell_proximity_estimation(spark):
     ]
     output_cell_intersection_groups_data_object.read()
 
-    expected_output_cell_intersection_groups_df = get_expected_cell_intersection_groups_df(spark)
-
-    assertDataFrameEqual(
-        output_cell_intersection_groups_data_object.df, expected_output_cell_intersection_groups_df, checkRowOrder=False
+    expected_output_cell_intersection_groups = get_expected_cell_intersection_groups_df()
+    groups_df = spark.createDataFrame(
+        expected_output_cell_intersection_groups, schema=SilverCellIntersectionGroupsDataObject.SCHEMA
     )
+
+    assertDataFrameEqual(output_cell_intersection_groups_data_object.df, groups_df, checkRowOrder=False)
 
     # Assertion: cell distance
     # read from test data output
     output_cell_distance_data_object = cpe_component.output_data_objects[SilverCellDistanceDataObject.ID]
     output_cell_distance_data_object.read()
 
-    expected_output_cell_distance_df = get_expected_output_cell_distance_df(spark)
-    assertDataFrameEqual(output_cell_distance_data_object.df, expected_output_cell_distance_df, checkRowOrder=False)
+    expected_output_cell_distance = get_expected_output_cell_distance_df()
+    distance_df = spark.createDataFrame(expected_output_cell_distance, schema=SilverCellDistanceDataObject.SCHEMA)
+    assertDataFrameEqual(output_cell_distance_data_object.df, distance_df, checkRowOrder=False)

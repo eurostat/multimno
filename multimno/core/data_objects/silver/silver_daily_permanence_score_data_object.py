@@ -9,7 +9,6 @@ from pyspark.sql.types import (
     BinaryType,
     StringType,
     ArrayType,
-    LongType,
     ShortType,
     ByteType,
     IntegerType,
@@ -30,7 +29,7 @@ class SilverDailyPermanenceScoreDataObject(ParquetDataObject):
             StructField(ColNames.user_id, BinaryType(), nullable=False),
             StructField(ColNames.time_slot_initial_time, TimestampType(), nullable=False),
             StructField(ColNames.time_slot_end_time, TimestampType(), nullable=False),
-            StructField(ColNames.dps, ArrayType(LongType()), nullable=False),
+            StructField(ColNames.dps, ArrayType(IntegerType()), nullable=False),
             # partition columns
             StructField(ColNames.year, ShortType(), nullable=False),
             StructField(ColNames.month, ByteType(), nullable=False),

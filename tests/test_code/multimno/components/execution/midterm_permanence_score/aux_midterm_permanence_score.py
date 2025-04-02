@@ -2,7 +2,6 @@ import pytest
 import datetime as dt
 from configparser import ConfigParser
 import datetime
-from multimno.core.data_objects.silver.silver_cell_footprint_data_object import SilverCellFootprintDataObject
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
     Row,
@@ -10,7 +9,6 @@ from pyspark.sql.types import (
     StructField,
     StructType,
     IntegerType,
-    LongType,
     ArrayType,
     DateType,
     BinaryType,
@@ -32,9 +30,6 @@ from multimno.core.data_objects.silver.silver_midterm_permanence_score_data_obje
 from multimno.core.constants.error_types import UeGridIdType
 
 from tests.test_code.fixtures import spark_session as spark
-from tests.test_code.multimno.components.execution.daily_permanence_score.aux_dps_testing import (
-    get_cellfootprint_testing_df,
-)
 from tests.test_code.test_utils import get_user_id_hashed
 
 fixtures = [spark]
@@ -51,7 +46,7 @@ def get_dps_testing_df(spark: SparkSession):
             ColNames.user_id: get_user_id_hashed("1"),
             ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 2, 8, 0, 0),
             ColNames.time_slot_end_time: datetime.datetime(2023, 1, 2, 9, 0, 0),
-            ColNames.dps: [10000001000000],
+            ColNames.dps: [0],
             ColNames.year: 2023,
             ColNames.month: 1,
             ColNames.day: 2,
@@ -62,7 +57,7 @@ def get_dps_testing_df(spark: SparkSession):
             ColNames.user_id: get_user_id_hashed("1"),
             ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 2, 9, 0, 0),
             ColNames.time_slot_end_time: datetime.datetime(2023, 1, 2, 10, 0, 0),
-            ColNames.dps: [10000001000000],
+            ColNames.dps: [0],
             ColNames.year: 2023,
             ColNames.month: 1,
             ColNames.day: 2,
@@ -73,7 +68,7 @@ def get_dps_testing_df(spark: SparkSession):
             ColNames.user_id: get_user_id_hashed("1"),
             ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 2, 9, 0, 0),
             ColNames.time_slot_end_time: datetime.datetime(2023, 1, 2, 10, 0, 0),
-            ColNames.dps: [10000001000000],
+            ColNames.dps: [0],
             ColNames.year: 2023,
             ColNames.month: 1,
             ColNames.day: 2,
@@ -84,7 +79,7 @@ def get_dps_testing_df(spark: SparkSession):
             ColNames.user_id: get_user_id_hashed("1"),
             ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 3, 17, 0, 0),
             ColNames.time_slot_end_time: datetime.datetime(2023, 1, 3, 18, 0, 0),
-            ColNames.dps: [10000001000000],
+            ColNames.dps: [0],
             ColNames.year: 2023,
             ColNames.month: 1,
             ColNames.day: 3,
@@ -95,7 +90,7 @@ def get_dps_testing_df(spark: SparkSession):
             ColNames.user_id: get_user_id_hashed("1"),
             ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 3, 18, 0, 0),
             ColNames.time_slot_end_time: datetime.datetime(2023, 1, 3, 19, 0, 0),
-            ColNames.dps: [10000001000000],
+            ColNames.dps: [0],
             ColNames.year: 2023,
             ColNames.month: 1,
             ColNames.day: 3,
@@ -137,7 +132,7 @@ def get_expected_midterm_df(spark):
     expected_midterm_ps_data = [
         {
             ColNames.user_id: get_user_id_hashed("1"),
-            ColNames.grid_id: 10000001000000,
+            ColNames.grid_id: 0,
             ColNames.mps: 5,
             ColNames.frequency: 2,
             ColNames.regularity_mean: 14.666667,
@@ -163,15 +158,12 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
     """"""
     dps_test_data_path = config["Paths.Silver"]["daily_permanence_score_data_silver"]
     holiday_data_path = config["Paths.Bronze"]["holiday_calendar_data_bronze"]
-    cell_footprint_path = config["Paths.Silver"]["cell_footprint_data_silver"]
 
     # ---------------- Daily permanence score data object -----------------
     dps_df = get_dps_testing_df(spark)
 
     # ---------------- Holiday calendar data object -----------------
     holiday_df = get_holiday_testing_df(spark)
-    # ---------------- Cell Footprint -----------------
-    cell_footprint_df = get_cellfootprint_testing_df(spark)
 
     # ---------------- Writing -----------------
 
@@ -185,11 +177,6 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
     holiday_do = BronzeHolidayCalendarDataObject(spark, holiday_data_path)
     holiday_do.df = holiday_df
     holiday_do.write()
-
-    # Cell Footprint
-    cell_footprint_do = SilverCellFootprintDataObject(spark, cell_footprint_path)
-    cell_footprint_do.df = cell_footprint_df
-    cell_footprint_do.write()
 
 
 # --------- Expected Fixture ---------
@@ -207,7 +194,7 @@ def get_metrics_calculation_input_and_expected(spark: SparkSession):
     # Data
     user_id = "1"
     user_id_modulo = 1
-    grid_ids = [10000001000000, 10000001000001]
+    grid_ids = [0, 1]
     mps_values = [1, 2]
     dates_vales = [
         [dt.date(2021, 2, 2), dt.date(2021, 2, 3)],  # Two days in study month
@@ -233,7 +220,7 @@ def get_metrics_calculation_input_and_expected(spark: SparkSession):
         [
             StructField(ColNames.user_id_modulo, IntegerType(), True),
             StructField(ColNames.user_id, BinaryType(), True),
-            StructField(ColNames.grid_id, LongType(), True),
+            StructField(ColNames.grid_id, IntegerType(), True),
             StructField(ColNames.mps, IntegerType(), True),
             StructField(dates_col, ArrayType(DateType()), True),
         ]
@@ -267,7 +254,7 @@ def get_metrics_calculation_input_and_expected(spark: SparkSession):
         [
             StructField(ColNames.user_id_modulo, IntegerType(), True),
             StructField(ColNames.user_id, BinaryType(), True),
-            StructField(ColNames.grid_id, LongType(), True),
+            StructField(ColNames.grid_id, IntegerType(), True),
             StructField(ColNames.mps, IntegerType(), True),
             StructField(ColNames.frequency, IntegerType(), False),
             StructField(ColNames.regularity_mean, DoubleType(), True),

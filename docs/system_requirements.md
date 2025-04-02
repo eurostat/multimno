@@ -2,7 +2,7 @@
 
 Multimno is a python library which requires the installation of additional system & python libraries. In this section the requirements for executing this software are defined. 
 
-In the case of using the docker image provided,
+In the case of using the docker image provided for local testing,
 the system only needs to comply with the [Hardware Requirements](./system_requirements.md#hardware-requirements) and [Docker requirements](./system_requirements.md#docker-requirements) as the docker image will have all the [software requirements](./system_requirements.md#software-requirements) already installed.
 
 ## Hardware requirements
@@ -15,9 +15,14 @@ The hardware specification needed will vary depending on the input data volumetr
 - **RAM:** 16 Gb
 - **Disk:** 32 Gb of free space
 - **OS:** 
-    - **Ubuntu 22.04 (Recommended)**
-    - Mac 12.6
-    - Windows 11 + WSL2 with Ubuntu 22.04 
+    - Linux:
+        - Debian 12+
+            - **Ubuntu 22.04 (Recommended)**
+        - Fedora 18+
+            - RHEL 7
+            - Amazon Linux 2023
+    - Mac: 12.6+
+    - Windows: 11 & WSL2 with Ubuntu 22.04 
   
 ## Software Requirements
 
@@ -41,16 +46,16 @@ The hardware specification needed will vary depending on the input data volumetr
 
 | Library       | Version      |
 | ------------- | ------------ |
-| numpy         | >=1.24,<1.27 |
+| numpy         | >=1.26,<1.27 |
 | pandas        | >=2.0,<2.3   |
-| pyarrow       | >=17.0       |
+| pyarrow       | 17.0         |
 | requests      | 2.31.0       |
 | toml          | 0.10         |
 | apache-sedona | >= 1.6.0     |
-| geopandas     | 0.11.1       |
-| shapely       | 1.8.4        |
+| geopandas     | 1.0          |
+| shapely       | 2.0          |
 | pyspark       | 3.5.1        |
-| py4j          | >=0.10.9.7   |
+| py4j          | 0.10.9.7     |
 
 ## Docker requirements
 In the case of using the docker image provided for single node execution the following requirements must be fulfilled:  

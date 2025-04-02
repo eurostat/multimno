@@ -1,8 +1,11 @@
 import datetime as dt
 from pyspark.sql import Row
 from pyspark.sql import SparkSession
+import sedona.sql.st_constructors as STC
 from configparser import ConfigParser
 
+from multimno.core.utils import apply_schema_casting
+from multimno.core.data_objects.silver.silver_grid_data_object import SilverGridDataObject
 from multimno.core.data_objects.silver.silver_geozones_grid_map_data_object import SilverGeozonesGridMapDataObject
 from multimno.core.data_objects.silver.silver_present_population_data_object import SilverPresentPopulationDataObject
 from multimno.core.data_objects.silver.silver_aggregated_usual_environments_data_object import (
@@ -83,7 +86,7 @@ def generate_input_present_population_data() -> list[Row]:
 
     return [
         Row(
-            grid_id=15209001896100,
+            grid_id=(15209 << 16) + 18961,
             population=1.0,
             timestamp=t1,
             year=t1.year,
@@ -91,7 +94,7 @@ def generate_input_present_population_data() -> list[Row]:
             day=t1.day,
         ),
         Row(
-            grid_id=15209001896300,
+            grid_id=(15209 << 16) + 18963,
             population=5.0,
             timestamp=t1,
             year=t1.year,
@@ -99,7 +102,7 @@ def generate_input_present_population_data() -> list[Row]:
             day=t1.day,
         ),
         Row(
-            grid_id=15209001896900,
+            grid_id=(15209 << 16) + 18969,
             population=8.0,
             timestamp=t1,
             year=t1.year,
@@ -107,7 +110,7 @@ def generate_input_present_population_data() -> list[Row]:
             day=t1.day,
         ),
         Row(
-            grid_id=15211001896100,
+            grid_id=(15211 << 16) + 18961,
             population=4.0,
             timestamp=t1,
             year=t1.year,
@@ -115,7 +118,7 @@ def generate_input_present_population_data() -> list[Row]:
             day=t1.day,
         ),
         Row(
-            grid_id=15211001896600,
+            grid_id=(15211 << 16) + 18966,
             population=2.0,
             timestamp=t1,
             year=t1.year,
@@ -135,7 +138,7 @@ def generate_input_usual_environment_data() -> list[Row]:
 
     input_data = [
         Row(
-            grid_id=15209001896100,
+            grid_id=(15209 << 16) + 18961,
             weighted_device_count=1.0,
             label="home",
             start_date=start_date,
@@ -143,7 +146,7 @@ def generate_input_usual_environment_data() -> list[Row]:
             season="all",
         ),
         Row(
-            grid_id=15209001896100,
+            grid_id=(15209 << 16) + 18961,
             weighted_device_count=1.0,
             label="ue",
             start_date=start_date,
@@ -151,7 +154,7 @@ def generate_input_usual_environment_data() -> list[Row]:
             season="all",
         ),
         Row(
-            grid_id=15209001896300,
+            grid_id=(15209 << 16) + 18963,
             weighted_device_count=5.0,
             label="work",
             start_date=start_date,
@@ -159,7 +162,7 @@ def generate_input_usual_environment_data() -> list[Row]:
             season="all",
         ),
         Row(
-            grid_id=15209001896300,
+            grid_id=(15209 << 16) + 18963,
             weighted_device_count=5.0,
             label="ue",
             start_date=start_date,
@@ -167,7 +170,7 @@ def generate_input_usual_environment_data() -> list[Row]:
             season="all",
         ),
         Row(
-            grid_id=15209001896900,
+            grid_id=(15209 << 16) + 18969,
             weighted_device_count=8.0,
             label="work",
             start_date=start_date,
@@ -175,7 +178,7 @@ def generate_input_usual_environment_data() -> list[Row]:
             season="all",
         ),
         Row(
-            grid_id=15209001896900,
+            grid_id=(15209 << 16) + 18969,
             weighted_device_count=8.0,
             label="ue",
             start_date=start_date,
@@ -183,7 +186,7 @@ def generate_input_usual_environment_data() -> list[Row]:
             season="all",
         ),
         Row(
-            grid_id=15211001896100,
+            grid_id=(15211 << 16) + 18961,
             weighted_device_count=4.0,
             label="work",
             start_date=start_date,
@@ -191,7 +194,7 @@ def generate_input_usual_environment_data() -> list[Row]:
             season="all",
         ),
         Row(
-            grid_id=15211001896100,
+            grid_id=(15211 << 16) + 18961,
             weighted_device_count=4.0,
             label="ue",
             start_date=start_date,
@@ -199,7 +202,7 @@ def generate_input_usual_environment_data() -> list[Row]:
             season="all",
         ),
         Row(
-            grid_id=15211001896600,
+            grid_id=(15211 << 16) + 18966,
             weighted_device_count=2.0,
             label="home",
             start_date=start_date,
@@ -207,7 +210,7 @@ def generate_input_usual_environment_data() -> list[Row]:
             season="all",
         ),
         Row(
-            grid_id=15211001896600,
+            grid_id=(15211 << 16) + 18966,
             weighted_device_count=2.0,
             label="ue",
             start_date=start_date,
@@ -508,6 +511,43 @@ def generate_input_outbound_tourism_data() -> list[Row]:
     return input_data
 
 
+def generate_input_grid_data() -> list[Row]:
+    input_data = [
+        Row(
+            geometry="POINT (1520950 1896150)",
+            grid_id=(15209 << 16) + 18961,
+            origin=0,
+            quadkey="1234567",
+        ),
+        Row(
+            geometry="POINT (1520950 1896350)",
+            grid_id=(15209 << 16) + 18963,
+            origin=0,
+            quadkey="1234567",
+        ),
+        Row(
+            geometry="POINT (1520950 1896950)",
+            grid_id=(15209 << 16) + 18969,
+            origin=0,
+            quadkey="1234567",
+        ),
+        Row(
+            geometry="POINT (1521150 1896150)",
+            grid_id=(15211 << 16) + 18961,
+            origin=0,
+            quadkey="1234567",
+        ),
+        Row(
+            geometry="POINT (1521150 1896650)",
+            grid_id=(15211 << 16) + 18966,
+            origin=0,
+            quadkey="1234567",
+        ),
+    ]
+
+    return input_data
+
+
 def generate_zone_to_grid_map_data() -> list[Row]:
     """
     Generate zone to grid mapping input data.
@@ -516,7 +556,7 @@ def generate_zone_to_grid_map_data() -> list[Row]:
     dataset_id = "nuts"
     return [
         Row(
-            grid_id=15209001896100,
+            grid_id=(15209 << 16) + 18961,
             zone_id="C01",
             hierarchical_id="A01|B01|C01",
             dataset_id=dataset_id,
@@ -525,7 +565,7 @@ def generate_zone_to_grid_map_data() -> list[Row]:
             day=timestamp.day,
         ),
         Row(
-            grid_id=15209001896300,
+            grid_id=(15209 << 16) + 18963,
             zone_id="C02",
             hierarchical_id="A01|B01|C02",
             dataset_id=dataset_id,
@@ -534,7 +574,7 @@ def generate_zone_to_grid_map_data() -> list[Row]:
             day=timestamp.day,
         ),
         Row(
-            grid_id=15209001896900,
+            grid_id=(15209 << 16) + 18969,
             zone_id="C02",
             hierarchical_id="A01|B01|C02",
             dataset_id=dataset_id,
@@ -543,7 +583,7 @@ def generate_zone_to_grid_map_data() -> list[Row]:
             day=timestamp.day,
         ),
         Row(
-            grid_id=15211001896100,
+            grid_id=(15211 << 16) + 18961,
             zone_id="C03",
             hierarchical_id="A01|B02|C03",
             dataset_id=dataset_id,
@@ -552,7 +592,7 @@ def generate_zone_to_grid_map_data() -> list[Row]:
             day=timestamp.day,
         ),
         Row(
-            grid_id=15211001896600,
+            grid_id=(15211 << 16) + 18966,
             zone_id="C03",
             hierarchical_id="A01|B02|C03",
             dataset_id=dataset_id,
@@ -1651,8 +1691,15 @@ def set_input_data(spark: SparkSession, config: ConfigParser, use_case: str):
         zonegrid_do = SilverGeozonesGridMapDataObject(spark, config["Paths.Silver"]["geozones_grid_map_data_silver"])
         zonegrid_do.df = spark.createDataFrame(zonegrid_rows, schema=SilverGeozonesGridMapDataObject.SCHEMA)
 
+        input_grid = generate_input_grid_data()
+        input_grid = spark.createDataFrame(input_grid).withColumn("geometry", STC.ST_GeomFromEWKT("geometry"))
+        input_grid = apply_schema_casting(input_grid, schema=SilverGridDataObject.SCHEMA)
+        grid_do = SilverGridDataObject(spark, config["Paths.Silver"]["grid_data_silver"])
+        grid_do.df = input_grid
+
         input_do.write()
         zonegrid_do.write()
+        grid_do.write()
     elif use_case == "UsualEnvironmentAggregation":
         input_rows = generate_input_usual_environment_data()
         input_do = SilverAggregatedUsualEnvironmentsDataObject(
@@ -1664,8 +1711,15 @@ def set_input_data(spark: SparkSession, config: ConfigParser, use_case: str):
         zonegrid_do = SilverGeozonesGridMapDataObject(spark, config["Paths.Silver"]["geozones_grid_map_data_silver"])
         zonegrid_do.df = spark.createDataFrame(zonegrid_rows, schema=SilverGeozonesGridMapDataObject.SCHEMA)
 
+        input_grid = generate_input_grid_data()
+        input_grid = spark.createDataFrame(input_grid).withColumn("geometry", STC.ST_GeomFromEWKT("geometry"))
+        input_grid = apply_schema_casting(input_grid, schema=SilverGridDataObject.SCHEMA)
+        grid_do = SilverGridDataObject(spark, config["Paths.Silver"]["grid_data_silver"])
+        grid_do.df = input_grid
+
         input_do.write()
         zonegrid_do.write()
+        grid_do.write()
     elif use_case == "TourismStatisticsCalculation":
         departure_rows = generate_input_inbound_tourism_departures_data()
         average_rows = generate_input_inbound_tourism_averages_data()

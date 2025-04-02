@@ -11,8 +11,9 @@ To initialise and run the component two configs are used - `general_config.ini` 
 ...
 internal_migration_previous_ue_labels_silver = ${Paths:ue_dir}/internal_migration_previous_ue_labels
 internal_migration_new_ue_labels_silver = ${Paths:ue_dir}/internal_migration_new_ue_labels
-internal_migration_enriched_grid_silver = ${Paths:ue_dir}/internal_migration_enriched_grid  # only if used
 internal_migration_silver = ${Paths:ue_dir}/internal_migration
+# only if used
+enriched_grid_data_silver = ${Paths:silver_dir}/grid_enriched
 ...
 ```
 
@@ -29,6 +30,14 @@ The expected parameters in `internal_migration.ini` are as follows:
  - **start_month_new**: string, in `YYYY-MM` format, it indicates the first month of the second long-term period used to compute the internal migration. Example: `2023-07`.
  - **end_month_new**: string, in `YYYY-MM` format, it indicates the last month of the second long-term period used to compute the internal migration. Example: `2023-12`.
  - **season_new**: string, value of the season of the second long-term period used to compute the internal migration. Allowed values are: `all`, `spring`, `summer`, `autumn`, `winter`. Example: `all`.
+- **landuse_prior_weights** - dictionary, keys are land use types, values are weights for these landuse types. The land use types are: 
+    - residential_builtup
+    - other_builtup
+    - roads
+    - other_human_activity
+    - open_area
+    - forest
+    - water
 
 ## Configuration example
 ```ini
@@ -51,4 +60,14 @@ season_previous = all  # Allowed values: `all`, `spring`, `summer`, `autumn`, `w
 start_month_new = 2023-07  # Start month (inclusive) of the second long-term period
 end_month_new = 2023-12  # End month (inclusive) of the second long-term period
 season_new = all  # Allowed values: `all`, `spring`, `summer`, `autumn`, `winter`. Second long term period
+
+landuse_weights = {
+    "residential_builtup": 1.0,
+    "other_builtup": 1.0,
+    "roads": 0.5,
+    "other_human_activity": 0.1,
+    "open_area": 0.0,
+    "forest": 0.0,
+    "water": 0.0
+    }
 ```

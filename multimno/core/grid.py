@@ -2,13 +2,10 @@
 This module provides functionality for generating a grid based on the INSPIRE grid system specification.
 """
 
-from math import log10
-from abc import ABCMeta, abstractmethod
-from typing import List, Tuple, Union
-from multimno.core.constants.columns import ColNames
+from typing import List, Tuple
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
-from pyspark.sql.types import IntegerType, StringType, LongType
+from pyspark.sql.types import IntegerType, LongType, StructField, StructType
 from pyproj import Transformer
 from sedona.sql import st_constructors as STC
 from sedona.sql import st_functions as STF
@@ -17,79 +14,25 @@ from sedona.sql import st_predicates as STP
 from multimno.core.constants.columns import ColNames
 
 
-class GridGenerator(metaclass=ABCMeta):
-    """
-    Abstract class that provides functionality for generating a grid.
-    """
-
-    def __init__(self, spark: SparkSession) -> None:
-        self.spark: SparkSession = spark
-
-    @abstractmethod
-    def cover_extent_with_grid_ids(self, extent: tuple) -> DataFrame:
-        """Cover given extent with grid_ids on given resolution."""
-
-    @abstractmethod
-    def cover_polygon_with_grid_ids(self, polygon_sdf: DataFrame) -> DataFrame:
-        """Cover given polygon with grid_ids on given resolution."""
-
-    @abstractmethod
-    def grid_ids_to_centroids(self, sdf: DataFrame, to_crs: int) -> DataFrame:
-        """Get geometry centroids from grid_ids with given coordinate system."""
-
-    @abstractmethod
-    def grid_ids_to_tiles(self, sdf: DataFrame, to_crs: int) -> DataFrame:
-        """Get grid polygons from grid_ids with given coordinate system."""
-
-    @abstractmethod
-    def get_parent_grid_ids(self, sdf: DataFrame, resolution: int) -> DataFrame:
-        """Get parent grid_id on given resolution."""
-
-    @abstractmethod
-    def get_children_grid_ids(self, sdf: DataFrame, resolution: int) -> DataFrame:
-        """Get children grid_ids on given resolution."""
-
-
-class InspireGridGenerator(GridGenerator):
-    """A class used to generate a grid based on the INSPIRE grid system specification.
-
-    Attributes:
-        GRID_CRS_EPSG_CODE (int): The EPSG code for the grid's CRS.
-    """
+class InspireGridGenerator:
+    """A class used to generate a grid based on the INSPIRE 100m grid system specification."""
 
     GRID_CRS_EPSG_CODE = 3035
-    PROJ_COORD_INT_SIZE = 7
+    ACCEPTED_RESOLUTIONS = [100, 1000]
 
     def __init__(
         self,
         spark: SparkSession,
-        resolution=100,
-        geometry_col_name: str = "geometry",
-        grid_id_col_name: str = "grid_id",
+        geometry_col: str = ColNames.geometry,
+        grid_id_col: str = ColNames.grid_id,
         grid_partition_size: int = 2000,
-    ) -> None:
-        """Initializes the InspireGridGenerator with the given parameters.
-
-        Args:
-            spark (SparkSession): The SparkSession to use.
-            resolution (int, optional): The resolution of the grid. Defaults to 100. Has to be divisible by 100.
-            geometry_col_name (str, optional): The name of the geometry column. Defaults to 'geometry'.
-            grid_id_col_name (str, optional): The name of the grid ID column. Defaults to 'grid_id'.
-            grid_partition_size (int, optional): The size of the grid partitions, defined as number of tiles
-                in x and y dimensions of subdivisions of the intital grid. Defaults to 2000.
-
-        Raises:
-            ValueError: If the resolution is not divisible by 100.
-        """
-        if resolution % 100 != 0:
-            raise ValueError("Resolution must be divisible by 100")
-
-        super().__init__(spark)
-        self.geometry_col_name = geometry_col_name
-        self.grid_id_col_name = grid_id_col_name
-        self.resolution = resolution
+    ):
+        self.spark = spark
+        self.resolution = 100
+        self.resolution_str = self._format_distance(self.resolution)
+        self.geometry_col = geometry_col
+        self.grid_id_col = grid_id_col
         self.grid_partition_size = grid_partition_size
-        self.resolution_str = self._format_distance(resolution)
 
     @staticmethod
     def _format_distance(value: int) -> str:
@@ -108,26 +51,30 @@ class InspireGridGenerator(GridGenerator):
                 raise ValueError(f"Distance to be formatted not multiple of 1000: {value}")
             return f"{value // 1000}km"
 
-    def _project_latlon_extent(self, extent: List[float]) -> Union[List[float], List[float]]:
+    def _project_latlon_extent(self, extent: List[float]) -> Tuple[List[float], List[float]]:
         """Projects the given extent from lat/lon to the grid's CRS.
 
         Args:
             extent (List[float]): The extent to project. Order: [lon_min, lat_min, lon_max, lat_max]
 
         Returns:
-            List[float]: The projected extent.
+            List[float]: The projected extent. Order: [northing_bottomleft, easting_bottomleft, northing_topright,
+                easting_topright]
+            list[float]: Auxiliar coordinates. Order: [northing_bottomright, easting_bottomright, northing_topleft,
+                easting_topleft]
         """
         transformer = Transformer.from_crs("EPSG:4326", f"EPSG:{self.GRID_CRS_EPSG_CODE}")
+        # This transformer follows the following convention (xx, yy are the first and second coords, respetively)
         # EPSG4326: xx -> lat, yy -> lon
         # EPSG3035: xx -> northing, yy -> easting
-        xx_bottomleft, yy_bottomleft = transformer.transform(extent[1], extent[0])  # bottom-left corner
-        xx_topright, yy_topright = transformer.transform(extent[3], extent[2])  # top-right corner
-        xx_bottomright, yy_bottomright = transformer.transform(extent[1], extent[2])  # bottom-right corner
-        xx_topleft, yy_topleft = transformer.transform(extent[3], extent[0])
+        nn_bottomleft, ee_bottomleft = transformer.transform(extent[1], extent[0])  # bottom-left corner
+        nn_topright, ee_topright = transformer.transform(extent[3], extent[2])  # top-right corner
+        nn_bottomright, ee_bottomright = transformer.transform(extent[1], extent[2])  # bottom-right corner
+        nn_topleft, ee_topleft = transformer.transform(extent[3], extent[0])
 
         return (
-            [xx_bottomleft, yy_bottomleft, xx_topright, yy_topright],
-            [xx_bottomright, yy_bottomright, xx_topleft, yy_topleft],
+            [nn_bottomleft, ee_bottomleft, nn_topright, ee_topright],
+            [nn_bottomright, ee_bottomright, nn_topleft, ee_topleft],
         )
 
     @staticmethod
@@ -136,41 +83,41 @@ class InspireGridGenerator(GridGenerator):
         that covers the bounding box defined from the bottom-left and top-right corners in lat/lon.
 
         Args:
-            extent (List[float]): Coordinates in the projected CRS that are the transformation of the minimum and
-                maximum latitude and longitude, in [x_bottomleft, y_bottomleft, x_topright, y_topright] order.
-            auxiliar_coords (List[float]): Auxiliar coordinates in the prohected CRS that are the transformation
-                of the other two cornes of the lat/lon rectangular bounding box, in
-                [x_bottomright, y_bottomright, x_topleft, y_topleft] order
+            extent (list[float]): Coordinates in the projected CRS that are the transformation of the minimum and
+                maximum latitude and longitude, in [n_bottomleft, e_bottomleft, n_topright, e_topright] order.
+            auxiliar_coords (list[float]): Auxiliar coordinates in the projected CRS that are the transformation
+                of the other two corners of the rectangular bounding box, in
+                [n_bottomright, e_bottomright, n_topleft, e_topleft] order
 
         Returns:
-            List[float]: The projected extent, in [x_bottomleft, y_bottomleft, x_topright, y_topright] order.
-            List[float]: Raster cover bounds, in [x_topleft, y_topleft, x_bottomright, y_bottomright] order.
+            list[float]: The projected extent, in [n_bottomleft, e_bottomleft, n_topright, y_topright] order.
+            list[float]: Raster cover bounds, in [n_topleft, e_topleft, n_bottomright, y_bottomright] order.
         """
-        cover_x_bottomleft = min(extent[0], auxiliar_coords[0])  # min lat
-        cover_y_bottomleft = min(extent[1], auxiliar_coords[3])  # min lon
+        cover_n_bottomleft = min(extent[0], auxiliar_coords[0])  # min lat
+        cover_e_bottomleft = min(extent[1], auxiliar_coords[3])  # min lon
 
-        cover_x_topright = max(extent[2], auxiliar_coords[2])  # max lat
-        cover_y_topright = max(extent[3], auxiliar_coords[1])  # max lon
+        cover_n_topright = max(extent[2], auxiliar_coords[2])  # max lat
+        cover_e_topright = max(extent[3], auxiliar_coords[1])  # max lon
 
-        cover_x_topleft = max(extent[2], auxiliar_coords[2])  # max lat
-        cover_y_topleft = min(extent[1], auxiliar_coords[3])  # min lon
+        cover_n_topleft = max(extent[2], auxiliar_coords[2])  # max lat
+        cover_e_topleft = min(extent[1], auxiliar_coords[3])  # min lon
 
-        cover_x_bottomright = min(extent[0], auxiliar_coords[0])  # min lat
-        cover_y_bottomright = max(extent[3], auxiliar_coords[1])  # max lon
+        cover_n_bottomright = min(extent[0], auxiliar_coords[0])  # min lat
+        cover_e_bottomright = max(extent[3], auxiliar_coords[1])  # max lon
 
         return (
-            [cover_y_bottomleft, cover_x_bottomleft, cover_y_topright, cover_x_topright],
-            [cover_x_topleft, cover_y_topleft, cover_x_bottomright, cover_y_bottomright],
+            [cover_e_bottomleft, cover_n_bottomleft, cover_e_topright, cover_n_topright],
+            [cover_n_topleft, cover_e_topleft, cover_n_bottomright, cover_e_bottomright],
         )
 
     def _snap_extent_to_grid(self, extent: List[float]) -> List[float]:
         """Snaps the given extent to the grid.
 
         Args:
-            extent (List[float]): The extent to snap.
+            extent (list[float]): The extent to snap.
 
         Returns:
-            List[float]: The snapped extent.
+            list[float]: The snapped extent.
         """
         return [round(coord / self.resolution) * self.resolution for coord in extent]
 
@@ -178,11 +125,11 @@ class InspireGridGenerator(GridGenerator):
         """Extends the given extent by the specified factor in all directions.
 
         Args:
-            extent (List[float]): The extent to extend.
+            extent (list[float]): The extent to extend.
             extension_factor (int, optional): The factor by which to extend the extent. Defaults to 5.
 
         Returns:
-            List[float]: The extended extent.
+            list[float]: The extended extent.
         """
         extension_size = self.resolution * extension_factor
         return [
@@ -196,26 +143,25 @@ class InspireGridGenerator(GridGenerator):
         """Extends the given extent by the specified factor in all directions.
 
         Args:.
-            extent (List[float]): Raster cover bounds, in [x_topleft, y_topleft, x_bottomright, y_bottomright] order.
-
+            extent (list[float]): Raster cover bounds, in [x_topleft, y_topleft, x_bottomright, y_bottomright] order.
             extension_factor (int, optional): The factor by which to extend the extent. Defaults to 5.
 
         Returns:
-            List[float]: The extended extent.
+            list[float]: The extended extent.
         """
         extension_size = self.resolution * extension_factor
         return [
-            raster_bounds[0] + extension_size,  # x topleft
-            raster_bounds[1] - extension_size,  # y topleft
-            raster_bounds[2] - extension_size,  # x bottomright
-            raster_bounds[3] + extension_size,  # y bottomright
+            raster_bounds[0] + extension_size,  # n topleft
+            raster_bounds[1] - extension_size,  # e topleft
+            raster_bounds[2] - extension_size,  # n bottomright
+            raster_bounds[3] + extension_size,  # e bottomright
         ]
 
     def _get_grid_height(self, raster_bounds: List[float]) -> int:
         """Calculates the height of the grid for the given extent.
 
         Args:
-            raster_bounds (List[float]): The raster_bounds for which to calculate the grid height.
+            raster_bounds (list[float]): The raster_bounds for which to calculate the grid height.
 
         Returns:
             int: The grid height.
@@ -226,22 +172,24 @@ class InspireGridGenerator(GridGenerator):
         """Calculates the width of the grid for the given extent.
 
         Args:
-            raster_bounds (List[float]): The raster_bounds for which to calculate the grid width.
+            raster_bounds (list[float]): The raster_bounds for which to calculate the grid width.
 
         Returns:
             int: The grid width.
         """
         return int((raster_bounds[3] - raster_bounds[1]) / self.resolution)
 
-    def _get_grid_blueprint(self, extent: List[float]) -> DataFrame:
-        """Generates a blueprint for the grid for the given extent as a raster of grid resolution.
-        Splits initial raster into smaller rasters of size grid_partition_size x grid_partition_size.
+    def process_latlon_extent(self, extent: List[float]) -> Tuple[List[float], List[float]]:
+        """Takes an extent expressed in latitude and longitude (EPSG 4326), projects it into EPSG 3035, creates
+        bounding box, snaps to grid, and extends it some extra tiles in each direction.
 
         Args:
-            extent (List[float]): The extent for which to generate the grid blueprint.
+            extent (list[float]): The extent in lat/lon to process. Ordering is [lon_min, lat_min, lon_max, lat_max].
 
         Returns:
-            DataFrame: The grid blueprint.
+            extent (list[float]): Coordinates of the rectangle/bounding box that covers the projected and extended
+                extent. Order is [n_min, e_min, n_max, e_max] (bottom-left and top-right corners)
+            raster_bounds (list[float]): Appropriate raster bounds
         """
         extent, auxiliar_coords = self._project_latlon_extent(extent)
         extent, raster_bounds = self._project_bounding_box(extent, auxiliar_coords)
@@ -251,13 +199,25 @@ class InspireGridGenerator(GridGenerator):
 
         extent = self._extend_grid_extent(extent)
         raster_bounds = self._extend_grid_raster_bounds(raster_bounds)
+        return extent, raster_bounds
+
+    def _get_grid_blueprint(self, extent: List[float]) -> Tuple[DataFrame, List[float]]:
+        """Generates a blueprint for the grid for the given extent as a raster of grid resolution.
+        Splits initial raster into smaller rasters of size grid_partition_size x grid_partition_size.
+
+        Args:
+            extent (List[float]): The extent in lat/lon for which to generate the grid blueprint. Ordering must be
+                [lon_min, lat_min, lon_max, lat_max].
+
+        Returns:
+            DataFrame: The grid blueprint.
+            proj_extent (List[float]): Coordinates of the rectangle/bounding box that covers the projected and extended
+                extent. Order is [n_min, e_min, n_max, e_max] (bottom-left and top-right corners)
+        """
+        proj_extent, raster_bounds = self.process_latlon_extent(extent)
 
         grid_height = self._get_grid_height(raster_bounds)
         grid_width = self._get_grid_width(raster_bounds)
-
-        # ONLY FOR EPSG:3035!!!! which has (northing, easting) order, BUT (Y, X) axis names in its EPSG (not in code)
-        # raster_bounds[1]: easting of the top left corner. "X" axis
-        # raster_bounds[0]: northing of the top left corner. "Y" axis
 
         sdf = self.spark.sql(
             f"""SELECT RS_MakeEmptyRaster(1, "B", {grid_width}, 
@@ -269,17 +229,20 @@ class InspireGridGenerator(GridGenerator):
         )
 
         sdf = sdf.selectExpr(f"RS_TileExplode(raster,{self.grid_partition_size}, {self.grid_partition_size})")
-        return sdf.repartition(sdf.count())
+        return sdf.repartition(sdf.count()), proj_extent
 
     @staticmethod
     def _get_polygon_sdf_extent(polygon_sdf: DataFrame) -> List[float]:
-        """Gets the extent of the given polygon DataFrame.
+        """Gets the extent of the given polygon DataFrame. This method is currently used with geometry in
+        EPSG 4326, following order used by Sedona where the first coordinate X contains longitude and the second
+            coordinate Y contains latitude.
 
         Args:
             polygon_sdf (DataFrame): The polygon DataFrame.
 
         Returns:
-            List[float]: The extent of the polygon DataFrame.
+            list[float]: The extent of the polygon DataFrame. Order: [x_min, y_min, x_max, y_max] where x and y
+                refer to the first and second coordinates of the geometry, respectively.
         """
         polygon_sdf = polygon_sdf.withColumn("bbox", STF.ST_Envelope(polygon_sdf["geometry"]))
         polygon_sdf = (
@@ -292,11 +255,12 @@ class InspireGridGenerator(GridGenerator):
         return polygon_sdf.select("x_min", "y_min", "x_max", "y_max").collect()[0][0:]
 
     def _get_grid_intersection_with_mask(self, sdf: DataFrame, polygon_sdf: DataFrame) -> DataFrame:
-        """Gets the intersection of the grid with the given mask.
+        """Gets the intersection of the grid with the given polygon mask.
 
         Args:
             sdf (DataFrame): The DataFrame representing the grid.
-            polygon_sdf (DataFrame): The DataFrame representing the mask.
+            polygon_sdf (DataFrame): The DataFrame representing the mask in EPSG:4326. Sedona function expects
+                first coordinate (X) to be longitude and second coordinate (Y) to be latitude.
 
         Returns:
             DataFrame: The DataFrame representing the intersection of the grid with the mask.
@@ -306,343 +270,648 @@ class InspireGridGenerator(GridGenerator):
             STF.ST_Transform(polygon_sdf["geometry"], F.lit("EPSG:4326"), F.lit(f"EPSG:{self.GRID_CRS_EPSG_CODE}")),
         )
 
-        sdf = sdf.join(
-            polygon_sdf, STP.ST_Intersects(sdf[self.geometry_col_name], polygon_sdf["geometry"]), "inner"
-        ).drop(polygon_sdf["geometry"])
-
-        return sdf
-
-    def _get_grid_intersection_with_mask(self, sdf: DataFrame, polygon_sdf: DataFrame) -> DataFrame:
-        """Covers the given extent with grid centroids.
-
-        Args:
-            extent (List[float]): The extent to cover.
-
-        Returns:
-            DataFrame: The DataFrame representing the grid centroids covering the extent.
-        """
-        polygon_sdf = polygon_sdf.withColumn(
-            "geometry",
-            STF.ST_Transform(polygon_sdf["geometry"], F.lit("EPSG:4326"), F.lit(f"EPSG:{self.GRID_CRS_EPSG_CODE}")),
+        sdf = sdf.join(polygon_sdf, STP.ST_Intersects(sdf[self.geometry_col], polygon_sdf["geometry"]), "inner").drop(
+            polygon_sdf["geometry"]
         )
 
-        sdf = sdf.join(
-            polygon_sdf, STP.ST_Intersects(sdf[self.geometry_col_name], polygon_sdf["geometry"]), "inner"
-        ).drop(polygon_sdf["geometry"])
-
         return sdf
 
-    def cover_extent_with_grid_centroids(self, extent: List[float]) -> DataFrame:
-        """Covers the given polygon with grid centroids.
+    def _get_grid_id_from_centroids(self, sdf: DataFrame, n_origin: int, e_origin: int) -> DataFrame:
+        """Takes a DataFrame that has point geometries in [self.geometry_col] column in EPSG:3035, representing the
+        centroids of grid tiles, and creates the internal unsigned 4-byte identifier used internally by the pipeline.
+
+        The 4-byte identifier consists of two parts:
+            The two most significant bytes represent the northing coordinate (X, or first coordinate of EPSG:3035)
+            The two least significant bytes represent the easting coordinate (Y, or second coordinate of EPSG:3035)
+
+        In order to fit all the necessary tiles into 4 bytes, we do a traslation of the coordinate system to have
+        a different origin, defined by (n_origin, e_origin)
 
         Args:
-            extent (List[float]): The extent to cover.
+            sdf (DataFrame): DataFrame containing grid tile centroids to which we want to add the grid ID.
+            n_origin (int): Northing origin to be used in the internal 4-byte ID. In metres.
+            e_origin (int): Easting origin to be used in the internal 4-byte ID. In metres.
 
         Returns:
-            DataFrame: The DataFrame representing the grid centroids covering the polygon.
+            DataFrame: DataFrame with a grid ID column added
         """
-        sdf = self._get_grid_blueprint(extent)
+        sdf = sdf.withColumn(
+            self.grid_id_col,
+            (
+                F.shiftleft(
+                    ((STF.ST_X(F.col(self.geometry_col)) - n_origin - self.resolution / 2) / self.resolution).cast(
+                        IntegerType()
+                    ),
+                    16,
+                )
+                + (
+                    ((STF.ST_Y(F.col(self.geometry_col)) - e_origin - self.resolution / 2) / self.resolution).cast(
+                        IntegerType()
+                    )
+                )
+            ),
+        )
+
+        # Add origin column
+        sdf = sdf.withColumn(
+            ColNames.origin,
+            (
+                F.shiftleft(F.lit(n_origin / self.resolution).cast(LongType()), 32)
+                + F.lit(e_origin / self.resolution).cast(LongType())
+            ).cast(LongType()),
+        )
+        return sdf
+
+    def _get_grid_id_from_grid_tiles(self, sdf: DataFrame, n_origin: int, e_origin: int) -> DataFrame:
+        """Takes a DataFrame that has tile geometries in [self.geometry_col] column in EPSG:3035, representing the
+        grid tiles, and creates the internal unsigned 4-byte identifier used internally by the pipeline.
+
+        The 4-byte identifier consists of two parts:
+            The two most significant bytes represent the northing coordinate (X, or first coordinate of EPSG:3035)
+            The two least significant bytes represent the easting coordinate (Y, or second coordinate of EPSG:3035)
+
+        In order to fit all the necessary tiles into 4 bytes, we do a traslation of the coordinate system to have
+        a different origin, defined by (n_origin, e_origin)
+
+        Args:
+            sdf (DataFrame): DataFrame containing grid tile centroids to which we want to add the grid ID.
+            n_origin (int): Northing origin to be used in the internal 4-byte ID. In metres.
+            e_origin (int): Easting origin to be used in the internal 4-byte ID. In metres.
+
+        Returns:
+            DataFrame: DataFrame with a grid ID column added
+        """
+        sdf = sdf.withColumn(
+            self.grid_id_col,
+            (
+                F.shiftleft(
+                    ((STF.ST_XMin(F.col(self.geometry_col)) - n_origin) / self.resolution).cast(IntegerType()), 16
+                )
+                + (((STF.ST_YMin(F.col(self.geometry_col)) - e_origin) / self.resolution).cast(IntegerType()))
+            ),
+        )
+
+        # Add origin column
+        sdf = sdf.withColumn(
+            ColNames.origin,
+            (
+                F.shiftleft(F.lit(n_origin / self.resolution).cast(LongType()), 32)
+                + F.lit(e_origin / self.resolution).cast(LongType())
+            ).cast(LongType()),
+        )
+        return sdf
+
+    def cover_extent_with_grid_centroids(
+        self, extent: List[float], n_origin: int = None, e_origin: int = None
+    ) -> DataFrame:
+        """Covers the given extent with grid centroids. It takes an extent expressed in EPSG:4326 and covers it
+        with grid centroid point geometries in EPSG:3035, returning a DataFrame with these geometries, the internal
+        4-byte grid ID and the origin used to define the 4-byte ID. If both `n_origin` and `e_origin` are provided,
+        they are used as the origin of the ID; if not, the origin is taken from the provided extent.
+
+        It is desirable to define the origin using `n_origin` and `e_origin` when one wants to cover several extents
+        sharing the same origin, i.e. using the 4-byte grid ID defined in the same way for all of them.
+
+        Args:
+            extent (list[float]): The extent in lat/lon (EPSG:4326) to cover with grid centroids. Ordering must be
+                [lon_min, lat_min, lon_max, lat_max].
+            n_origin (int, optional): northing origin to be used for the 4-byte grid ID, in EPSG:3035 (metres).
+                Defaults to None.
+            e_origin (int, optional): easting origin to be used for the 4-byte grid ID, in EPSG:3035 (metres).
+                Defaults to None.
+
+        Returns:
+            DataFrame: The DataFrame representing the grid centroids covering the extent, with their grid ID and origin
+                columns.
+        """
+        if (n_origin is None and e_origin is not None) or (n_origin is not None and e_origin is None):
+            raise ValueError("Either both or none of the arguments `n_origin` and `e_origin` must be passed")
+
+        sdf, proj_extent = self._get_grid_blueprint(extent)
 
         sdf = sdf.selectExpr("explode(RS_PixelAsCentroids(tile, 1)) as exploded").selectExpr(
-            f"exploded.geom as {self.geometry_col_name}"
+            f"exploded.geom as {self.geometry_col}"
         )
 
-        sdf = sdf.withColumn(
-            self.grid_id_col_name,
-            (
-                (STF.ST_Y(sdf["geometry"]) - (self.resolution / 2)).cast(LongType()) * 10**self.PROJ_COORD_INT_SIZE
-                + (STF.ST_X(sdf["geometry"]) - (self.resolution / 2)).cast(LongType())
-            ).cast(LongType()),
-        )
+        if n_origin is not None:
+            sdf = self._get_grid_id_from_centroids(sdf, n_origin=n_origin, e_origin=e_origin)
+        else:
+            sdf = self._get_grid_id_from_centroids(sdf, n_origin=proj_extent[0], e_origin=proj_extent[1])
 
         return sdf
 
-    def cover_polygon_with_grid_centroids(self, polygon_sdf: DataFrame) -> DataFrame:
-        """Covers the given extent with grid IDs.
+    def cover_polygon_with_grid_centroids(
+        self, polygon_sdf: DataFrame, n_origin: int = None, e_origin: int = None
+    ) -> DataFrame:
+        """Covers the given polygon with grid centroids. It takes an polygon expressed in EPSG:4326 and covers it
+        with grid centroid point geometries in EPSG:3035, returning a DataFrame with these geometries, the internal
+        4-byte grid ID and the origin used to define the 4-byte ID. If both `n_origin` and `e_origin` are provided,
+        they are used as the origin of the ID; if not, the origin is taken from the extent covering the provided
+        polygon.
+
+        It is desirable to define the origin using `n_origin` and `e_origin` when one wants to cover several polygons
+        sharing the same origin, i.e. using the 4-byte grid ID defined in the same way for all of them.
 
         Args:
-            polygon_sdf (DataFrame): The DataFrame representing the polygon.
+            polygon_sdf (DataFrame): DataFrame containing a single row with a polygon in EPSG:4326 in a column named
+                `geometry`.
+            n_origin (int, optional): northing origin to be used for the 4-byte grid ID, in EPSG:3035 (metres). Defaults to None.
+            e_origin (int, optional): easting origin to be used for the 4-byte grid ID, in EPSG:3035 (metres). Defaults to None.
 
         Returns:
-            DataFrame: The DataFrame representing the grid IDs covering the extent.
+            DataFrame: The DataFrame representing the grid centroids covering the polygon, with their grid ID and origin
+                columns.
         """
         extent = self._get_polygon_sdf_extent(polygon_sdf)
 
-        sdf = self.cover_extent_with_grid_centroids(extent)
+        sdf = self.cover_extent_with_grid_centroids(extent, n_origin, e_origin)
 
         sdf = self._get_grid_intersection_with_mask(sdf, polygon_sdf)
 
         return sdf
 
-    def cover_extent_with_grid_ids(self, extent: List[float]) -> DataFrame:
-        """Covers the given polygon with grid IDs.
+    def cover_extent_with_grid_tiles(
+        self, extent: List[float], n_origin: int = None, e_origin: int = None
+    ) -> Tuple[DataFrame, List[float]]:
+        """Covers the given extent with grid tiles. It takes an extent expressed in EPSG:4326 and covers it
+        with grid tile polygon geometries in EPSG:3035, returning a DataFrame with these geometries, the internal
+        4-byte grid ID and the origin used to define the 4-byte ID. If both `n_origin` and `e_origin` are provided,
+        they are used as the origin of the ID; if not, the origin is taken from the provided extent.
+
+        It is desirable to define the origin using `n_origin` and `e_origin` when one wants to cover several extents
+        sharing the same origin, i.e. using the 4-byte grid ID defined in the same way for all of them.
 
         Args:
-            extent (List[float]): The extent to cover.
+            extent (list[float]): The extent in lat/lon (EPSG:4326) to cover with grid tiles. Ordering must be
+                [lon_min, lat_min, lon_max, lat_max].
+            n_origin (int, optional): northing origin to be used for the 4-byte grid ID, in EPSG:3035 (metres). Defaults to None.
+            e_origin (int, optional): easting origin to be used for the 4-byte grid ID, in EPSG:3035 (metres). Defaults to None.
 
         Returns:
-            DataFrame: The DataFrame representing the grid IDs covering the polygon.
+            DataFrame: The DataFrame representing the grid tiles covering the extent, with their grid ID and origin
+                columns.
         """
-        sdf = self.cover_extent_with_grid_centroids(extent)
+        if (n_origin is None and e_origin is not None) or (n_origin is not None and e_origin is None):
+            raise ValueError("Either both or none of the arguments `n_origin` and `e_origin` must be passed")
 
-        sdf = sdf.drop(self.geometry_col_name)
-
-        return sdf
-
-    def cover_polygon_with_grid_ids(self, polygon_sdf: DataFrame) -> DataFrame:
-        """Covers the given polygon with grid IDs.
-
-        Args:
-            polygon_sdf (DataFrame): The DataFrame representing the polygon.
-
-        Returns:
-            DataFrame: The DataFrame representing the grid IDs covering the polygon.
-        """
-        extent = self._get_polygon_sdf_extent(polygon_sdf)
-
-        sdf = self.cover_extent_with_grid_centroids(extent)
-
-        sdf = self._get_grid_intersection_with_mask(sdf, polygon_sdf)
-
-        sdf = sdf.drop("geometry")
-
-        return sdf
-
-    def cover_extent_with_grid_tiles(self, extent: List[float]) -> DataFrame:
-        """Covers the given extent with grid tiles.
-
-        Args:
-            extent (List[float]): The extent to cover.
-
-        Returns:
-            DataFrame: The DataFrame representing the grid tiles covering the extent.
-        """
-        sdf = self._get_grid_blueprint(extent)
+        sdf, proj_extent = self._get_grid_blueprint(extent)
 
         sdf = sdf.selectExpr("explode(RS_PixelAsPolygons(tile, 1)) as exploded").selectExpr(
-            f"exploded.geom as {self.geometry_col_name}"
+            f"exploded.geom as {self.geometry_col}"
         )
 
-        sdf = sdf.withColumn(
-            self.grid_id_col_name,
-            (
-                STF.ST_YMin(sdf["geometry"]).cast(LongType()) * 10**self.PROJ_COORD_INT_SIZE
-                + STF.ST_XMin(sdf["geometry"])
-            ).cast(LongType()),
-        )
+        if n_origin is not None:
+            sdf = self._get_grid_id_from_grid_tiles(sdf, n_origin=n_origin, e_origin=e_origin)
+        else:
+            sdf = self._get_grid_id_from_grid_tiles(sdf, n_origin=proj_extent[0], e_origin=proj_extent[1])
 
         return sdf
 
-    def cover_polygon_with_grid_tiles(self, polygon_sdf: DataFrame) -> DataFrame:
-        """Covers the given polygon with grid tiles.
+    def cover_polygon_with_grid_tiles(self, polygon_sdf: DataFrame, n_origin: int, e_origin: int) -> DataFrame:
+        """Covers the given polygon with grid tiles. It takes an polygon expressed in EPSG:4326 and covers it
+        with grid tile polygon geometries in EPSG:3035, returning a DataFrame with these geometries, the internal
+        4-byte grid ID and the origin used to define the 4-byte ID. If both `n_origin` and `e_origin` are provided,
+        they are used as the origin of the ID; if not, the origin is taken from the polygon covering the provided
+        polygon.
+
+        It is desirable to define the origin using `n_origin` and `e_origin` when one wants to cover several polygons
+        sharing the same origin, i.e. using the 4-byte grid ID defined in the same way for all of them.
 
         Args:
-            polygon_sdf (DataFrame): The DataFrame representing the polygon.
+            polygon_sdf (DataFrame): DataFrame containing a single row with a polygon in EPSG:4326 in a column named
+                `geometry`.
+            n_origin (int, optional): northing origin to be used for the 4-byte grid ID, in EPSG:3035 (metres). Defaults to None.
+            e_origin (int, optional): easting origin to be used for the 4-byte grid ID, in EPSG:3035 (metres). Defaults to None.
 
         Returns:
-            DataFrame: The DataFrame representing the grid tiles covering the polygon.
+            DataFrame: The DataFrame representing the grid tiles covering the polygon, with their grid ID and origin
+                columns.
         """
         extent = self._get_polygon_sdf_extent(polygon_sdf)
 
-        sdf = self.cover_extent_with_grid_tiles(extent)
+        sdf = self.cover_extent_with_grid_tiles(extent, n_origin, e_origin)
 
         sdf = self._get_grid_intersection_with_mask(sdf, polygon_sdf)
 
         return sdf
 
-    def convert_internal_id_to_inspire_specs(
-        self, sdf: DataFrame, resolution: int = None, grid_id_col: str = None
+    def grid_id_to_inspire_id(
+        self, sdf: DataFrame, inspire_resolution: int, grid_id_col: str = None, origin: int = None
     ) -> DataFrame:
-        """
-        Converts the integer grid id column in a DataFrame to the INSPIRE grid string format.
+        """Function that takes a DataFrame containing 4-byte grid IDs and returns it with a new column containing
+        the official INSPIRE grid ID string. Only accepted INSPIRE grid resolutions are 100m and 1km.
+
+        It is expected that the grid ID column contains the internal representation for 100m grid tiles, and not for
+        a coarser resolution. If the 100m INSPIRE grid ID was requested, the ID corresponding to the 100m grid tile
+        represented by the internal grid ID is constructed. If the 1km INSPIRE grid ID was requested, the ID
+        corresponding to the 1km grid tile containing the internal grid ID is constructed.
+
+        By default, the function will use a ColNames.origin column of `sdf`. Only if the `origin` parameter is passed,
+        the existence of this column will not be checked, and `origin` will be used as the origin of the 4-byte grid ID
+        definition even if the column exists. This origin will be treated as an 8-byte integer, where the first (most
+        significant) 4 bytes hold the northing origin divided by 100 and the last (least significant) 4 bytes hold the
+        easting origin divided by 100. That is, taking the first 4 bytes and multiplying by 100 gets the a northing
+        value in metres (analogous for easting).
 
         Args:
-            sdf (DataFrame): Input DataFrame with a column grid_id_col in integer format.
-            resolution (int, optional): The resolution of the grid. If None, it is equal to self.resolution. Defaults
-                to None
-            grid_id_col (str, optional): name of the column containing the integer grid id column. If None, it is
-                equal to self.grid_id_col_name. Defaults to None.
+            sdf (DataFrame): DataFrame containing the grid ID column, and a `ColNames.origin` column, to which the
+                INSPIRE grid ID is to be added
+            inspire_resolution (int): resolution for the INSPIRE grid ID. Currently accepts two value: `100` and `1000`.
+            grid_id_col (str, optional): Name of the column containing the internal 4-byte grid ID. If None, the value
+                `self.grid_id_col` is taken by default. Defaults to None
+            origin (int, optional): If provided, it will be used as the origin of the definition of the 4-byte grid ID.
+                It will ignore the ColNames.origin column even if it exists. If not provided, it is expected that
+                `sdf` contains a ColNames.origin column, and throws an error otherwise.
 
         Returns:
-            DataFrame: A new DataFrame with the grid_id converted to string format.
-        """
-        if resolution is None:
-            resolution = self.resolution
-            resolution_str = self.resolution_str
-        else:
-            if resolution % 100 != 0:
-                raise ValueError(f"Invalid resolution value not divisible by 100: {resolution}")
-            resolution_str = self._format_distance(resolution)
+            DataFrame: DataFrame with a new column, `ColNames.inspire_id`, containing the INSPIRE grid ID strings.
 
+        Raises:
+            ValueError: If the `inspire_resolution` is not 100 or 1000.
+            ValueError: If the `origin` is not an integer.
+            ValueError: If the `sdf` does not contain a ColNames.origin column and `origin` is not passed.
+        """
         if grid_id_col is None:
-            grid_id_col = self.grid_id_col_name
-
-        trailing_zeros = int(log10(resolution))
+            grid_id_col = self.grid_id_col
+        if inspire_resolution not in self.ACCEPTED_RESOLUTIONS:
+            raise ValueError(
+                f"Expected INSPIRE resolutions are {self.ACCEPTED_RESOLUTIONS} -- received `{inspire_resolution}`"
+            )
+        if origin is not None:
+            if not isinstance(origin, int):
+                raise ValueError(f"`origin` parameter must be an integer if used -- found type {type(origin)}")
+            origin_column = F.lit(origin).cast(LongType())
+        else:
+            if ColNames.origin not in sdf.columns:
+                raise ValueError(f"`sdf` must contain a {ColNames.origin} column, or `origin` parameter must be passed")
+            origin_column = F.col(ColNames.origin)
 
         sdf = sdf.withColumn(
-            grid_id_col,
+            "northing",
+            F.shiftrightunsigned(grid_id_col, 16).cast(LongType()) + F.shiftrightunsigned(origin_column, 32),
+        ).withColumn(
+            "easting",
+            F.col(grid_id_col).bitwiseAND((1 << 16) - 1).cast(LongType()) + origin_column.bitwiseAND((1 << 32) - 1),
+        )
+
+        # Substract the units digit to get the ID for 1km
+        if inspire_resolution == 1000:
+            sdf = sdf.withColumn("northing", F.expr("northing DIV 10")).withColumn("easting", F.expr("easting DIV 10"))
+        sdf = sdf.withColumn(
+            ColNames.inspire_id,
             F.concat(
-                F.lit(resolution_str),
+                F.lit(self._format_distance(inspire_resolution)),
                 F.lit("N"),
-                (F.expr(f"{grid_id_col} DIV {10**(self.PROJ_COORD_INT_SIZE + trailing_zeros)}")),
+                F.col("northing"),
                 F.lit("E"),
-                (F.expr(f"({grid_id_col} % {10**self.PROJ_COORD_INT_SIZE}) DIV {10 ** trailing_zeros}")),
+                F.col("easting"),
             ),
-        )
-
+        ).drop("northing", "easting")
         return sdf
 
-    def grid_ids_to_centroids(self, sdf: DataFrame, resolution: int = None, to_crs: int = None) -> DataFrame:
-        """Converts grid IDs to centroids.
-
-        Args:
-            sdf (DataFrame): The DataFrame containing the grid IDs.
-            to_crs (int, optional): The CRS to which to convert the centroids. If not provided,
-                the centroids will be in default grid crs.
-
-        Returns:
-            DataFrame: The DataFrame containing the centroids.
-        """
-        if resolution is None:
-            resolution = self.resolution
-
-        sdf = sdf.withColumn(
-            self.geometry_col_name,
-            STC.ST_Point(
-                F.expr(f"INT({self.grid_id_col_name} % {10**self.PROJ_COORD_INT_SIZE})") + resolution / 2,
-                F.expr(f"INT({self.grid_id_col_name} DIV {10**self.PROJ_COORD_INT_SIZE})") + resolution / 2,
-            ),
-        )
-
-        sdf = sdf.withColumn(
-            self.geometry_col_name, STF.ST_SetSRID(sdf[self.geometry_col_name], self.GRID_CRS_EPSG_CODE)
-        )
-
-        if to_crs:
-            sdf = sdf.withColumn(
-                self.geometry_col_name, STF.ST_Transform(sdf[self.geometry_col_name], F.lit(f"EPSG:{to_crs}"))
-            )
-
-        return sdf
-
-    def grid_ids_to_tiles(self, sdf: DataFrame, resolution: int = None, to_crs: int = None) -> DataFrame:
-        """Converts grid IDs in INSPIRE format to tiles.
-
-        Args:
-            sdf (DataFrame): The DataFrame containing the grid IDs.
-            to_crs (int, optional): The CRS to which to convert the tiles. If not provided, the centroids
-                will be in default grid crs.
-        Returns:
-            DataFrame: The DataFrame containing the tiles.
-        """
-
-        if resolution is None:
-            resolution = self.resolution
-
-        sdf = sdf.withColumn(
-            self.geometry_col_name,
-            STC.ST_PolygonFromEnvelope(
-                F.expr(f"{self.grid_id_col_name} % {10**self.PROJ_COORD_INT_SIZE}"),  # x/easting min
-                F.expr(f"{self.grid_id_col_name} DIV {10**self.PROJ_COORD_INT_SIZE}"),  # y/northing min
-                F.expr(f"{self.grid_id_col_name} % {10**self.PROJ_COORD_INT_SIZE}") + resolution,  # x/easting max
-                F.expr(f"{self.grid_id_col_name} DIV {10**self.PROJ_COORD_INT_SIZE}") + resolution,  # y/northing max
-            ),
-        )
-
-        sdf = sdf.withColumn(
-            self.geometry_col_name, STF.ST_SetSRID(sdf[self.geometry_col_name], self.GRID_CRS_EPSG_CODE)
-        )
-
-        if to_crs:
-            sdf = sdf.withColumn(
-                self.geometry_col_name, STF.ST_Transform(sdf[self.geometry_col_name], F.lit(f"EPSG:{to_crs}"))
-            )
-
-        return sdf
-
-    def get_parent_grid_ids(self, sdf: DataFrame, resolution: int, parent_col_name: str = None) -> DataFrame:
-        """
-        Coarsens grid IDs to the specified resolution, snapping down to the nearest coarser grid cell.
-
-        Args:
-            sdf (DataFrame): Input Spark DataFrame with a 14-digit grid ID column named 'grid_id'.
-            resolution (int): The desired coarser resolution (e.g., 200).
-            parent_col_name (str, optional): name of the column that will hold the parent grid IDs. If None, it will be
-                named f"parent_{ColNames.grid_id}". Defaults to None.
-
-        Returns:
-            DataFrame: DataFrame with coarsened grid IDs in new column.
-        """
-        if resolution % 100 != 0:
-            raise ValueError("Resolution must be a multiple of 100.")
-        if parent_col_name is None:
-            parent_col_name = f"parent_{ColNames.grid_id}"
-
-        # Extract `northing` and `easting` correctly
-        sdf = sdf.withColumn("northing", F.expr(f"{ColNames.grid_id} DIV {10**self.PROJ_COORD_INT_SIZE}")).withColumn(
-            "easting", F.col(ColNames.grid_id) % 10**self.PROJ_COORD_INT_SIZE
-        )
-
-        # Snap `northing` and `easting` down to the nearest coarser grid boundary
-        sdf = sdf.withColumn("northing_parent", F.col("northing") - (F.col("northing") % resolution)).withColumn(
-            "easting_parent", F.col("easting") - (F.col("easting") % resolution)
-        )
-
-        # Combine the coarsened `northing` and `easting` into `parent_grid_id`
-        sdf = sdf.withColumn(
-            parent_col_name,
-            (F.col("northing_parent").cast(LongType()) * 10**self.PROJ_COORD_INT_SIZE + F.col("easting_parent")),
-        ).drop("northing", "easting", "northing_parent", "easting_parent")
-
-        return sdf
-
-    def get_children_grid_ids(
-        self, sdf: DataFrame, resolution: int, child_resolution: int, child_col_name: str = None
+    def grid_id_to_coarser_resolution(
+        self, sdf: DataFrame, coarse_resolution: int, coarse_grid_id_col: str = None
     ) -> DataFrame:
-        """
-        Expands coarsened grid IDs to generate all possible child grid IDs within the specified finer resolution.
+        """This function takes a DataFrame that contains the grid ID representation of 100m grid tiles, and transforms
+        it into a coarser resolution. It is always expected that the provided DataFrame has a grid ID that represents
+        100m grid tiles (in the `self.grid_id_col column`), and not a different resolution.
+
+        Notice that this method does not take into account the origin of the 4-byte grid IDs. Thus, the coarser grids
+        need not be compatible with the INSPIRE definition of a resolution coarser than 100m.
 
         Args:
-            sdf (DataFrame): Input Spark DataFrame with a 14-digit grid ID column named 'grid_id'.
-            resolution (int): The coarser resolution (e.g., 200).
-            child_resolution (int): The finer resolution for child grids (e.g., 100).
-            child_col_name (str, optional): name of the column that will hold the children grid IDs. If None, it will be
-                named f"child_{ColNames.grid_id}". Defaults to None.
+            sdf (DataFrame): DataFrame for which a coarser resolution grid ID will be computed
+            coarse_resolution (int): coarser resolution to compute. Must be a multiple of `self.resolution`, i.e., 100.
+            coarse_grid_id_col (str, optional): column that will hold the IDs of the grid tiles in the coarser
+                resolution. If None, it will replace the original grid ID column. Defaults to None.
 
         Returns:
-            DataFrame: DataFrame with generated child grid IDs in new column.
+            DataFrame: DataFrame with the coarser grid IDs.
         """
-        if resolution % 100 != 0 or child_resolution % 100 != 0:
-            raise ValueError("Both resolutions must be multiples of 100.")
-        if child_resolution >= resolution:
-            raise ValueError("Child resolution must be finer than the parent resolution.")
-        if resolution % child_resolution != 0:
-            raise ValueError("Parent resolution must be a multiple of the child resolution.")
-        if child_col_name is None:
-            child_col_name = f"child_{ColNames.grid_id}"
+        if coarse_resolution % self.resolution != 0:
+            raise ValueError(f"Coarser resolution {coarse_resolution} must be a multiple of {self.resolution}")
+        if coarse_resolution <= self.resolution:
+            raise ValueError(f"Coarser resolution {coarse_resolution} must be greater than {self.resolution}")
 
-        factor = resolution // child_resolution
+        factor = coarse_resolution // self.resolution
 
-        # Extract `northing` and `easting` from the parent grid ID
-        sdf = sdf.withColumn("northing", F.expr(f"{ColNames.grid_id} DIV {10**self.PROJ_COORD_INT_SIZE}")).withColumn(
-            "easting", F.col(ColNames.grid_id) % 10**self.PROJ_COORD_INT_SIZE
+        if coarse_grid_id_col is None:
+            coarse_grid_id_col = self.grid_id_col
+
+        sdf = sdf.withColumn("northing", F.shiftrightunsigned(ColNames.grid_id, 16)).withColumn(
+            "easting", F.col(ColNames.grid_id).bitwiseAND((1 << 16) - 1)
         )
 
-        # Generate all possible offsets for child grids
-        offsets = [(i, j) for i in range(factor) for j in range(factor)]
-        spark = sdf.sparkSession  # Get the current Spark session
-        offsets_df = spark.createDataFrame(offsets, ["northing_offset", "easting_offset"])
+        sdf = sdf.withColumn("northing", F.col("northing") - F.col("northing") % factor).withColumn(
+            "easting", F.col("easting") - F.col("easting") % factor
+        )
 
-        # Cross join with the offsets to generate all child grid IDs
-        result = (
+        sdf = sdf.withColumn(coarse_grid_id_col, F.shiftleft(F.col("northing"), 16) + F.col("easting"))
+
+        sdf = sdf.drop("northing", "easting")
+
+        return sdf
+
+    def grid_id_from_coarser_resolution(
+        self, sdf: DataFrame, coarse_resolution: int, coarse_grid_id_col: str, new_grid_id_col: str = None
+    ) -> DataFrame:
+        """This function takes a DataFrame that contains the grid ID representation of grid tiles in a resolution
+        coarser than 100m, and transforms it back into 100m.
+
+        Args:
+            sdf (DataFrame): DataFrame with grid IDs in a coarser resolution.
+            coarse_resolution (int): coarser resolution of the grid IDs of the provided DataFrame. Must be a multiple
+                of `self.resolution`, i.e., 100.
+            coarse_grid_id_col (str): column that currently holds the IDs of the grid tiles in the coarser
+                resolution.
+            new_grid_id_col (str, optional): column that will hold the IDs of the grid tiles in the 100m resolution.
+                If None, it will be set (and possible replace an existing column) as `self.grid_id_col`.
+                    Defaults to None.
+
+        Returns:
+            DataFrame: DataFrame with the coarser grid IDs.
+        """
+        if coarse_resolution % self.resolution != 0:
+            raise ValueError(f"Coarser resolution {coarse_resolution} must be a multiple of {self.resolution}")
+        if coarse_resolution <= self.resolution:
+            raise ValueError(f"Coarser resolution {coarse_resolution} must be greater than {self.resolution}")
+        if new_grid_id_col is None:
+            new_grid_id_col = self.grid_id_col
+
+        factor = coarse_resolution // self.resolution
+        offsets_df = self.spark.createDataFrame(
+            [(i << 16) + j for i in range(factor) for j in range(factor)],
+            schema=StructType([StructField("offset", IntegerType(), False)]),
+        )
+
+        offsets_df = F.broadcast(offsets_df)
+
+        sdf = (
             sdf.crossJoin(offsets_df)
-            .withColumn("child_northing", F.expr(f"northing + northing_offset * {child_resolution}"))
-            .withColumn("child_easting", F.expr(f"easting + easting_offset * {child_resolution}"))
-            .withColumn(
-                child_col_name,
-                (F.col("child_northing").cast(LongType()) * 10**self.PROJ_COORD_INT_SIZE + F.col("child_easting")),
-            )
-            .drop("child_northing", "child_easting", "northing", "easting", "northing_offset", "easting_offset")
+            .withColumn(new_grid_id_col, F.col(coarse_grid_id_col) + F.col("offset"))
+            .drop("offset")
         )
 
-        return result
+        return sdf
+
+    def inspire_id_to_grid_centroids(
+        self, sdf: DataFrame, inspire_id_col: str = None, geometry_col: str = None
+    ) -> DataFrame:
+        """Function that takes a DataFrame containing INSPIRE grid ID strings and returns it with point geometries
+        of the centroids of the corresponding grid tiles. It extracts the units and grid size from the first element
+        of the DataFrame and uses it to construct the necessary geometries.
+
+        Args:
+            sdf (DataFrame): DataFrame containing the INSPIRE grid ID strings.
+            inspire_id_col (str, optional): name of the column holding the INSPIRE grid IDs. If None, it is set to
+                `ColNames.inspire_id`. Defaults to None.
+            geometry_col (str, optional): column that will hold the grid centroid geometries. If None, it is set to
+                `self.geometry`. Defaults to None.
+
+        Returns:
+            DataFrame: DataFrame with the grid centroid geometries
+        """
+        if inspire_id_col is None:
+            inspire_id_col = ColNames.inspire_id
+        if geometry_col is None:
+            geometry_col = self.geometry_col
+
+        # First, get the INSPIRE resolution
+        resolution_str = sdf.select(F.regexp_extract(F.col(inspire_id_col), r"^(.*?)N", 1).alias("prefix")).first()[
+            "prefix"
+        ]
+
+        # Parse and validate the INSPIRE resolution. Get the units and the grid size/resolution
+        if resolution_str[-2:] == "km":
+            try:
+                grid_size = int(resolution_str[:-2])
+            except ValueError:
+                raise ValueError(f"Unexpected INSPIRE grid resolution string `{resolution_str}`")
+            resolution_unit = 1000
+        elif resolution_str[-1:] == "m":
+            try:
+                grid_size = int(resolution_str[:-1])
+            except ValueError:
+                raise ValueError(f"Unexpected INSPIRE grid resolution string `{resolution_str}`")
+            resolution_unit = 100
+        else:
+            raise ValueError(f"Unexpected INSPIRE grid resolution string `{resolution_str}`")
+
+        # Create geometries. Multiply INSPIRE ID northing and easting values by the resolution unit, and add half
+        # the grid size to get the centroid of each tile
+        sdf = sdf.withColumn(
+            geometry_col,
+            STC.ST_Point(
+                F.regexp_extract(inspire_id_col, r"E(\d+)", 1).cast(LongType()) * resolution_unit + grid_size // 2,
+                F.regexp_extract(inspire_id_col, r"N(\d+)E", 1).cast(LongType()) * resolution_unit + grid_size // 2,
+            ),
+        )
+
+        # Set the CRS of the geometry
+        sdf = sdf.withColumn(geometry_col, STF.ST_SetSRID(geometry_col, self.GRID_CRS_EPSG_CODE))
+
+        return sdf
+
+    def inspire_id_to_grid_tiles(
+        self, sdf: DataFrame, inspire_id_col: str = None, geometry_col: str = None
+    ) -> DataFrame:
+        """Function that takes a DataFrame containing INSPIRE grid ID strings and returns it with polygon geometries
+        of the corresponding grid tiles. It extracts the units and grid size from the first element of the DataFrame
+        and uses it to construct the necessary geometries.
+
+        Args:
+            sdf (DataFrame): DataFrame containing the INSPIRE grid ID strings.
+            inspire_id_col (str, optional): name of the column holding the INSPIRE grid IDs. If None, it is set to
+                `ColNames.inspire_id`. Defaults to None.
+            geometry_col (str, optional): column that will hold the grid tile geometries. If None, it is set to
+                `ColNames.geometry`. Defaults to None.
+
+        Returns:
+            DataFrame: DataFrame with the grid centroid geometries
+        """
+        if inspire_id_col is None:
+            inspire_id_col = ColNames.inspire_id
+        if geometry_col is None:
+            geometry_col = self.geometry_col
+
+        # First, get the INSPIRE resolution
+        resolution_str = sdf.select(F.regexp_extract(F.col(inspire_id_col), r"^(.*?)N", 1).alias("prefix")).first()[
+            "prefix"
+        ]
+
+        # Parse and validate the INSPIRE resolution. Get the units and the grid size/resolution
+        if resolution_str[-2:] == "km":
+            try:
+                grid_size = int(resolution_str[:-2])
+            except ValueError:
+                raise ValueError(f"Unexpected INSPIRE grid resolution string `{resolution_str}`")
+            resolution_unit = 1000
+        elif resolution_str[-1:] == "m":
+            try:
+                grid_size = int(resolution_str[:-1])
+            except ValueError:
+                raise ValueError(f"Unexpected INSPIRE grid resolution string `{resolution_str}`")
+            resolution_unit = 100
+        else:
+            raise ValueError(f"Unexpected INSPIRE grid resolution string `{resolution_str}`")
+
+        sdf = sdf.withColumn(
+            "northing", F.regexp_extract(inspire_id_col, r"N(\d+)E", 1).cast(LongType()) * resolution_unit
+        ).withColumn("easting", F.regexp_extract(inspire_id_col, r"E(\d+)", 1).cast(LongType()) * resolution_unit)
+
+        # Sedona has (X, Y) = (Easting, Northing) for EPSG 3035
+        sdf = sdf.withColumn(
+            geometry_col,
+            STC.ST_PolygonFromEnvelope(
+                F.col("easting"),  # min_x (min_easting)
+                F.col("northing"),  # min_y, (min_northing)
+                F.col("easting") + F.lit(resolution_unit * grid_size),  # max_x (max_easting)
+                F.col("northing") + F.lit(resolution_unit * grid_size),  # max_y (max_northing)
+            ),
+        )
+
+        sdf = sdf.drop("northing", "easting")
+
+        # Set the CRS of the geometry
+        sdf = sdf.withColumn(geometry_col, STF.ST_SetSRID(geometry_col, self.GRID_CRS_EPSG_CODE))
+
+        return sdf
+
+    def grid_ids_to_grid_centroids(
+        self,
+        sdf: DataFrame,
+        grid_resolution: int,
+        grid_id_col: str = None,
+        geometry_col: str = None,
+        origin: int = None,
+    ) -> DataFrame:
+        """Function that takes a DataFrame containing internal 4-byte grid IDs and returns it with point geometries
+        of the centroids of the corresponding grid tiles.
+
+        By default, the function will use a ColNames.origin column of `sdf`. Only if the `origin` parameter is passed,
+        the existence of this column will not be checked, and `origin` will be used as the origin of the 4-byte grid ID
+        definition even if the column exists. This origin will be treated as an 8-byte integer, where the first (most
+        significant) 4 bytes hold the northing origin divided by 100 and the last (least significant) 4 bytes hold the
+        easting origin divided by 100. That is, taking the first 4 bytes and multiplying by 100 gets the a northing
+        value in metres (analogous for easting).
+
+        Args:
+            sdf (DataFrame): DataFrame containing the internal 4-byte grid IDs.
+            grid_resolution (int): resolution, in metres, of the current grid as represented by the internal 4-byte
+                grid IDs. Must be a multiple of `self.resolution`. i.e. 100.
+            grid_id_col (str, optional): column that holds the internal grid IDs. If None, it is set to
+                `self.grid_id_col`. Defaults to None.
+            geometry_col (str, optional): column that will hold the grid centroid geometries. If None, it is set to
+                `self.geometry_col`. Defaults to None.
+            origin (int, optional): If provided, it will be used as the origin of the definition of the 4-byte grid ID.
+                It will ignore the ColNames.origin column even if it exists. If not provided, it is expected that
+                `sdf` contains a ColNames.origin column, and throws an error otherwise.
+
+        Returns:
+            DataFrame: DataFrame with the grid centroid geometries
+        """
+
+        if grid_resolution % self.resolution != 0:
+            raise ValueError(f"Grid resolution must be a multiple of {self.resolution}")
+        if geometry_col is None:
+            geometry_col = self.geometry_col
+        if grid_id_col is None:
+            grid_id_col = self.grid_id_col
+        if origin is not None:
+            if not isinstance(origin, int):
+                raise ValueError(f"`origin` parameter must be an integer if used -- found type {type(origin)}")
+            origin_column = F.lit(origin).cast(LongType())
+        else:
+            if ColNames.origin not in sdf.columns:
+                raise ValueError(f"`sdf` must contain a {ColNames.origin} column, or `origin` parameter must be passed")
+            origin_column = F.col(ColNames.origin)
+
+        # For Sedona, (X, Y) == (Northing, Easting) in EPSG 3035
+        sdf = sdf.withColumn(
+            geometry_col,
+            STC.ST_Point(
+                (F.shiftrightunsigned(ColNames.grid_id, 16).cast(LongType()) + F.shiftrightunsigned(origin_column, 32))
+                * self.resolution
+                + grid_resolution // 2,
+                (
+                    F.col(ColNames.grid_id).bitwiseAND((1 << 16) - 1).cast(LongType())
+                    + origin_column.bitwiseAND((1 << 32) - 1)
+                )
+                * self.resolution
+                + grid_resolution // 2,
+            ),
+        )
+
+        sdf = sdf.withColumn(geometry_col, STF.ST_SetSRID(geometry_col, self.GRID_CRS_EPSG_CODE))
+
+        return sdf
+
+    def grid_ids_to_grid_tiles(
+        self, sdf: DataFrame, grid_resolution: int, geometry_col: str = None, origin: int = None
+    ) -> DataFrame:
+        """Function that takes a DataFrame containing internal 4-byte grid IDs and returns it with polygon geometries
+        of the corresponding grid tiles.
+
+        By default, the function will use a ColNames.origin column of `sdf`. Only if the `origin` parameter is passed,
+        the existence of this column will not be checked, and `origin` will be used as the origin of the 4-byte grid ID
+        definition even if the column exists. This origin will be treated as an 8-byte integer, where the first (most
+        significant) 4 bytes hold the northing origin divided by 100 and the last (least significant) 4 bytes hold the
+        easting origin divided by 100. That is, taking the first 4 bytes and multiplying by 100 gets the a northing
+        value in metres (analogous for easting).
+
+        Args:
+            sdf (DataFrame): DataFrame containing the internal 4-byte grid IDs.
+            grid_resolution (int): resolution, in metres, of the current grid as represented by the internal 4-byte
+                grid IDs. Must be a multiple of `self.resolution`. i.e. 100.
+            geometry_col (str, optional): column that will hold the grid tile geometries. If None, it is set to
+                `self.geometry_col`. Defaults to None.
+            origin (int, optional): If provided, it will be used as the origin of the definition of the 4-byte grid ID.
+                It will ignore the ColNames.origin column even if it exists. If not provided, it is expected that
+                `sdf` contains a ColNames.origin column, and throws an error otherwise.
+
+        Returns:
+            DataFrame: DataFrame with the grid centroid geometries
+        """
+        if grid_resolution % self.resolution != 0:
+            raise ValueError(f"Grid resolution must be a multiple of {self.resolution}")
+        if geometry_col is None:
+            geometry_col = self.geometry_col
+        if origin is not None:
+            if not isinstance(origin, int):
+                raise ValueError(f"`origin` parameter must be an integer if used -- found type {type(origin)}")
+            origin_column = F.lit(origin).cast(LongType())
+        else:
+            if ColNames.origin not in sdf.columns:
+                raise ValueError(f"`sdf` must contain a {ColNames.origin} column, or `origin` parameter must be passed")
+            origin_column = F.col(ColNames.origin)
+
+        sdf = sdf.withColumn(
+            "northing",
+            (F.shiftrightunsigned(ColNames.grid_id, 16).cast(LongType()) + F.shiftrightunsigned(origin_column, 32))
+            * self.resolution,
+        ).withColumn(
+            "easting",
+            (
+                F.col(ColNames.grid_id).bitwiseAND((1 << 16) - 1).cast(LongType())
+                + origin_column.bitwiseAND((1 << 32) - 1)
+            )
+            * self.resolution,
+        )
+
+        # For Sedona, (X, Y) == (Northing, Easting) in EPSG 3035
+        sdf = sdf.withColumn(
+            geometry_col,
+            STC.ST_PolygonFromEnvelope(
+                F.col("northing"),  # min_x (min_northing)
+                F.col("easting"),  # min_y (min_easting)
+                F.col("northing") + grid_resolution,  # max_x (max_northing)
+                F.col("easting") + grid_resolution,  # max_y (max_easting)
+            ),
+        )
+
+        sdf = sdf.drop("northing", "easting")
+
+        # Set the CRS of the geometries
+        sdf = sdf.withColumn(geometry_col, STF.ST_SetSRID(geometry_col, self.GRID_CRS_EPSG_CODE))
+
+        return sdf

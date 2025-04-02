@@ -1,0 +1,8 @@
+ Apache Software License
+ BSD License
+3-Clause BSD License
+Apache-2.0
+BSD
+EUPL-1.2
+MIT
+MPL-2.0

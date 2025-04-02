@@ -66,7 +66,10 @@ class SyntheticDiaries(Component):
                 ","
             )  # TODO: cambiar por stay_sequence
         ]
-        assert len(self.stay_sequence_superset) == len(self.stay_sequence_probabilities)
+        if len(self.stay_sequence_superset) != len(self.stay_sequence_probabilities):
+            raise ValueError(
+                "Configuration error: stay_sequence_superset and stay_sequence_probabilities must have the same length"
+            )
 
     def initalize_data_objects(self):
         output_synthetic_diaries_data_path = self.config.get(CONFIG_BRONZE_PATHS_KEY, "diaries_data_bronze")

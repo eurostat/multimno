@@ -84,12 +84,6 @@ class GeozonesGridMapping(Component):
         self.output_data_objects[SilverGeozonesGridMapDataObject.ID] = SilverGeozonesGridMapDataObject(
             self.spark,
             grid_do_path,
-            [
-                ColNames.dataset_id,
-                ColNames.year,
-                ColNames.month,
-                ColNames.day,
-            ],
         )
 
     @get_execution_stats

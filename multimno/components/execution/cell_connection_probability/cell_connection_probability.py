@@ -55,6 +55,7 @@ class CellConnectionProbabilityEstimation(Component):
             for i in range((self.data_period_end - self.data_period_start).days + 1)
         ]
 
+        self.landuse_prior_weights = self.config.geteval(self.COMPONENT_ID, "landuse_prior_weights")
         self.current_date = None
         self.current_cell_footprint = None
         self.partition_number = self.config.getint(self.COMPONENT_ID, "partition_number")
@@ -133,23 +134,29 @@ class CellConnectionProbabilityEstimation(Component):
         # Calculate the posterior probabilities
 
         if self.use_land_use_prior:
-            grid_model_df = self.input_data_objects[SilverEnrichedGridDataObject.ID].df.select(
-                ColNames.grid_id, ColNames.prior_probability
+
+            enriched_grid_sdf = self.input_data_objects[SilverEnrichedGridDataObject.ID].df.select(
+                ColNames.grid_id, ColNames.landuse_area_ratios
             )
-            cell_conn_probs_df = cell_conn_probs_df.join(grid_model_df, on=ColNames.grid_id)
+            # calculate landuse prior probabilities
+            landuse_prior_sdf = self.calculate_landuse_prior_probabilities(
+                enriched_grid_sdf, self.landuse_prior_weights
+            )
+
+            cell_conn_probs_df = cell_conn_probs_df.join(landuse_prior_sdf, on=ColNames.grid_id)
             cell_conn_probs_df = cell_conn_probs_df.withColumn(
                 ColNames.posterior_probability,
                 F.col(ColNames.cell_connection_probability) * F.col(ColNames.prior_probability),
             )
 
         elif not self.use_land_use_prior:
+            # Uniform prior
             cell_conn_probs_df = cell_conn_probs_df.withColumn(
                 ColNames.posterior_probability,
                 F.col(ColNames.cell_connection_probability),
             )
 
-        # Normalize the posterior probabilities
-
+        # Normalize the posterior probabilities per cell
         window_spec = Window.partitionBy(ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id)
 
         cell_conn_probs_df = cell_conn_probs_df.withColumn(
@@ -157,9 +164,45 @@ class CellConnectionProbabilityEstimation(Component):
             F.col(ColNames.posterior_probability) / F.sum(ColNames.posterior_probability).over(window_spec),
         )
 
+        # Coalesce potential 0 division results to 0
+        cell_conn_probs_df = cell_conn_probs_df.fillna(0.0, subset=[ColNames.posterior_probability])
+
         cell_conn_probs_df = utils.apply_schema_casting(
             cell_conn_probs_df, SilverCellConnectionProbabilitiesDataObject.SCHEMA
         )
         cell_conn_probs_df = cell_conn_probs_df.coalesce(self.partition_number)
 
         self.output_data_objects[SilverCellConnectionProbabilitiesDataObject.ID].df = cell_conn_probs_df
+
+    def calculate_landuse_prior_probabilities(self, enriched_grid_sdf, landuse_prior_weights):
+        """
+        Calculates the landuse prior probabilities for each grid tile using area shares of various types
+        of landuse of the tile and preconfigured weights for different landuse types.
+
+        Returns:
+            DataFrame: DataFrame with grid id and prior probabilities
+        """
+        # Create a DataFrame from the weights dictionary
+        weights_list = [(k, float(v)) for k, v in landuse_prior_weights.items()]
+        weights_df = self.spark.createDataFrame(weights_list, ["category", "weight"])
+
+        # Explode the map to rows (one row per category per grid)
+        exploded_df = enriched_grid_sdf.select(
+            ColNames.grid_id, F.explode(ColNames.landuse_area_ratios).alias("category", "area_ratio")
+        )
+
+        # Join with weights and calculate weighted values
+        weighted_df = (
+            exploded_df.join(weights_df, on="category", how="left")
+            .withColumn("weight", F.coalesce(F.col("weight"), F.lit(0.0)))  # Default 0.0 for missing weights
+            .withColumn("weighted_value", F.col("area_ratio") * F.col("weight"))
+        )
+
+        # Sum up weighted values by grid_id
+        grid_prior_sdf = weighted_df.groupBy(ColNames.grid_id).agg(F.sum("weighted_value").alias("weighted_value"))
+
+        # Normalize the prior probabilities over all grids
+        total_prior = grid_prior_sdf.agg(F.sum("weighted_value")).collect()[0][0]
+        grid_prior_sdf = grid_prior_sdf.withColumn(ColNames.prior_probability, F.col("weighted_value") / total_prior)
+
+        return grid_prior_sdf

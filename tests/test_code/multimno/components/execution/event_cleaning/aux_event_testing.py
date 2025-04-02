@@ -1,5 +1,6 @@
 import pytest
 from configparser import ConfigParser
+from multimno.core.constants.domain_names import Domains
 from pyspark.sql import SparkSession
 from hashlib import sha256
 import pyspark.sql.functions as F
@@ -38,6 +39,7 @@ def expected_events(spark):
             154,
             "01",
             None,
+            Domains.INBOUND,
             "341098809306858",
             26.129932,
             12.52221,
@@ -53,6 +55,7 @@ def expected_events(spark):
             123,
             "01",
             None,
+            Domains.DOMESTIC,
             "100000000000000",
             None,
             None,
@@ -68,6 +71,7 @@ def expected_events(spark):
             123,
             "01",
             None,
+            Domains.DOMESTIC,
             None,
             0.0,
             0.0,
@@ -83,6 +87,7 @@ def expected_events(spark):
             123,
             "01",
             12301,
+            Domains.DOMESTIC,
             None,
             None,
             None,

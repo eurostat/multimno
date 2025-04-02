@@ -2,6 +2,7 @@ site_name: MultiMNO
 repo_name: MultiMNO
 repo_url: https://github.com/eurostat/multimno
 
+
 theme:
   name: "material"
   features:
@@ -22,6 +23,12 @@ theme:
 plugins:
   - search # Search bar
   - section-index # Section tree
+  - panzoom: # Mermaid zoom
+      always_show_hint: true # default false
+      include_selectors:
+        - .mermaid
+      full_screen: True # default False
+      key: "ctrl" # default alt
   - mkdocs-nav-weight:
       warning: true
   # ---------- Generate mkdocs ----------
@@ -56,7 +63,7 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
-  
+
 nav:
   - Home: index.md
   - Pipeline: pipeline.md

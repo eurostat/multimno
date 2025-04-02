@@ -8,6 +8,7 @@ from multimno.core.constants.reserved_dataset_ids import ReservedDatasetIDs
 from multimno.core.data_objects.silver.silver_cell_connection_probabilities_data_object import (
     SilverCellConnectionProbabilitiesDataObject,
 )
+from multimno.core.data_objects.silver.silver_grid_data_object import SilverGridDataObject
 from multimno.core.data_objects.silver.silver_geozones_grid_map_data_object import SilverGeozonesGridMapDataObject
 from multimno.core.data_objects.silver.silver_tourism_stays_data_object import SilverTourismStaysDataObject
 from multimno.core.data_objects.silver.silver_usual_environment_labels_data_object import (
@@ -61,6 +62,9 @@ class TourismStaysEstimation(Component):
         self.functional_midnight_h = self.config.geteval(self.COMPONENT_ID, "functional_midnight_h")
         self.min_duration_segment_night_m = self.config.geteval(self.COMPONENT_ID, "min_duration_segment_night_m")
 
+        # Origin of the 4-byte grid IDs, to be used with reserved datasets 100m and 1km INSPIRE grids.
+        self.origin = None
+
     def initalize_data_objects(self):
 
         self.filter_ue_segments = self.config.getboolean(self.COMPONENT_ID, "filter_ue_segments")
@@ -72,6 +76,7 @@ class TourismStaysEstimation(Component):
             "time_segments_silver": SilverTimeSegmentsDataObject,
             "cell_connection_probabilities_data_silver": SilverCellConnectionProbabilitiesDataObject,
             "geozones_grid_map_data_silver": SilverGeozonesGridMapDataObject,
+            "grid_data_silver": SilverGridDataObject,
         }
 
         # If releveant, add usual environment labels data object to filter all devices that have a usual environment label
@@ -110,6 +115,8 @@ class TourismStaysEstimation(Component):
             # Handle reserved zoning dataset inputs
             if current_zoning_dataset_id in ReservedDatasetIDs():
                 self.current_geozones_grid_mapping_df = None
+                # We need to get the origin in order to correctly obtain the INSPIRE IDs
+                self.origin = self.input_data_objects[SilverGridDataObject.ID].df.first()["origin"]
             else:
                 self.current_geozones_grid_mapping_df = self.input_data_objects[
                     SilverGeozonesGridMapDataObject.ID
@@ -206,18 +213,20 @@ class TourismStaysEstimation(Component):
         if current_zoning_dataset_id in ReservedDatasetIDs():
             resolution = ReservedDatasetIDs.get_resolution_m(current_zoning_dataset_id)
             inspire_grid_generator = InspireGridGenerator(spark=self.spark)
+
             cells_arr_zone_df = (
-                inspire_grid_generator.get_parent_grid_ids(
-                    sdf=cells_arr_grid_prob_df, resolution=resolution, parent_col_name=ColNames.hierarchical_id
+                inspire_grid_generator.grid_id_to_inspire_id(
+                    sdf=cells_arr_grid_prob_df,
+                    inspire_resolution=resolution,
+                    origin=self.origin,
                 )
+                .withColumnRenamed(ColNames.inspire_id, ColNames.hierarchical_id)
                 .groupBy(ColNames.cells, ColNames.hierarchical_id)
                 .agg(
                     F.sum(F.col("grid_weight")).cast("float").alias(ColNames.zone_weight),
                 )
             ).withColumn(ColNames.dataset_id, F.lit(current_zoning_dataset_id))
-            cells_arr_zone_df = inspire_grid_generator.convert_internal_id_to_inspire_specs(
-                sdf=cells_arr_zone_df, resolution=resolution, grid_id_col=ColNames.hierarchical_id
-            )
+
         else:
             cells_arr_zone_df = (
                 cells_arr_grid_prob_df.alias("df1")

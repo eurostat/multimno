@@ -83,7 +83,7 @@ def test_midterm_ps(spark, expected_midterm_ps):
     # TODO: more specific comparison
     comparison_df = (
         output_events_data_object.df.filter(F.col(ColNames.user_id) == get_user_id_hashed("1"))
-        .filter(F.col(ColNames.grid_id) == 10000001000000)
+        .filter(F.col(ColNames.grid_id) == 0)
         .filter(F.col(ColNames.time_interval) == "all")
         .filter(F.col(ColNames.day_type) == "all")
     )

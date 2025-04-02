@@ -52,7 +52,7 @@ The application uses the Apache Sedona engine to perform spatial calculations. I
 the jar files must be downloaded to the cluster. These files can be downloaded at execution time through the maven repository, specifying 
 them in the spark configuration, or they can be downloaded manually into the `$SPARK_HOME/jars` dir of every node in the cluster.
 
-Reference - Sedona installation: https://sedona.apache.org/1.5.1/setup/cluster/
+Reference - Sedona installation: https://sedona.apache.org/1.6.1/setup/cluster/
 
 #### Python Dependencies
 
@@ -119,7 +119,12 @@ docker rmi multimno:1.0-prod
 
 ## Software setup
 
-The software is aimed to be executed in a Linux OS. It is recommended to use Ubuntu 22.04 LTS but these steps should also work in MAC OS 12.6(or superior) and in Windows 11 with WSL2 and setting up as the distro of WSL Ubuntu 22.04.
+The software is designed to be executed on a Linux operating system. **It is recommended to use Ubuntu 22.04 LTS.** However, the following environments are also supported:
+
+- macOS: Version 12.6 or later.
+- Windows 11: Using Windows Subsystem for Linux 2 (WSL2) with Ubuntu 22.04 as the configured distribution.
+
+Please ensure that your system meets these requirements to guarantee optimal performance and compatibility.
 
 ### Install system libs
 

@@ -1,0 +1,22 @@
+{
+    "general_config_path": "pipe_configs/configurations/general_config.ini",
+    "spark_submit_args": ["--driver-memory=6G"],
+    "pipeline": [
+        {
+            "component_id": "PresentPopulationEstimation",
+            "component_config_path": "pipe_configs/configurations/1_daily/3_present_population/present_population_estimation.ini"
+        },
+        {
+            "component_id": "DailyPermanenceScore",
+            "component_config_path": "pipe_configs/configurations/1_daily/4_usual_environment/daily_permanence_score.ini"
+        },
+        {
+            "component_id": "ContinuousTimeSegmentation",
+            "component_config_path": "pipe_configs/configurations/1_daily/5_tourism/continuous_time_segmentation.ini"
+        },
+        {
+            "component_id": "TourismStaysEstimation",
+            "component_config_path": "pipe_configs/configurations/1_daily/5_tourism/tourism_stays_estimation.ini"
+        }
+    ]
+}

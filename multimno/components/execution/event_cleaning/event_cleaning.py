@@ -5,6 +5,7 @@ Module that cleans RAW MNO Event data.
 from typing import List, Dict
 import datetime
 from functools import reduce
+from multimno.core.constants.domain_names import Domains
 from pyspark import StorageLevel
 from pyspark.sql import DataFrame, Window
 import pyspark.sql.functions as F
@@ -438,8 +439,8 @@ class EventCleaning(Component):
             ColNames.domain,
             F.when(
                 (F.col(ColNames.plmn).isNotNull()) & (F.col(ColNames.plmn).substr(1, 3) != F.lit(local_mcc)),
-                ColNames.outbound,
-            ).otherwise(F.when(F.col(ColNames.mcc) == local_mcc, ColNames.domestic).otherwise(ColNames.inbound)),
+                Domains.OUTBOUND,
+            ).otherwise(F.when(F.col(ColNames.mcc) == local_mcc, Domains.DOMESTIC).otherwise(Domains.INBOUND)),
         )
         return sdf
 
@@ -465,7 +466,7 @@ class EventCleaning(Component):
                         F.col(ColNames.latitude).isNull()
                         & F.col(ColNames.longitude).isNull()
                         & F.col(ColNames.cell_id).isNull()
-                        & ((F.col(ColNames.domain) == ColNames.domestic) | (F.col(ColNames.domain) == ColNames.inbound))
+                        & ((F.col(ColNames.domain) == Domains.DOMESTIC) | (F.col(ColNames.domain) == Domains.INBOUND))
                     )
                 ),
                 F.lit(True),

@@ -1,7 +1,7 @@
 CELL_FOOTPRINT = [
     {
         "cell_id": "106927944066972",
-        "grid_id": 10000001000000,
+        "grid_id": 0,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.099,
@@ -11,7 +11,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "106927944066972",
-        "grid_id": 10000001000100,
+        "grid_id": 1,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.801,
@@ -21,7 +21,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "106927944066972",
-        "grid_id": 10001001000000,
+        "grid_id": 65536,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.509,
@@ -31,7 +31,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "106927944066972",
-        "grid_id": 10001001000100,
+        "grid_id": 65537,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.057,
@@ -41,7 +41,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "106927944066972",
-        "grid_id": 10002001000000,
+        "grid_id": 131072,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.986,
@@ -51,7 +51,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "106927944066972",
-        "grid_id": 10001001000200,
+        "grid_id": 65538,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.099,
@@ -61,7 +61,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "184056814804988",
-        "grid_id": 10002001000100,
+        "grid_id": 131073,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.622,
@@ -71,7 +71,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "184056814804988",
-        "grid_id": 10002001000200,
+        "grid_id": 131074,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.08,
@@ -81,7 +81,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "184056814804988",
-        "grid_id": 10003001000100,
+        "grid_id": 196609,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.332,
@@ -91,7 +91,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "184056814804988",
-        "grid_id": 10003001000200,
+        "grid_id": 196610,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.835,
@@ -101,7 +101,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "184056814804988",
-        "grid_id": 10004001000200,
+        "grid_id": 262146,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.876,
@@ -111,7 +111,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "532391751586210",
-        "grid_id": 10005001000300,
+        "grid_id": 327683,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.12,
@@ -121,7 +121,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "532391751586210",
-        "grid_id": 10005001000400,
+        "grid_id": 327684,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.514,
@@ -131,7 +131,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "532391751586210",
-        "grid_id": 10006001000300,
+        "grid_id": 393219,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.34,
@@ -141,7 +141,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "532391751586210",
-        "grid_id": 10006001000400,
+        "grid_id": 393220,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.171,
@@ -151,7 +151,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "77702257446975",
-        "grid_id": 10006001000400,
+        "grid_id": 393220,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.588,
@@ -161,7 +161,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "77702257446975",
-        "grid_id": 10001001000300,
+        "grid_id": 65539,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.209,
@@ -171,7 +171,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "77702257446975",
-        "grid_id": 10002001000300,
+        "grid_id": 131075,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.73,
@@ -181,7 +181,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "106927944066972",
-        "grid_id": 10000001000000,
+        "grid_id": 0,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.099,
@@ -191,7 +191,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "106927944066972",
-        "grid_id": 10000001000100,
+        "grid_id": 1,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.801,
@@ -201,7 +201,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "106927944066972",
-        "grid_id": 10001001000000,
+        "grid_id": 65536,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.509,
@@ -211,7 +211,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "106927944066972",
-        "grid_id": 10001001000100,
+        "grid_id": 65537,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.057,
@@ -221,7 +221,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "106927944066972",
-        "grid_id": 10002001000000,
+        "grid_id": 131072,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.986,
@@ -231,7 +231,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "106927944066972",
-        "grid_id": 10001001000200,
+        "grid_id": 65538,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.099,
@@ -241,7 +241,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "184056814804988",
-        "grid_id": 10002001000100,
+        "grid_id": 131073,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.622,
@@ -251,7 +251,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "184056814804988",
-        "grid_id": 10002001000200,
+        "grid_id": 131074,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.08,
@@ -261,7 +261,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "184056814804988",
-        "grid_id": 10003001000100,
+        "grid_id": 196609,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.332,
@@ -271,7 +271,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "184056814804988",
-        "grid_id": 10003001000200,
+        "grid_id": 196610,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.835,
@@ -281,7 +281,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "184056814804988",
-        "grid_id": 10004001000200,
+        "grid_id": 262146,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.876,
@@ -291,7 +291,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "532391751586210",
-        "grid_id": 10005001000300,
+        "grid_id": 327683,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.12,
@@ -301,7 +301,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "532391751586210",
-        "grid_id": 10005001000400,
+        "grid_id": 327684,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.514,
@@ -311,7 +311,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "532391751586210",
-        "grid_id": 10006001000300,
+        "grid_id": 393219,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.34,
@@ -321,7 +321,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "532391751586210",
-        "grid_id": 10006001000400,
+        "grid_id": 393220,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.171,
@@ -331,7 +331,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "77702257446975",
-        "grid_id": 10006001000400,
+        "grid_id": 393220,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.588,
@@ -341,7 +341,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "77702257446975",
-        "grid_id": 10001001000300,
+        "grid_id": 65539,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.209,
@@ -351,7 +351,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "77702257446975",
-        "grid_id": 10002001000300,
+        "grid_id": 131075,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.73,
@@ -361,7 +361,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "106927944066972",
-        "grid_id": 10000001000000,
+        "grid_id": 0,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.099,
@@ -371,7 +371,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "106927944066972",
-        "grid_id": 10000001000100,
+        "grid_id": 1,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.801,
@@ -381,7 +381,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "106927944066972",
-        "grid_id": 10001001000000,
+        "grid_id": 65536,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.509,
@@ -391,7 +391,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "106927944066972",
-        "grid_id": 10001001000100,
+        "grid_id": 65537,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.057,
@@ -401,7 +401,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "106927944066972",
-        "grid_id": 10002001000000,
+        "grid_id": 131072,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.986,
@@ -411,7 +411,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "106927944066972",
-        "grid_id": 10001001000200,
+        "grid_id": 65538,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.099,
@@ -421,7 +421,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "184056814804988",
-        "grid_id": 10002001000100,
+        "grid_id": 131073,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.622,
@@ -431,7 +431,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "184056814804988",
-        "grid_id": 10002001000200,
+        "grid_id": 131074,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.08,
@@ -441,7 +441,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "184056814804988",
-        "grid_id": 10003001000100,
+        "grid_id": 196609,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.332,
@@ -451,7 +451,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "184056814804988",
-        "grid_id": 10003001000200,
+        "grid_id": 196610,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.835,
@@ -461,7 +461,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "184056814804988",
-        "grid_id": 10004001000200,
+        "grid_id": 262146,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.876,
@@ -471,7 +471,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "532391751586210",
-        "grid_id": 10005001000300,
+        "grid_id": 327683,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.12,
@@ -481,7 +481,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "532391751586210",
-        "grid_id": 10005001000400,
+        "grid_id": 327684,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.514,
@@ -491,7 +491,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "532391751586210",
-        "grid_id": 10006001000300,
+        "grid_id": 393219,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.34,
@@ -501,7 +501,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "532391751586210",
-        "grid_id": 10006001000400,
+        "grid_id": 393220,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.171,
@@ -511,7 +511,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "77702257446975",
-        "grid_id": 10006001000400,
+        "grid_id": 393220,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.588,
@@ -521,7 +521,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "77702257446975",
-        "grid_id": 10001001000300,
+        "grid_id": 65539,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.209,
@@ -531,7 +531,7 @@ CELL_FOOTPRINT = [
     },
     {
         "cell_id": "77702257446975",
-        "grid_id": 10002001000300,
+        "grid_id": 131075,
         # "valid_date_start": None,
         # "valid_date_end": None,
         "signal_dominance": 0.73,
@@ -1210,7 +1210,7 @@ EVENTS = [
 DPS = [
     {
         "user_id": 1,
-        "dps": [10005001000400, 10005001000300, 10006001000300, 10006001000400],
+        "dps": [327684, 327683, 393219, 393220],
         "time_slot_initial_time": "2023-01-02T00:00:00",
         "time_slot_end_time": "2023-01-02T01:00:00",
         "year": 2023,
@@ -1221,7 +1221,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [10006001000400, 10006001000300, 10005001000300, 10005001000400],
+        "dps": [393220, 393219, 327683, 327684],
         "time_slot_initial_time": "2023-01-02T01:00:00",
         "time_slot_end_time": "2023-01-02T02:00:00",
         "year": 2023,
@@ -1232,7 +1232,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [10006001000400, 10006001000300, 10005001000300, 10005001000400],
+        "dps": [393220, 393219, 327683, 327684],
         "time_slot_initial_time": "2023-01-02T02:00:00",
         "time_slot_end_time": "2023-01-02T03:00:00",
         "year": 2023,
@@ -1243,7 +1243,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [10006001000400, 10006001000300, 10005001000300, 10005001000400],
+        "dps": [393220, 393219, 327683, 327684],
         "time_slot_initial_time": "2023-01-02T03:00:00",
         "time_slot_end_time": "2023-01-02T04:00:00",
         "year": 2023,
@@ -1254,7 +1254,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [10006001000400, 10005001000300, 10006001000300, 10005001000400],
+        "dps": [393220, 327683, 393219, 327684],
         "time_slot_initial_time": "2023-01-02T04:00:00",
         "time_slot_end_time": "2023-01-02T05:00:00",
         "year": 2023,
@@ -1265,7 +1265,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [10005001000400, 10005001000300, 10006001000300, 10006001000400],
+        "dps": [327684, 327683, 393219, 393220],
         "time_slot_initial_time": "2023-01-02T05:00:00",
         "time_slot_end_time": "2023-01-02T06:00:00",
         "year": 2023,
@@ -1276,7 +1276,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [10006001000400, 10005001000300, 10006001000300, 10005001000400],
+        "dps": [393220, 327683, 393219, 327684],
         "time_slot_initial_time": "2023-01-02T06:00:00",
         "time_slot_end_time": "2023-01-02T07:00:00",
         "year": 2023,
@@ -1287,7 +1287,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [10005001000400, 10005001000300, 10006001000300, 10006001000400],
+        "dps": [327684, 327683, 393219, 393220],
         "time_slot_initial_time": "2023-01-02T07:00:00",
         "time_slot_end_time": "2023-01-02T08:00:00",
         "year": 2023,
@@ -1298,7 +1298,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [10006001000400],
+        "dps": [393220],
         "time_slot_initial_time": "2023-01-02T08:00:00",
         "time_slot_end_time": "2023-01-02T09:00:00",
         "year": 2023,
@@ -1375,7 +1375,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [10001001000300, 10002001000300, 10006001000400],
+        "dps": [65539, 131075, 393220],
         "time_slot_initial_time": "2023-01-02T17:00:00",
         "time_slot_end_time": "2023-01-02T18:00:00",
         "year": 2023,
@@ -1507,7 +1507,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [10006001000400],
+        "dps": [393220],
         "time_slot_initial_time": "2023-01-02T08:00:00",
         "time_slot_end_time": "2023-01-02T09:00:00",
         "year": 2023,

@@ -10,7 +10,6 @@ from pyspark.sql.types import (
     StringType,
     DateType,
     FloatType,
-    LongType,
 )
 
 from multimno.core.data_objects.data_object import ParquetDataObject
@@ -26,7 +25,7 @@ class SilverLongtermPermanenceScoreDataObject(ParquetDataObject):
     SCHEMA = StructType(
         [
             StructField(ColNames.user_id, BinaryType(), nullable=False),
-            StructField(ColNames.grid_id, LongType(), nullable=False),
+            StructField(ColNames.grid_id, IntegerType(), nullable=False),
             StructField(ColNames.lps, IntegerType(), nullable=False),
             StructField(ColNames.total_frequency, IntegerType(), nullable=False),
             StructField(ColNames.frequency_mean, FloatType(), nullable=True),

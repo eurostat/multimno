@@ -1,5 +1,5 @@
 """
-This module contains the InspireGridGeneration class which is responsible for generating the INSPIRE grid 
+This module contains the InspireGridGeneration class which is responsible for generating the INSPIRE grid
 and enrich it with elevation and landuse data.
 """
 
@@ -21,6 +21,7 @@ from multimno.core.spark_session import delete_file_or_folder
 from multimno.core.settings import CONFIG_SILVER_PATHS_KEY, CONFIG_BRONZE_PATHS_KEY
 from multimno.core.constants.columns import ColNames
 import multimno.core.utils as utils
+import multimno.core.quadkey_utils as quadkey_utils
 from multimno.core.log import get_execution_stats
 
 
@@ -35,7 +36,6 @@ class InspireGridGeneration(Component):
     def __init__(self, general_config_path: str, component_config_path: str) -> None:
         super().__init__(general_config_path, component_config_path)
 
-        self.grid_extent = self.config.geteval(InspireGridGeneration.COMPONENT_ID, "extent")
         self.grid_partition_size = self.config.get(InspireGridGeneration.COMPONENT_ID, "grid_generation_partition_size")
 
         self.grid_quadkey_level = self.config.getint(
@@ -47,18 +47,17 @@ class InspireGridGeneration(Component):
 
         self.country_buffer = self.config.get(InspireGridGeneration.COMPONENT_ID, "country_buffer")
 
-        # TODO: For now set to default 100, but can be dynamic from config in future
-        self.grid_resolution = 100
-
         self.grid_generator = InspireGridGenerator(
             self.spark,
-            self.grid_resolution,
             ColNames.geometry,
             ColNames.grid_id,
             self.grid_partition_size,
         )
 
-        self.quadkey_udf = F.udf(utils.latlon_to_quadkey)
+        # Attributes that will hold the shared common origin if creating INSPIRE grid using polygon(s) instead of
+        # an extent
+        self.n_origin: float = None
+        self.e_origin: float = None
 
     def initalize_data_objects(self):
 
@@ -96,7 +95,11 @@ class InspireGridGeneration(Component):
         if self.grid_mask == "polygon":
             self.read()
 
-            countries = self.get_country_mask(self.reference_country, self.country_buffer)
+            countries, country_extent = self.get_country_mask(self.reference_country, self.country_buffer)
+            proj_extent, _ = self.grid_generator.process_latlon_extent(country_extent)
+            self.n_origin = proj_extent[0]
+            self.e_origin = proj_extent[1]
+
             ids = [row["temp_id"] for row in countries.select("temp_id").collect()]
 
             self.logger.info(f"Processing {len(ids)} parts of the country")
@@ -116,10 +119,13 @@ class InspireGridGeneration(Component):
         self.logger.info(f"Transform method {self.COMPONENT_ID}...")
 
         if self.grid_mask == "polygon":
-            grid_sdf = self.grid_generator.cover_polygon_with_grid_centroids(self.current_country_part)
+            grid_sdf = self.grid_generator.cover_polygon_with_grid_centroids(
+                self.current_country_part, n_origin=self.n_origin, e_origin=self.e_origin
+            )
         else:
-            grid_sdf = self.grid_generator.cover_extent_with_grid_centroids(self.grid_extent)
-        grid_sdf = utils.assign_quadkey(grid_sdf, 3035, self.grid_quadkey_level)
+            grid_extent = self.config.geteval(InspireGridGeneration.COMPONENT_ID, "extent")
+            grid_sdf = self.grid_generator.cover_extent_with_grid_centroids(grid_extent)
+        grid_sdf = quadkey_utils.assign_quadkey(grid_sdf, 3035, self.grid_quadkey_level)
 
         grid_sdf = grid_sdf.orderBy(ColNames.quadkey)
         grid_sdf = grid_sdf.repartition(ColNames.quadkey)
@@ -139,10 +145,23 @@ class InspireGridGeneration(Component):
             )
             .groupBy()
             .agg(STA.ST_Union_Aggr(ColNames.geometry).alias(ColNames.geometry))
-            .withColumn(ColNames.geometry, F.explode(STF.ST_Dump(ColNames.geometry)))
-            .withColumn("temp_id", F.monotonically_increasing_id())
         )
 
         countries = utils.project_to_crs(countries, 3035, 4326)
 
-        return countries
+        country_extent = countries.select(
+            STF.ST_XMin("geometry").alias("longitude_min"),
+            STF.ST_YMin("geometry").alias("latitude_min"),
+            STF.ST_XMax("geometry").alias("longitude_max"),
+            STF.ST_YMax("geometry").alias("latitude_max"),
+        ).collect()
+
+        if len(country_extent) == 0:
+            raise ValueError(f"BronzeCountriesDataObject for {reference_country} seems to have no geometries")
+        country_extent = list(country_extent[0][:])
+
+        countries = countries.withColumn(ColNames.geometry, F.explode(STF.ST_Dump(ColNames.geometry))).withColumn(
+            "temp_id", F.monotonically_increasing_id()
+        )
+
+        return countries, country_extent

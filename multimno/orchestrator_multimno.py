@@ -17,6 +17,7 @@ import argparse
 from datetime import datetime
 import json
 import os
+import shlex
 import subprocess
 import sys
 import re
@@ -35,7 +36,7 @@ def create_logger(general_config_path: str):
         general_config_path (str): The path to the general configuration file.
 
     Returns:
-        logging.Logger: The created logger object.
+        (logging.Logger): The created logger object.
     """
     # Get log configuration
     config = parse_configuration(general_config_path)
@@ -118,6 +119,9 @@ def main():
         if re.search(SPECIAL_CHARS, s):
             print(f"Spark submit argument contains special characters: {s}", file=sys.stderr)
             sys.exit(1)
+
+    # Ensure spark_args is a list of arguments
+    spark_args = [shlex.quote(arg) for arg in spark_args]
 
     spark_submit_command_base = ["spark-submit"] + spark_args
 

@@ -27,6 +27,9 @@ from multimno.components.ingestion.grid_generation.inspire_grid_generation impor
 from multimno.components.ingestion.spatial_data_ingestion.overture_data_ingestion import (
     OvertureDataIngestion,
 )
+from multimno.components.ingestion.spatial_data_ingestion.overture_data_transformation import (
+    OvertureDataTransformation,
+)
 from multimno.components.ingestion.spatial_data_ingestion.gisco_data_ingestion import (
     GiscoDataIngestion,
 )
@@ -122,6 +125,7 @@ CONSTRUCTORS = {
     # Ingestion
     InspireGridGeneration.COMPONENT_ID: InspireGridGeneration,
     OvertureDataIngestion.COMPONENT_ID: OvertureDataIngestion,
+    OvertureDataTransformation.COMPONENT_ID: OvertureDataTransformation,
     GiscoDataIngestion.COMPONENT_ID: GiscoDataIngestion,
     DataFiltering.COMPONENT_ID: DataFiltering,
     # Execution - Spatial

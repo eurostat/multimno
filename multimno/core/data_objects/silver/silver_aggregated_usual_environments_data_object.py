@@ -8,7 +8,7 @@ from pyspark.sql.types import (
     StringType,
     DateType,
     FloatType,
-    LongType,
+    IntegerType,
 )
 
 from multimno.core.data_objects.data_object import ParquetDataObject
@@ -23,7 +23,7 @@ class SilverAggregatedUsualEnvironmentsDataObject(ParquetDataObject):
     ID = "SilverAggregatedUsualEnvironmentsDO"
     SCHEMA = StructType(
         [
-            StructField(ColNames.grid_id, LongType(), nullable=False),
+            StructField(ColNames.grid_id, IntegerType(), nullable=False),
             StructField(ColNames.weighted_device_count, FloatType(), nullable=False),
             # partition columns
             StructField(ColNames.label, StringType(), nullable=False),

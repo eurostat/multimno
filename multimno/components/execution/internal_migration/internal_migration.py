@@ -4,6 +4,8 @@ Module that implements the InternalMigration component
 
 import datetime as dt
 import calendar as cal
+from typing import Dict
+
 import pyspark.sql.functions as F
 from pyspark.sql import DataFrame
 from pyspark.sql.window import Window
@@ -97,6 +99,8 @@ class InternalMigration(Component):
             self.logger.error(msg)
             raise ValueError(msg)
 
+        self.landuse_weights = self.config.geteval(self.COMPONENT_ID, "landuse_weights")
+
         # Initialise other variables
         self.current_level: int = None
         self.quality_metrics_computed: bool = False  # quality metrics need only be computed once
@@ -105,33 +109,29 @@ class InternalMigration(Component):
         self.migrating_users: DataFrame = None  # reuse dataframe if already computed for one hierarchical level
 
     def initalize_data_objects(self):
-        input_ue_labels_prev_path = self.config.get(
-            CONFIG_SILVER_PATHS_KEY, "internal_migration_previous_ue_labels_silver"
-        )
-        input_ue_labels_new_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "internal_migration_new_ue_labels_silver")
+        # Input paths
+        input_enriched_grid_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "enriched_grid_data_silver")
         input_grid_map_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "geozones_grid_map_data_silver")
+        input_ue_labels_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "aggregated_usual_environments_silver")
+
+        # Output paths
         output_do_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "internal_migration_silver")
         quality_metrics_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "internal_migration_quality_metrics")
 
         # Check uniform for getting the grid or the enriched grid data
         self.uniform_tile_weights = self.config.getboolean(self.COMPONENT_ID, "uniform_tile_weights")
         if not self.uniform_tile_weights:
-            input_enriched_grid_path = self.config.get(
-                CONFIG_SILVER_PATHS_KEY, "internal_migration_enriched_grid_silver"
-            )
             if not check_if_data_path_exists(self.spark, input_enriched_grid_path):
                 self.logger.warning(f"Expected path {input_enriched_grid_path} to exist but it does not")
                 raise ValueError(f"Invalid path for {SilverEnrichedGridDataObject.ID}: {input_enriched_grid_path}")
 
-        if not check_if_data_path_exists(self.spark, input_ue_labels_prev_path):
-            self.logger.warning(f"Expected path {input_ue_labels_prev_path} to exist but it does not")
-            raise ValueError(f"Invalid path for {SilverInternalMigrationDataObject.ID}: {input_ue_labels_prev_path}")
-        if not check_if_data_path_exists(self.spark, input_ue_labels_new_path):
-            self.logger.warning(f"Expected path {input_ue_labels_new_path} to exist but it does not")
-            raise ValueError(f"Invalid path for {SilverInternalMigrationDataObject.ID}: {input_ue_labels_new_path}")
         if not check_if_data_path_exists(self.spark, input_grid_map_path):
             self.logger.warning(f"Expected path {input_grid_map_path} to exist but it does not")
             raise ValueError(f"Invalid path for {SilverGeozonesGridMapDataObject.ID}: {input_grid_map_path}")
+
+        if not check_if_data_path_exists(self.spark, input_ue_labels_path):
+            self.logger.warning(f"Expected path {input_ue_labels_path} to exist but it does not")
+            raise ValueError(f"Invalid path for {SilverUsualEnvironmentLabelsDataObject.ID}: {input_ue_labels_path}")
 
         clear_destination_directory = self.config.getboolean(self.COMPONENT_ID, "clear_destination_directory")
         if clear_destination_directory:
@@ -141,23 +141,45 @@ class InternalMigration(Component):
         if clear_quality_metrics_directory:
             delete_file_or_folder(self.spark, quality_metrics_path)
 
-        if not self.uniform_tile_weights:
-            enriched_grid = SilverEnrichedGridDataObject(self.spark, input_enriched_grid_path)
-        prev_ue_labels = SilverUsualEnvironmentLabelsDataObject(self.spark, input_ue_labels_prev_path)
-        new_ue_labels = SilverUsualEnvironmentLabelsDataObject(self.spark, input_ue_labels_new_path)
+        ue_labels = SilverUsualEnvironmentLabelsDataObject(self.spark, input_ue_labels_path)
         grid_map_zones = SilverGeozonesGridMapDataObject(self.spark, input_grid_map_path)
         output_do = SilverInternalMigrationDataObject(self.spark, output_do_path)
         quality_metrics_do = SilverInternalMigrationQualityMetricsDataObject(self.spark, quality_metrics_path)
 
         self.input_data_objects = {
-            f"prev_{SilverUsualEnvironmentLabelsDataObject.ID}": prev_ue_labels,
-            f"new_{SilverUsualEnvironmentLabelsDataObject.ID}": new_ue_labels,
+            SilverUsualEnvironmentLabelsDataObject.ID: ue_labels,
             SilverGeozonesGridMapDataObject.ID: grid_map_zones,
         }
         if not self.uniform_tile_weights:
-            self.input_data_objects[SilverEnrichedGridDataObject.ID] = enriched_grid
+            self.input_data_objects[SilverEnrichedGridDataObject.ID] = SilverEnrichedGridDataObject(
+                self.spark, input_enriched_grid_path
+            )
 
         self.output_data_objects = {output_do.ID: output_do, quality_metrics_do.ID: quality_metrics_do}
+
+    def calculate_landuse_tile_weights(
+        self,
+        enriched_grid_sdf: DataFrame,
+        landuse_prior_weights: Dict[str, float],
+    ) -> DataFrame:
+        """
+        Calculates the tile weights based on landuse information in the enriched grid DataFrame.
+        """
+
+        grid_sdf = self.input_data_objects[SilverEnrichedGridDataObject.ID].df
+        grid_sdf = grid_sdf.select(
+            ColNames.grid_id,
+            F.col(ColNames.main_landuse_category),
+        )
+
+        # Create a DataFrame from the weights dictionary
+        weights_list = [(k, float(v)) for k, v in landuse_prior_weights.items()]
+        weights_df = self.spark.createDataFrame(weights_list, [ColNames.main_landuse_category, "weight"])
+        weighted_df = enriched_grid_sdf.join(weights_df, on=ColNames.main_landuse_category, how="left").withColumn(
+            ColNames.tile_weight, F.coalesce(F.col("weight"), F.lit(0.0))
+        )  # Default 0.0 for missing weights
+
+        return weighted_df
 
     @staticmethod
     def get_migrating_users(
@@ -177,42 +199,41 @@ class InternalMigration(Component):
                 - First dataframe is the list of devices that have been classified as migrating
                 - Second dataframe contains the quality metrics
         """
+        prev_home_tiles_alias = prev_home_tiles.alias("prev")
+        new_home_tiles_alias = new_home_tiles.alias("new")
+
         joint_home_tiles = (
-            prev_home_tiles.join(
-                new_home_tiles,
+            prev_home_tiles_alias.join(
+                new_home_tiles_alias,
                 how="full",
                 on=(
-                    (prev_home_tiles[ColNames.user_id_modulo] == new_home_tiles[ColNames.user_id_modulo])
-                    & (prev_home_tiles[ColNames.user_id] == new_home_tiles[ColNames.user_id])
-                    & (prev_home_tiles[ColNames.grid_id] == new_home_tiles[ColNames.grid_id])
+                    (prev_home_tiles_alias[ColNames.user_id_modulo] == new_home_tiles_alias[ColNames.user_id_modulo])
+                    & (prev_home_tiles_alias[ColNames.user_id] == new_home_tiles_alias[ColNames.user_id])
+                    & (prev_home_tiles_alias[ColNames.grid_id] == new_home_tiles_alias[ColNames.grid_id])
                 ),
             )
-            .withColumn(
-                "coalesced_user_id", F.coalesce(prev_home_tiles[ColNames.user_id], new_home_tiles[ColNames.user_id])
-            )
+            .withColumn("coalesced_user_id", F.coalesce("prev." + ColNames.user_id, "new." + ColNames.user_id))
             .withColumn(
                 "coalesced_modulo",
-                F.coalesce(prev_home_tiles[ColNames.user_id_modulo], new_home_tiles[ColNames.user_id_modulo]),
+                F.coalesce("prev." + ColNames.user_id_modulo, "new." + ColNames.user_id_modulo),
             )
         )
         joint_home_tiles.cache()
 
         quality_metrics = joint_home_tiles.groupBy().agg(
-            F.count_distinct(prev_home_tiles[ColNames.user_id]).alias("previous_home_users"),  # users in first LT
-            F.count_distinct(new_home_tiles[ColNames.user_id]).alias("new_home_users"),  # users in second LT
+            F.count_distinct("prev." + ColNames.user_id).alias("previous_home_users"),  # users in first LT
+            F.count_distinct("new." + ColNames.user_id).alias("new_home_users"),  # users in second LT
             F.count_distinct("coalesced_user_id").alias("common_home_users"),  # users in both LTs
         )
 
         migrating_users = (
             joint_home_tiles.groupBy("coalesced_modulo", "coalesced_user_id")
             .agg(
-                (F.count(prev_home_tiles[ColNames.grid_id]) + F.count(new_home_tiles[ColNames.grid_id])).alias(
-                    "total_count"
-                ),
+                (F.count("prev." + ColNames.grid_id) + F.count("new." + ColNames.grid_id)).alias("total_count"),
                 F.count(
                     F.when(
-                        prev_home_tiles[ColNames.grid_id] == new_home_tiles[ColNames.grid_id],
-                        prev_home_tiles[ColNames.grid_id],
+                        F.col("prev." + ColNames.grid_id) == F.col("new." + ColNames.grid_id),
+                        F.col("prev." + ColNames.grid_id),
                     )
                 ).alias("common_count"),
             )
@@ -248,33 +269,38 @@ class InternalMigration(Component):
         # If we are not using uniform weights, get land-use or prior probabilities to use as tile weights
         if not self.uniform_tile_weights:
             grid_sdf = self.input_data_objects[SilverEnrichedGridDataObject.ID].df
-            grid_sdf = grid_sdf.select(ColNames.grid_id, ColNames.prior_probability)
+            grid_sdf = self.calculate_landuse_tile_weights(grid_sdf, self.landuse_weights)
+            grid_sdf = grid_sdf.select(ColNames.grid_id, ColNames.tile_weight)
             prev_weights = migrating_prev_home_tiles.join(grid_sdf, on=ColNames.grid_id, how="inner").withColumn(
-                "tile_weight", ColNames.prior_probability / F.sum(ColNames.prior_probability).over(window)
+                ColNames.tile_weight, ColNames.tile_weight / F.sum(ColNames.tile_weight).over(window)
             )
 
             new_weights = migrating_new_home_tiles.join(grid_sdf, on=ColNames.grid_id, how="inner").withColumn(
-                "tile_weight", ColNames.prior_probability / F.sum(ColNames.prior_probability).over(window)
+                ColNames.tile_weight, ColNames.tile_weight / F.sum(ColNames.tile_weight).over(window)
             )
         else:  # using uniform tile weights
-            prev_weights = migrating_prev_home_tiles.withColumn("tile_weight", F.lit(1) / F.count("*").over(window))
+            prev_weights = migrating_prev_home_tiles.withColumn(
+                ColNames.tile_weight, F.lit(1) / F.count("*").over(window)
+            )
 
-            new_weights = migrating_new_home_tiles.withColumn("tile_weight", F.lit(1) / F.count("*").over(window))
+            new_weights = migrating_new_home_tiles.withColumn(
+                ColNames.tile_weight, F.lit(1) / F.count("*").over(window)
+            )
 
         prev_zones = (
             prev_weights.groupBy(ColNames.user_id_modulo, ColNames.user_id, ColNames.zone_id)
-            .agg(F.sum("tile_weight").alias("prev_weight"))
+            .agg(F.sum(ColNames.tile_weight).alias("prev_weight"))
             .withColumnRenamed(ColNames.zone_id, ColNames.previous_zone)
         )
         new_zones = (
             new_weights.groupBy(ColNames.user_id_modulo, ColNames.user_id, ColNames.zone_id)
-            .agg(F.sum("tile_weight").alias("new_weight"))
+            .agg(F.sum(ColNames.tile_weight).alias("new_weight"))
             .withColumnRenamed(ColNames.zone_id, ColNames.new_zone)
         )
         return prev_zones, new_zones
 
     def transform(self):
-        grid_to_zone = self.input_data_objects["SilverGeozonesGridMapDO"].df
+        grid_to_zone = self.input_data_objects[SilverGeozonesGridMapDataObject.ID].df
         zone_to_grid_map_sdf = grid_to_zone.withColumn(
             ColNames.zone_id,
             F.element_at(F.split(F.col(ColNames.hierarchical_id), pattern="\\|"), self.current_level),
@@ -283,7 +309,7 @@ class InternalMigration(Component):
         # Read home labels for first long-term period
         if self.prev_home_tiles is None:
             self.prev_home_tiles = (
-                self.input_data_objects[f"prev_{SilverUsualEnvironmentLabelsDataObject.ID}"]
+                self.input_data_objects[SilverUsualEnvironmentLabelsDataObject.ID]
                 .df.where(F.col(ColNames.start_date) == F.lit(self.start_date_prev))
                 .where(F.col(ColNames.end_date) == F.lit(self.end_date_prev))
                 .where(F.col(ColNames.season) == F.lit(self.season_prev))
@@ -294,7 +320,7 @@ class InternalMigration(Component):
         # Read home labels for second long-term period
         if self.new_home_tiles is None:
             self.new_home_tiles = (
-                self.input_data_objects[f"new_{SilverUsualEnvironmentLabelsDataObject.ID}"]
+                self.input_data_objects[SilverUsualEnvironmentLabelsDataObject.ID]
                 .df.where(F.col(ColNames.start_date) == F.lit(self.start_date_new))
                 .where(F.col(ColNames.end_date) == F.lit(self.end_date_new))
                 .where(F.col(ColNames.season) == F.lit(self.season_new))

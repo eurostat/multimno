@@ -1,5 +1,6 @@
 import pytest
 from configparser import ConfigParser
+from multimno.core.constants.domain_names import Domains
 from pyspark.sql import SparkSession
 from pyspark.sql.types import Row
 from datetime import datetime
@@ -64,6 +65,7 @@ def write_input_data(spark: SparkSession, config: ConfigParser):
             123,
             "01",
             None,
+            Domains.DOMESTIC,
             "0",
             None,
             None,
