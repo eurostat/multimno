@@ -12,16 +12,17 @@ from multimno.core.constants.columns import ColNames, SegmentStates
 
 from tests.test_code.fixtures import spark_session as spark
 from tests.test_code.multimno.components.execution.continuous_time_segmentation.aux_continuous_time_segmentation import (
+    data_test_0001,
+    data_test_0002,
     set_input_data,
     get_expected_output_df,
 )
 from tests.test_code.multimno.components.execution.continuous_time_segmentation.aux_continuous_time_segmentation import (
     input_events_id,
+    input_event_cache_id,
     input_cell_intersection_groups_id,
+    input_time_segments_id,
     expected_output_time_segments_id,
-)
-from tests.test_code.multimno.components.execution.continuous_time_segmentation.aux_continuous_time_segmentation import (
-    data_test_0001,
 )
 
 from tests.test_code.test_common import TEST_RESOURCES_PATH, TEST_GENERAL_CONFIG_PATH
@@ -40,7 +41,7 @@ def teardown_function():
     teardown_test_data_dir()
 
 
-@pytest.mark.parametrize("get_test_data", [data_test_0001])
+@pytest.mark.parametrize("get_test_data", [data_test_0001, data_test_0002])
 def test_continuous_time_segmentation(spark, get_test_data):
     """
     DESCRIPTION:
@@ -69,6 +70,8 @@ def test_continuous_time_segmentation(spark, get_test_data):
         spark,
         config,
         test_data_dict[input_events_id],
+        test_data_dict[input_event_cache_id],
+        test_data_dict[input_time_segments_id],
         test_data_dict[input_cell_intersection_groups_id],
     )
 
@@ -87,10 +90,6 @@ def test_continuous_time_segmentation(spark, get_test_data):
 
     # assert read data == expected
     expected_time_segments = get_expected_output_df(spark, test_data_dict[expected_output_time_segments_id])
-
-    output_df.show()
-
-    expected_time_segments.show()
 
     # May need to explicitly sort "cells" for equality checks
     assertDataFrameEqual(output_df, expected_time_segments)

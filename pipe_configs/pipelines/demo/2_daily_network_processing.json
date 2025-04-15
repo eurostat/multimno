@@ -13,6 +13,10 @@
         {
             "component_id": "CellProximityEstimation",
             "component_config_path": "pipe_configs/configurations/1_daily/2_network_coverage/cell_proximity_estimation.ini"
+        },
+        {
+            "component_id": "CellFootprintIntersections",
+            "component_config_path": "pipe_configs/configurations/1_daily/2_network_coverage/cell_footprint_intersections.ini"
         }
     ]
 }

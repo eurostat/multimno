@@ -18,6 +18,8 @@ from pyspark.sql.types import (
 
 from multimno.core.constants.columns import ColNames
 from multimno.core.data_objects.silver.silver_cell_footprint_data_object import SilverCellFootprintDataObject
+from multimno.core.data_objects.silver.silver_cell_to_group_data_object import SilverCellToGroupDataObject
+from multimno.core.data_objects.silver.silver_group_to_tile_data_object import SilverGroupToTileDataObject
 from multimno.core.data_objects.silver.silver_event_flagged_data_object import SilverEventFlaggedDataObject
 from multimno.core.data_objects.silver.silver_daily_permanence_score_data_object import (
     SilverDailyPermanenceScoreDataObject,
@@ -28,6 +30,8 @@ from tests.test_code.multimno.components.execution.daily_permanence_score.refere
     EVENTS,
     CACHE_EVENTS,
     CELL_FOOTPRINT,
+    CELL_TO_GROUP,
+    GROUP_TO_TILE,
     DPS,
 )
 
@@ -154,6 +158,14 @@ def get_cellfootprint_testing_df(spark: SparkSession):
     return spark.createDataFrame([Row(**el) for el in CELL_FOOTPRINT], SilverCellFootprintDataObject.SCHEMA)
 
 
+def generate_input_cell_to_group_df(spark: SparkSession):
+    return spark.createDataFrame([Row(**el) for el in CELL_TO_GROUP], SilverCellToGroupDataObject.SCHEMA)
+
+
+def generate_input_group_to_tile_df(spark: SparkSession):
+    return spark.createDataFrame([Row(**el) for el in GROUP_TO_TILE], SilverGroupToTileDataObject.SCHEMA)
+
+
 def set_input_data(spark: SparkSession, config: ConfigParser):
     """
     Load input data (cell footprint and flagged events) and write to expected path.
@@ -167,6 +179,20 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
     input_cells_df = get_cellfootprint_testing_df(spark)
     input_data = SilverCellFootprintDataObject(spark, test_data_path)
     input_data.df = input_cells_df
+    input_data.write()
+
+    # Cell to group data
+    test_data_path = config["Paths.Silver"]["cell_to_group_data_silver"]
+    input_cell_to_group_df = generate_input_cell_to_group_df(spark)
+    input_data = SilverCellToGroupDataObject(spark, test_data_path)
+    input_data.df = input_cell_to_group_df
+    input_data.write()
+
+    # Group to tile data
+    test_data_path = config["Paths.Silver"]["group_to_tile_data_silver"]
+    input_group_to_tile_df = generate_input_group_to_tile_df(spark)
+    input_data = SilverGroupToTileDataObject(spark, test_data_path)
+    input_data.df = input_group_to_tile_df
     input_data.write()
 
     # Event data
@@ -256,6 +282,20 @@ def set_event_load_testing_data(spark: SparkSession, config: ConfigParser):
     test_data_path = config["Paths.Silver"]["cell_footprint_data_silver"]
     input_data = SilverCellFootprintDataObject(spark, test_data_path)
     input_data.df = input_cells_df
+    input_data.write()
+
+    # Cell to group data
+    test_data_path = config["Paths.Silver"]["cell_to_group_data_silver"]
+    input_cell_to_group_df = generate_input_cell_to_group_df(spark)
+    input_data = SilverCellToGroupDataObject(spark, test_data_path)
+    input_data.df = input_cell_to_group_df
+    input_data.write()
+
+    # Group to tile data
+    test_data_path = config["Paths.Silver"]["group_to_tile_data_silver"]
+    input_group_to_tile_df = generate_input_group_to_tile_df(spark)
+    input_data = SilverGroupToTileDataObject(spark, test_data_path)
+    input_data.df = input_group_to_tile_df
     input_data.write()
 
     # Get event data

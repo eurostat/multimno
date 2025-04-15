@@ -12,6 +12,8 @@ To initialise and run the component two configs are used -  `general_config.ini`
 ...
 event_data_silver_flagged = ${Paths:silver_dir}/mno_events_flagged
 cell_footprint_data_silver = ${Paths:silver_dir}/cell_footprint
+cell_to_group_data_silver = ${Paths:silver_dir}/cell_to_group
+group_to_tile_data_silver = ${Paths:silver_dir}/group_to_tile
 daily_permanence_score_data_silver = ${Paths:silver_dir}/daily_permanence_score
 ...
 ```

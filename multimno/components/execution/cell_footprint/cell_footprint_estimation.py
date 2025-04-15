@@ -62,7 +62,7 @@ class CellFootprintEstimation(Component):
 
         self.logistic_function_steepness = self.config.getfloat(self.COMPONENT_ID, "logistic_function_steepness")
         self.logistic_function_midpoint = self.config.getfloat(self.COMPONENT_ID, "logistic_function_midpoint")
-        self.signal_dominance_treshold = self.config.getfloat(self.COMPONENT_ID, "signal_dominance_treshold")
+        self.signal_dominance_threshold = self.config.getfloat(self.COMPONENT_ID, "signal_dominance_threshold")
         self.max_cells_per_grid_tile = self.config.getfloat(self.COMPONENT_ID, "max_cells_per_grid_tile")
 
         self.do_dynamic_coverage_range_calculation = self.config.getboolean(
@@ -71,15 +71,13 @@ class CellFootprintEstimation(Component):
         self.repartition_number = self.config.getint(self.COMPONENT_ID, "repartition_number")
         self.coverage_range_line_buffer = self.config.getint(self.COMPONENT_ID, "coverage_range_line_buffer")
 
-        self.difference_from_best_sd_treshold = self.config.getfloat(
-            self.COMPONENT_ID, "difference_from_best_sd_treshold"
+        self.percentage_of_best_sd_threshold = self.config.getfloat(
+            self.COMPONENT_ID, "percentage_of_best_sd_threshold"
         )
-        self.do_sd_treshold_prunning = self.config.getboolean(self.COMPONENT_ID, "do_sd_treshold_prunning")
-        self.do_max_cells_per_tile_prunning = self.config.getboolean(
-            self.COMPONENT_ID, "do_max_cells_per_tile_prunning"
-        )
-        self.do_difference_from_best_sd_prunning = self.config.getboolean(
-            self.COMPONENT_ID, "do_difference_from_best_sd_prunning"
+        self.do_sd_threshold_pruning = self.config.getboolean(self.COMPONENT_ID, "do_sd_threshold_pruning")
+        self.do_max_cells_per_tile_pruning = self.config.getboolean(self.COMPONENT_ID, "do_max_cells_per_tile_pruning")
+        self.do_percentage_of_best_sd_pruning = self.config.getboolean(
+            self.COMPONENT_ID, "do_percentage_of_best_sd_pruning"
         )
 
         self.data_period_dates = [
@@ -250,19 +248,19 @@ class CellFootprintEstimation(Component):
         )
 
         # Prune small signal dominance values
-        if self.do_sd_treshold_prunning:
+        if self.do_sd_threshold_pruning:
             current_cell_grid_sdf = self.prune_small_signal_dominance(
-                current_cell_grid_sdf, self.signal_dominance_treshold
+                current_cell_grid_sdf, self.signal_dominance_threshold
             )
 
-        # Prune signal dominance difference from best
-        if self.do_difference_from_best_sd_prunning:
-            current_cell_grid_sdf = self.prune_signal_difference_from_best(
-                current_cell_grid_sdf, self.difference_from_best_sd_treshold
+        # Prune signal dominance based on percentage of best value
+        if self.do_percentage_of_best_sd_pruning:
+            current_cell_grid_sdf = self.prune_signal_percentage_of_best_sd(
+                current_cell_grid_sdf, self.percentage_of_best_sd_threshold
             )
 
         # Prune max cells per grid tile
-        if self.do_max_cells_per_tile_prunning:
+        if self.do_max_cells_per_tile_pruning:
             current_cell_grid_sdf = self.prune_max_cells_per_grid_tile(
                 current_cell_grid_sdf, self.max_cells_per_grid_tile
             )
@@ -810,7 +808,7 @@ class CellFootprintEstimation(Component):
             cell_grid, do_elevation_angle_adjustments, do_azimuth_angle_adjustments
         )
 
-        cell_grid_filtered = cell_grid.filter(F.col(ColNames.signal_dominance) > self.signal_dominance_treshold)
+        cell_grid_filtered = cell_grid.filter(F.col(ColNames.signal_dominance) > self.signal_dominance_threshold)
         cell_counts = cell_grid_filtered.groupBy("cell_id").count().withColumnRenamed("count", "filtered_count")
         cell_grid_joined = cell_grid.join(cell_counts, on="cell_id", how="left").fillna(0, subset=["filtered_count"])
 
@@ -1220,19 +1218,19 @@ class CellFootprintEstimation(Component):
         return sdf
 
     @staticmethod
-    def prune_signal_difference_from_best(sdf: DataFrame, difference_threshold: float) -> DataFrame:
+    def prune_signal_percentage_of_best_sd(sdf: DataFrame, percentage_threshold: float) -> DataFrame:
         """
-        Prunes rows from the DataFrame based on a threshold of signal dominance difference.
+        Prunes rows from the DataFrame based on a threshold relative to the best signal dominance in a tile.
 
-        The rows are ordered by signal dominance in descending order, and only the rows where the difference
-        in signal dominance from the maximum is less than the threshold are kept for each grid tile.
+        The rows are ordered by signal dominance in descending order, and only the rows where the signal dominance
+        is at least a certain percentage of the highest signal dominance in a tile are kept (for each tile).
 
         Parameters:
-        sdf (DataFrame): A Spark DataFrame containing the signal dominance data.
-        threshold (float): The threshold for signal dominance difference in percentage.
+            sdf (DataFrame): A Spark DataFrame containing the signal dominance data.
+            percentage_threshold (float): The threshold for signal dominance in percentage.
 
         Returns:
-        DataFrame: A DataFrame with rows pruned based on the signal dominance difference threshold.
+            DataFrame: A DataFrame with rows pruned based on the signal dominance difference threshold.
         """
         window = Window.partitionBy(ColNames.grid_id).orderBy(F.desc(ColNames.signal_dominance))
 
@@ -1241,11 +1239,11 @@ class CellFootprintEstimation(Component):
         sdf = sdf.withColumn("max_signal_dominance", F.first(ColNames.signal_dominance).over(window))
         sdf = sdf.withColumn(
             "signal_dominance_diff_percentage",
-            (sdf["max_signal_dominance"] - sdf[ColNames.signal_dominance]) / sdf["max_signal_dominance"] * 100,
+            100 * sdf[ColNames.signal_dominance] / sdf["max_signal_dominance"],
         )
 
         sdf = sdf.filter(
-            (F.col("row_number") == 1) | (F.col("signal_dominance_diff_percentage") <= difference_threshold)
+            (F.col("row_number") == 1) | (F.col("signal_dominance_diff_percentage") >= percentage_threshold)
         )
 
         sdf = sdf.drop("row_number", "max_signal_dominance", "signal_dominance_diff_percentage")

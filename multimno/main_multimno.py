@@ -55,6 +55,9 @@ from multimno.components.execution.network_cleaning.network_cleaning import (
 from multimno.components.execution.cell_footprint.cell_footprint_estimation import (
     CellFootprintEstimation,
 )
+from multimno.components.execution.cell_footprint_intersections.cell_footprint_intersections import (
+    CellFootprintIntersections,
+)
 from multimno.components.execution.cell_connection_probability.cell_connection_probability import (
     CellConnectionProbabilityEstimation,
 )
@@ -138,6 +141,7 @@ CONSTRUCTORS = {
     NetworkCleaning.COMPONENT_ID: NetworkCleaning,
     DeviceActivityStatistics.COMPONENT_ID: DeviceActivityStatistics,
     CellFootprintEstimation.COMPONENT_ID: CellFootprintEstimation,
+    CellFootprintIntersections.COMPONENT_ID: CellFootprintIntersections,
     CellConnectionProbabilityEstimation.COMPONENT_ID: CellConnectionProbabilityEstimation,
     CellProximityEstimation.COMPONENT_ID: CellProximityEstimation,
     # Execution - Daily

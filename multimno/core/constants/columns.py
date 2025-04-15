@@ -113,13 +113,14 @@ class ColNames:
 
     # for cell footprint
     signal_dominance = "signal_dominance"
-    group_id = "group_id"
     cells = "cells"
-    group_size = "group_size"
 
     # cell footprint quality metrics
     number_of_events = "number_of_events"
     percentage_total_events = "percentage_total_events"
+
+    # Cell footprint intersections
+    group_id = "group_id"
 
     # Nearby cells and cell overlap
     overlapping_cell_ids = "overlapping_cell_ids"

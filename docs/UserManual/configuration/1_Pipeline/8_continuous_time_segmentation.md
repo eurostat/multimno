@@ -10,6 +10,7 @@ To initialise and run the component two configs are used - `general_config.ini` 
 ```ini
 [Paths.Silver]
 event_data_silver_flagged = ${Paths:silver_dir}/mno_events_flagged
+event_cache = ${Paths:silver_dir}/mno_events_cache
 cell_intersection_groups_data_silver = ${Paths:silver_dir}/cell_intersection_groups
 time_segments_silver = ${Paths:silver_dir}/time_segments
 ```
@@ -20,7 +21,7 @@ In time_segments.ini parameters are as follows:
 
 - **data_period_end** - string, format should be “yyyy-MM-dd“ (e.g. 2023-01-05), the date till which perform Event Cleaning
 
-- **is_first_run** - boolean, if True, the component won't use previously calculated time segments. If False, the component will use last calculated time segment per device.
+- **clear_time_segments_directory** - boolean, if True, the component will delete any existing time segments before calculation. If False, existing time segments will be used as input data where relevant. 
 
 - **event_error_flags_to_include** - list of integers, the list of error flags that should be included in the time segments processing. Default value is [0], so only events with no errors are included.
 
@@ -30,7 +31,7 @@ In time_segments.ini parameters are as follows:
 
 - **max_time_missing_move_s** - integer, maximum time difference between events to be considered a “move”. If larger, the time segment will be marked “unknown”. Default value is 2 hours.
 
--**max_time_missing_abroad_s** - integer, maximum time difference between events to be considered a “abroad”. If larger, the time segment will be marked “unknown”. Default value is 72 hours.
+- **max_time_missing_abroad_s** - integer, maximum time difference between events to be considered a “abroad”. If larger, the time segment will be marked “unknown”. Default value is 72 hours.
 
 - **pad_time_s** - integer, half the size of an isolated time segment: between two “unknowns” time segments. It expands the isolated event in time, by “padding” from the “unknown” time segments on both sides. Default value is 5 minutes.
 

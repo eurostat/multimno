@@ -82,7 +82,10 @@ def test_daily_permanence_score(spark, expected_data):
     output_data_object.read()
 
     # assert read data == expected
-    assertDataFrameEqual(output_data_object.df, expected_data)
+    assertDataFrameEqual(
+        output_data_object.df.withColumn(ColNames.dps, F.array_sort(ColNames.dps)),
+        expected_data.withColumn(ColNames.dps, F.array_sort(ColNames.dps)),
+    )
 
 
 def test_dps_load_data(spark):
