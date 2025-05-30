@@ -15,7 +15,7 @@ from multimno.core.utils import apply_schema_casting
 from multimno.core.spark_session import delete_file_or_folder
 from multimno.core.component import Component
 from multimno.core.constants.columns import ColNames
-from multimno.core.settings import CONFIG_SILVER_PATHS_KEY, GENERAL_CONFIG_KEY
+from multimno.core.settings import CONFIG_SILVER_PATHS_KEY, GENERAL_CONFIG_KEY, CONFIG_PATHS_KEY
 from multimno.core.data_objects.silver.silver_event_flagged_data_object import (
     SilverEventFlaggedDataObject,
 )
@@ -67,6 +67,9 @@ class PresentPopulationEstimation(Component):
         self.event_error_flags_to_include = self.config.geteval(self.COMPONENT_ID, "event_error_flags_to_include")
         self.time_point = None
         self.partition_number = self.config.getint(self.COMPONENT_ID, "partition_number")
+
+        temp_dir = self.config.get(CONFIG_PATHS_KEY, "tmp_dir")
+        self.pp_cache_path = f"{temp_dir}/pp_cache"
 
     def initalize_data_objects(self):
         input_silver_event_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "event_data_silver_flagged")
@@ -120,8 +123,7 @@ class PresentPopulationEstimation(Component):
             finally:
                 # Cleanup
                 self.spark.catalog.clearCache()
-                tmp_pp_path = self.config.get(GENERAL_CONFIG_KEY, "tmp_present_population_path")
-                delete_file_or_folder(self.spark, tmp_pp_path)
+                delete_file_or_folder(self.spark, self.pp_cache_path)
                 self.logger.info(f"Present Population: Finished time point {time_point}")
         self.logger.info("FINISHED: Present Population Estimation")
 
@@ -143,8 +145,7 @@ class PresentPopulationEstimation(Component):
         population_per_grid_df = self.calculate_population_per_grid(count_per_cell_df, cell_conn_prob_df)
 
         # Prepare the results.
-        tmp_pp_path = self.config.get(GENERAL_CONFIG_KEY, "tmp_present_population_path")
-        population_per_grid_df = self.spark.read.parquet(tmp_pp_path)
+        population_per_grid_df = self.spark.read.parquet(self.pp_cache_path)
         population_per_grid_df = (
             population_per_grid_df
             # .withColumn(ColNames.population, F.col(ColNames.population).cast(FloatType()))
@@ -290,8 +291,7 @@ class PresentPopulationEstimation(Component):
         normalisation_window = Window().partitionBy(ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id)
 
         # (Action) Persist the population dataframe in disk
-        tmp_pp_path = self.config.get(GENERAL_CONFIG_KEY, "tmp_present_population_path")
-        pop_df.write.parquet(tmp_pp_path, mode="overwrite")
+        pop_df.write.parquet(self.pp_cache_path, mode="overwrite")
 
         # un-persist the grid dataframe
         grid_df.unpersist()
@@ -300,7 +300,7 @@ class PresentPopulationEstimation(Component):
         # Start the iterative process
         while niter < self.max_iterations:
             # Load the population dataframe from disk
-            pop_df = self.spark.read.parquet(tmp_pp_path)
+            pop_df = self.spark.read.parquet(self.pp_cache_path)
 
             # Calculate the new population dataframe using the cached master dataframe
             new_pop_df = (
@@ -337,7 +337,7 @@ class PresentPopulationEstimation(Component):
             diff = diff["difference"] if diff else 0
 
             # (Action) Overwrite in disk the new population dataframe & Unpersist the new population dataframe
-            new_pop_df.write.parquet(tmp_pp_path, mode="overwrite")
+            new_pop_df.write.parquet(self.pp_cache_path, mode="overwrite")
             new_pop_df.unpersist()
 
             niter += 1

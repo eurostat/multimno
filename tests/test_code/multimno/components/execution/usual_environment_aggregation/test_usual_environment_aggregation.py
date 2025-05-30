@@ -34,66 +34,66 @@ def teardown_function():
     teardown_test_data_dir()
 
 
-@pytest.mark.skip(reason="TODO: When enriched grid is redesigned")
-def test_usual_environment_aggregation(spark, expected_data):
-    """
-    DESCRIPTION:
-        Test shall execute the UsualEnvironmentAggregation component. The expected output is a dataframe
-        with the total aggregated usual environments, homes and works in each grid tile.
+# @pytest.mark.skip(reason="TODO: When enriched grid is redesigned")
+# def test_usual_environment_aggregation(spark, expected_data):
+#     """
+#     DESCRIPTION:
+#         Test shall execute the UsualEnvironmentAggregation component. The expected output is a dataframe
+#         with the total aggregated usual environments, homes and works in each grid tile.
 
-    INPUT:
-        Test Configs:
-            general: tests/test_resources/config/general_config.ini
-            component: tests/test_resources/config/usual_environment_aggregation/usual_environment_aggregation.ini
-        Input Data:
-            enriched_grid_data_silver: /opt/testing_data/lakehouse/silver/grid_enriched
-            usual_environment_labels_data_silver: /opt/testing_data/lakehouse/silver/usual_environment_labels
+#     INPUT:
+#         Test Configs:
+#             general: tests/test_resources/config/general_config.ini
+#             component: tests/test_resources/config/usual_environment_aggregation/usual_environment_aggregation.ini
+#         Input Data:
+#             enriched_grid_data_silver: /opt/testing_data/lakehouse/silver/grid_enriched
+#             usual_environment_labels_data_silver: /opt/testing_data/lakehouse/silver/usual_environment_labels
 
-    OUTPUT:
-        aggregated_usual_environments_silver:  /opt/testing_data/lakehouse/silver/aggregated_usual_environments
+#     OUTPUT:
+#         aggregated_usual_environments_silver:  /opt/testing_data/lakehouse/silver/aggregated_usual_environments
 
-    STEPS:
-        1.- Parse the configuration
-        2.- Generate the input data using functions from the auxiliary file
-        3.- Init the UsualEnvironmentAggregation component with the test configs
-        4.- Execute the UsualEnvironmentAggregation (includes read, transform, write)
-        5.- Read resulting SilverAggregatedUsualEnvironmentsDataObject.
-        6.- Load expected SilverAggregatedUsualEnvironmentsDataObject.
-        7.- Assert DataFrames are equal.
-    """
-    # ========================================================================================================
-    # TEST TAKING INTO ACCOUNT VARIABLE GRID TILE WEIGHTS
-    # ========================================================================================================
+#     STEPS:
+#         1.- Parse the configuration
+#         2.- Generate the input data using functions from the auxiliary file
+#         3.- Init the UsualEnvironmentAggregation component with the test configs
+#         4.- Execute the UsualEnvironmentAggregation (includes read, transform, write)
+#         5.- Read resulting SilverAggregatedUsualEnvironmentsDataObject.
+#         6.- Load expected SilverAggregatedUsualEnvironmentsDataObject.
+#         7.- Assert DataFrames are equal.
+#     """
+#     # ========================================================================================================
+#     # TEST TAKING INTO ACCOUNT VARIABLE GRID TILE WEIGHTS
+#     # ========================================================================================================
 
-    # Setup
+#     # Setup
 
-    ## Init configs & paths
-    component_config_path = (
-        f"{TEST_RESOURCES_PATH}/config/usual_environment_aggregation/usual_environment_aggregation.ini"
-    )
-    config = parse_configuration(TEST_GENERAL_CONFIG_PATH, component_config_path)
+#     ## Init configs & paths
+#     component_config_path = (
+#         f"{TEST_RESOURCES_PATH}/config/usual_environment_aggregation/usual_environment_aggregation.ini"
+#     )
+#     config = parse_configuration(TEST_GENERAL_CONFIG_PATH, component_config_path)
 
-    ## Create Input data
-    set_input_data(spark, config)
+#     ## Create Input data
+#     set_input_data(spark, config)
 
-    ## Init component class
-    component = UsualEnvironmentAggregation(TEST_GENERAL_CONFIG_PATH, component_config_path)
+#     ## Init component class
+#     component = UsualEnvironmentAggregation(TEST_GENERAL_CONFIG_PATH, component_config_path)
 
-    # Expected (defined as fixture)
+#     # Expected (defined as fixture)
 
-    # Execution
-    component.execute()
+#     # Execution
+#     component.execute()
 
-    # Assertion
-    # read from test data output
-    output_data_object = component.output_data_objects[SilverAggregatedUsualEnvironmentsDataObject.ID]
-    output_data_object.read()
+#     # Assertion
+#     # read from test data output
+#     output_data_object = component.output_data_objects[SilverAggregatedUsualEnvironmentsDataObject.ID]
+#     output_data_object.read()
 
-    # print(output_data_object.df.show(50))
-    # print(expected_data.show(50))
+#     # print(output_data_object.df.show(50))
+#     # print(expected_data.show(50))
 
-    # assert read data == expected
-    assertDataFrameEqual(output_data_object.df, expected_data)
+#     # assert read data == expected
+#     assertDataFrameEqual(output_data_object.df, expected_data)
 
 
 def test_usual_environment_aggregation_uniform(spark, expected_data_uniform):

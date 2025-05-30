@@ -133,6 +133,7 @@ class TourismStatisticsCalculation(Component):
         for dataset_id_and_hierarchical_levels_pair in self.zoning_dataset_ids_and_levels_list:
             self.current_zoning_dataset_id = dataset_id_and_hierarchical_levels_pair[0]
             self.hierarchical_levels_to_calculate = dataset_id_and_hierarchical_levels_pair[1]
+            self.logger.info(f"Processing dataset {self.current_zoning_dataset_id}...")
             for current_month_date_min, current_month_date_max in self.data_period_bounds_list:
                 self.read()
 
@@ -209,6 +210,7 @@ class TourismStatisticsCalculation(Component):
                         .df.filter(
                             (F.col(ColNames.start_timestamp) >= earliest_start_timestamp)
                             & (F.col(ColNames.end_timestamp) < current_month_date_min)
+                            & (F.col(ColNames.dataset_id) == self.current_zoning_dataset_id)
                         )
                         .select(
                             F.col(ColNames.user_id),

@@ -31,7 +31,7 @@ def generate_input_lps_data(start_date: str, end_date: str) -> list[Row]:
     all_intervals = [
         Row(
             user_id=b"device1",
-            grid_id=UeGridIdType.DEVICE_OBSERVATION,
+            grid_id=UeGridIdType.DEVICE_OBSERVATION_GRID_ID,
             lps=100,
             total_frequency=100,
             frequency_mean=10.0,
@@ -48,7 +48,7 @@ def generate_input_lps_data(start_date: str, end_date: str) -> list[Row]:
         ),
         Row(
             user_id=b"device2",
-            grid_id=UeGridIdType.DEVICE_OBSERVATION,
+            grid_id=UeGridIdType.DEVICE_OBSERVATION_GRID_ID,
             lps=1,
             total_frequency=1,
             frequency_mean=10.0,
@@ -221,7 +221,7 @@ def generate_input_lps_data(start_date: str, end_date: str) -> list[Row]:
             # Device row: (LPS=100, used for ratio reference)
             Row(
                 user_id=b"device1",
-                grid_id=UeGridIdType.DEVICE_OBSERVATION,
+                grid_id=UeGridIdType.DEVICE_OBSERVATION_GRID_ID,
                 lps=100,
                 total_frequency=100,
                 frequency_mean=10.0,
@@ -268,7 +268,7 @@ def generate_input_lps_data(start_date: str, end_date: str) -> list[Row]:
             # Device row: (LPS=100, used for ratio reference)
             Row(
                 user_id=b"device1",
-                grid_id=UeGridIdType.DEVICE_OBSERVATION,
+                grid_id=UeGridIdType.DEVICE_OBSERVATION_GRID_ID,
                 lps=100,
                 total_frequency=100,
                 frequency_mean=10.0,
@@ -409,6 +409,7 @@ def generate_expected_qm(start_date: str, end_date: str) -> list[Row]:
             avg=2,
             start_date=start_date,
             end_date=end_date,
+            season="all",
         ),
         Row(
             metric="ue_2",
@@ -418,6 +419,7 @@ def generate_expected_qm(start_date: str, end_date: str) -> list[Row]:
             avg=1,
             start_date=start_date,
             end_date=end_date,
+            season="all",
         ),
         Row(
             metric="ue_3",
@@ -427,6 +429,7 @@ def generate_expected_qm(start_date: str, end_date: str) -> list[Row]:
             avg=1,
             start_date=start_date,
             end_date=end_date,
+            season="all",
         ),
         Row(
             metric="h_2",
@@ -436,6 +439,7 @@ def generate_expected_qm(start_date: str, end_date: str) -> list[Row]:
             avg=1,
             start_date=start_date,
             end_date=end_date,
+            season="all",
         ),
         Row(
             metric="w_1",
@@ -445,6 +449,7 @@ def generate_expected_qm(start_date: str, end_date: str) -> list[Row]:
             avg=1,
             start_date=start_date,
             end_date=end_date,
+            season="all",
         ),
         Row(
             metric="loc_na",
@@ -454,6 +459,7 @@ def generate_expected_qm(start_date: str, end_date: str) -> list[Row]:
             avg=5,
             start_date=start_date,
             end_date=end_date,
+            season="all",
         ),
         Row(
             metric="ue_na",
@@ -463,6 +469,7 @@ def generate_expected_qm(start_date: str, end_date: str) -> list[Row]:
             avg=3,
             start_date=start_date,
             end_date=end_date,
+            season="all",
         ),
         Row(
             metric="device_filter_1",
@@ -472,6 +479,7 @@ def generate_expected_qm(start_date: str, end_date: str) -> list[Row]:
             avg=0,
             start_date=start_date,
             end_date=end_date,
+            season="all",
         ),
         Row(
             metric="device_filter_2",
@@ -481,6 +489,7 @@ def generate_expected_qm(start_date: str, end_date: str) -> list[Row]:
             avg=0,
             start_date=start_date,
             end_date=end_date,
+            season="all",
         ),
         Row(
             metric="ue_abroad",
@@ -490,6 +499,7 @@ def generate_expected_qm(start_date: str, end_date: str) -> list[Row]:
             avg=0,
             start_date=start_date,
             end_date=end_date,
+            season="all",
         ),
     ]
 

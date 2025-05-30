@@ -77,72 +77,72 @@ def tile_grid(spark):
     return df
 
 
-@pytest.mark.skip(reason="TODO: New Grid implementation")
-def test_cover_extent_with_grid_centroids(grid_generator):
-    # Define the extent of the polygon
-    extent = [-3.715, 40.410, -3.694, 40.425]
+# @pytest.mark.skip(reason="TODO: New Grid implementation")
+# def test_cover_extent_with_grid_centroids(grid_generator):
+#     # Define the extent of the polygon
+#     extent = [-3.715, 40.410, -3.694, 40.425]
 
-    # Generate the grid centroids covering the extent
-    result = grid_generator.cover_extent_with_grid_centroids(extent)
+#     # Generate the grid centroids covering the extent
+#     result = grid_generator.cover_extent_with_grid_centroids(extent)
 
-    # Assert that the result is a DataFrame
-    assert isinstance(result, DataFrame)
+#     # Assert that the result is a DataFrame
+#     assert isinstance(result, DataFrame)
 
-    # Assert that the result DataFrame has the expected columns
-    expected_columns = ["geometry", "grid_id"]
-    assert result.columns == expected_columns
+#     # Assert that the result DataFrame has the expected columns
+#     expected_columns = ["geometry", "grid_id"]
+#     assert result.columns == expected_columns
 
-    # Assert that the result DataFrame
-    assert result.count() == 713
-
-
-@pytest.mark.skip(reason="TODO: New Grid implementation")
-def test_cover_extent_with_grid_cells(grid_generator):
-    # Define the extent of the polygon
-    extent = [-3.715, 40.410, -3.694, 40.425]
-
-    # Generate the grid cells covering the extent
-    result = grid_generator.cover_extent_with_grid_ids(extent)
-
-    # Assert that the result is a DataFrame
-    assert isinstance(result, DataFrame)
-
-    # Assert that the result DataFrame has the expected columns
-    expected_columns = ["grid_id"]
-    assert result.columns == expected_columns
-
-    # Assert that the result DataFrame
-    assert result.count() == 713
+#     # Assert that the result DataFrame
+#     assert result.count() == 713
 
 
-@pytest.mark.skip(reason="TODO: New Grid implementation")
-def test_cover_extent_with_grid_tiles(grid_generator):
-    # Define the extent of the polygon
-    extent = [-3.715, 40.410, -3.694, 40.425]
+# @pytest.mark.skip(reason="TODO: New Grid implementation")
+# def test_cover_extent_with_grid_cells(grid_generator):
+#     # Define the extent of the polygon
+#     extent = [-3.715, 40.410, -3.694, 40.425]
 
-    # Generate the grid cells covering the extent
-    result = grid_generator.cover_extent_with_grid_tiles(extent)
+#     # Generate the grid cells covering the extent
+#     result = grid_generator.cover_extent_with_grid_ids(extent)
 
-    # Assert that the result is a DataFrame
-    assert isinstance(result, DataFrame)
+#     # Assert that the result is a DataFrame
+#     assert isinstance(result, DataFrame)
 
-    # Assert that the result DataFrame has the expected columns
-    expected_columns = ["geometry", "grid_id"]
-    assert result.columns == expected_columns
+#     # Assert that the result DataFrame has the expected columns
+#     expected_columns = ["grid_id"]
+#     assert result.columns == expected_columns
 
-    # Assert that the result DataFrame
-    assert result.count() == 713
+#     # Assert that the result DataFrame
+#     assert result.count() == 713
 
 
-@pytest.mark.skip(reason="TODO: New Grid implementation")
-def test_grid_ids_to_centroids(grid_generator, centroid_grid):
-    test_grid = centroid_grid.drop("geometry")
+# @pytest.mark.skip(reason="TODO: New Grid implementation")
+# def test_cover_extent_with_grid_tiles(grid_generator):
+#     # Define the extent of the polygon
+#     extent = [-3.715, 40.410, -3.694, 40.425]
 
-    test_grid = grid_generator.convert_inspire_specs_to_internal_id(test_grid)
-    grid_ids_to_centroids = grid_generator.grid_ids_to_centroids(test_grid)
-    grid_ids_to_centroids = grid_generator.convert_internal_id_to_inspire_specs(grid_ids_to_centroids)
-    grid_ids_to_centroids = grid_ids_to_centroids.select("grid_id", "geometry")
-    assert_sparkgeodataframe_equal(centroid_grid, grid_ids_to_centroids)
+#     # Generate the grid cells covering the extent
+#     result = grid_generator.cover_extent_with_grid_tiles(extent)
+
+#     # Assert that the result is a DataFrame
+#     assert isinstance(result, DataFrame)
+
+#     # Assert that the result DataFrame has the expected columns
+#     expected_columns = ["geometry", "grid_id"]
+#     assert result.columns == expected_columns
+
+#     # Assert that the result DataFrame
+#     assert result.count() == 713
+
+
+# @pytest.mark.skip(reason="TODO: New Grid implementation")
+# def test_grid_ids_to_centroids(grid_generator, centroid_grid):
+#     test_grid = centroid_grid.drop("geometry")
+
+#     test_grid = grid_generator.convert_inspire_specs_to_internal_id(test_grid)
+#     grid_ids_to_centroids = grid_generator.grid_ids_to_centroids(test_grid)
+#     grid_ids_to_centroids = grid_generator.convert_internal_id_to_inspire_specs(grid_ids_to_centroids)
+#     grid_ids_to_centroids = grid_ids_to_centroids.select("grid_id", "geometry")
+#     assert_sparkgeodataframe_equal(centroid_grid, grid_ids_to_centroids)
 
 
 # TODO: Review
@@ -180,9 +180,9 @@ def test_grid_id_to_inspire_id(spark):
 
     # Define the expected result DataFrame
     expected_data = [
-        Row(grid_id=100, origin=0, INSPIRE_id="100mN0E100"),
-        Row(grid_id=200, origin=0, INSPIRE_id="100mN0E200"),
-        Row(grid_id=300, origin=0, INSPIRE_id="100mN0E300"),
+        Row(grid_id=100, origin=0, INSPIRE_id="100mN100E0"),
+        Row(grid_id=200, origin=0, INSPIRE_id="100mN200E0"),
+        Row(grid_id=300, origin=0, INSPIRE_id="100mN300E0"),
     ]
     schema = StructType(
         [

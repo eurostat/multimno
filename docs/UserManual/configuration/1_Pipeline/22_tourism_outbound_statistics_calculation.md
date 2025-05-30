@@ -42,7 +42,7 @@ The section `TourismOutboundStatisticsCalculation` controls component logic and 
 - **min_duration_segment_m**: Integer. Minimum duration in minutes for a time segment to be used as input data. Example: `72`.
 - **functional_midnight_h**: Integer. Hour of day acting as the functional midnight. Example: `4`.
 - **min_duration_segment_night_m**: Integer. Minimum duration in minutes for a time segment to be possibly marked as an overnight segment. Example: `200`.
-
+ - **filter_ue_segments**: bool, whether to filter out all segments of users who have inbound usual environment. Example: `False`.
 
 ## Configuration example
 ```ini
@@ -61,5 +61,5 @@ max_outbound_trip_gap_h = 72
 min_duration_segment_m = 180
 functional_midnight_h = 4
 min_duration_segment_night_m = 200
-
+filter_ue_segments = false
 ```

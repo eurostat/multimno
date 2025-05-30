@@ -573,7 +573,8 @@ def data_test_0001() -> dict:
             ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-03T04:45:00", date_format),
             end_timestamp=datetime.strptime("2023-01-03T07:12:00", date_format),
-            last_event_timestamp=None,
+            # Change from None to last event timestamp
+            last_event_timestamp=datetime.strptime("2023-01-03T04:40:00", date_format),
             mcc=mcc,
             mnc=mnc,
             plmn=plmn,
@@ -649,7 +650,8 @@ def data_test_0001() -> dict:
             ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-03T07:25:00", date_format),
             end_timestamp=datetime.strptime("2023-01-03T23:59:59", date_format),
-            last_event_timestamp=None,
+            # Change from None to the timestamp of the last event
+            last_event_timestamp=datetime.strptime("2023-01-03T07:20:00", date_format),
             mcc=mcc,
             mnc=mnc,
             plmn=None,
@@ -668,7 +670,8 @@ def data_test_0001() -> dict:
             ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-04T00:00:00", date_format),
             end_timestamp=datetime.strptime("2023-01-04T00:15:00", date_format),
-            last_event_timestamp=None,
+            # Change from None to the timestamp of the last event
+            last_event_timestamp=datetime.strptime("2023-01-03T07:20:00", date_format),
             mcc=mcc,
             mnc=mnc,
             plmn=plmn,
@@ -782,7 +785,8 @@ def data_test_0001() -> dict:
             ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-04T00:27:00", date_format),
             end_timestamp=datetime.strptime("2023-01-04T23:59:59", date_format),
-            last_event_timestamp=None,
+            # Preserve last known timestamp
+            last_event_timestamp=datetime.strptime("2023-01-04T00:27:00", date_format),
             mcc=mcc,
             mnc=mnc,
             plmn=None,
@@ -801,7 +805,8 @@ def data_test_0001() -> dict:
             ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-05T00:00:00", date_format),
             end_timestamp=datetime.strptime("2023-01-05T23:59:59", date_format),
-            last_event_timestamp=None,
+            # Preserve last known timestamp
+            last_event_timestamp=datetime.strptime("2023-01-04T00:27:00", date_format),
             mcc=mcc,
             mnc=mnc,
             plmn=None,
@@ -820,7 +825,8 @@ def data_test_0001() -> dict:
             ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-06T00:00:00", date_format),
             end_timestamp=datetime.strptime("2023-01-06T00:22:00", date_format),
-            last_event_timestamp=None,
+            # Change from None to last event timestamp from day 4
+            last_event_timestamp=datetime.strptime("2023-01-04T00:27:00", date_format),
             mcc=mcc,
             mnc=mnc,
             plmn=plmn,
@@ -858,7 +864,8 @@ def data_test_0001() -> dict:
             ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-06T17:55:00", date_format),
             end_timestamp=datetime.strptime("2023-01-06T23:59:59", date_format),
-            last_event_timestamp=None,
+            # Change from None to last event timestamp
+            last_event_timestamp=datetime.strptime("2023-01-06T17:55:00", date_format),
             mcc=mcc,
             mnc=mnc,
             plmn=None,
@@ -1012,7 +1019,7 @@ def data_test_0002() -> dict:
             day=31,
             user_id_modulo=user_id_modulo,
         ),
-        Row(  # Day 1 UNKNOWN
+        Row(  # Day 1 UNKNOWN (first segment)
             user_id=user_id,
             time_segment_id=hashlib.md5(
                 f"{unhex_user_id}{datetime.strptime('2023-01-01T00:00:00', date_format)}".encode()
@@ -1022,7 +1029,7 @@ def data_test_0002() -> dict:
             last_event_timestamp=None,
             mcc=mcc,
             mnc=mnc,
-            plmn=plmn,
+            plmn=None,
             cells=[],
             state=SegmentStates.UNKNOWN,
             is_last=False,
@@ -1041,7 +1048,7 @@ def data_test_0002() -> dict:
             last_event_timestamp=datetime.strptime("2023-01-01T01:00:00", date_format),
             mcc=mcc,
             mnc=mnc,
-            plmn=plmn,
+            plmn=None,
             cells=[cell_id_a],
             state=SegmentStates.UNDETERMINED,
             is_last=False,
@@ -1050,17 +1057,18 @@ def data_test_0002() -> dict:
             day=1,
             user_id_modulo=user_id_modulo,
         ),
-        Row(  # Day 1 UNKNOWN
+        Row(  # Day 1 UNKNOWN (last segment)
             user_id=user_id,
             time_segment_id=hashlib.md5(
                 f"{unhex_user_id}{datetime.strptime('2023-01-01T01:00:00', date_format)}".encode()
             ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-01T01:00:00", date_format),
             end_timestamp=datetime.strptime("2023-01-01T23:59:59", date_format),
-            last_event_timestamp=None,
+            # Preserve last known event timestamp
+            last_event_timestamp=datetime.strptime("2023-01-01T01:00:00", date_format),
             mcc=mcc,
             mnc=mnc,
-            plmn=plmn,
+            plmn=None,
             cells=[],
             state=SegmentStates.UNKNOWN,
             is_last=True,
@@ -1076,10 +1084,11 @@ def data_test_0002() -> dict:
             ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-02T00:00:00", date_format),
             end_timestamp=datetime.strptime("2023-01-02T23:59:59", date_format),
-            last_event_timestamp=None,
+            # Preserve the timestamp
+            last_event_timestamp=datetime.strptime("2023-01-01T01:00:00", date_format),
             mcc=mcc,
             mnc=mnc,
-            plmn=plmn,
+            plmn=None,
             cells=[],
             state=SegmentStates.UNKNOWN,
             is_last=True,
@@ -1095,10 +1104,11 @@ def data_test_0002() -> dict:
             ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-03T00:00:00", date_format),
             end_timestamp=datetime.strptime("2023-01-03T23:59:59", date_format),
-            last_event_timestamp=None,
+            # Preserve last known event timestamp
+            last_event_timestamp=datetime.strptime("2023-01-01T01:00:00", date_format),
             mcc=mcc,
             mnc=mnc,
-            plmn=plmn,
+            plmn=None,
             cells=[],
             state=SegmentStates.UNKNOWN,
             is_last=True,
@@ -1114,10 +1124,11 @@ def data_test_0002() -> dict:
             ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-04T00:00:00", date_format),
             end_timestamp=datetime.strptime("2023-01-04T23:59:59", date_format),
-            last_event_timestamp=None,
+            # Preserve last known event timestamp
+            last_event_timestamp=datetime.strptime("2023-01-01T01:00:00", date_format),
             mcc=mcc,
             mnc=mnc,
-            plmn=plmn,
+            plmn=None,
             cells=[],
             state=SegmentStates.UNKNOWN,
             is_last=True,
@@ -1133,10 +1144,11 @@ def data_test_0002() -> dict:
             ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-05T00:00:00", date_format),
             end_timestamp=datetime.strptime("2023-01-05T23:59:59", date_format),
-            last_event_timestamp=None,
+            # Preserve last known event timestamp
+            last_event_timestamp=datetime.strptime("2023-01-01T01:00:00", date_format),
             mcc=mcc,
             mnc=mnc,
-            plmn=plmn,
+            plmn=None,
             cells=[],
             state=SegmentStates.UNKNOWN,
             is_last=True,
@@ -1152,10 +1164,11 @@ def data_test_0002() -> dict:
             ).hexdigest(),
             start_timestamp=datetime.strptime("2023-01-06T00:00:00", date_format),
             end_timestamp=datetime.strptime("2023-01-06T23:59:59", date_format),
-            last_event_timestamp=None,
+            # Preserve last known event timestamp
+            last_event_timestamp=datetime.strptime("2023-01-01T01:00:00", date_format),
             mcc=mcc,
             mnc=mnc,
-            plmn=plmn,
+            plmn=None,
             cells=[],
             state=SegmentStates.UNKNOWN,
             is_last=True,

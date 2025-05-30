@@ -10,7 +10,7 @@ include = ["multimno*"]
 # Project metadata
 [project]
 name = "multimno"
-version = "0.9.0"
+version = "1.0.0"
 description = "Big data pipeline software for mobility and sociodemographic analysis from MNO Data."
 readme = "README.md"
 license = {text = "EUPL-1.2"}

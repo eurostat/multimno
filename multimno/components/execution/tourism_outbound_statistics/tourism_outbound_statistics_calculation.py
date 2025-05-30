@@ -2,7 +2,6 @@
 Module that implements the Outbound Tourism use case.
 """
 
-from multimno.core.constants.reserved_dataset_ids import ReservedDatasetIDs
 import pyspark.sql.functions as F
 from pyspark.sql import Window
 from datetime import datetime, timedelta
@@ -15,11 +14,15 @@ from multimno.core.data_objects.silver.silver_tourism_trip_data_object import Si
 from multimno.core.data_objects.silver.silver_tourism_outbound_nights_spent_data_object import (
     SilverTourismOutboundNightsSpentDataObject,
 )
-
+from multimno.core.data_objects.silver.silver_usual_environment_labels_data_object import (
+    SilverUsualEnvironmentLabelsDataObject,
+)
 from multimno.core.component import Component
 from multimno.core.spark_session import check_if_data_path_exists, delete_file_or_folder
 from multimno.core.settings import CONFIG_SILVER_PATHS_KEY, CONFIG_BRONZE_PATHS_KEY
 from multimno.core.constants.columns import ColNames, SegmentStates
+from multimno.core.constants.error_types import UeGridIdType
+from multimno.core.constants.reserved_dataset_ids import ReservedDatasetIDs
 from multimno.core.log import get_execution_stats
 from multimno.core.utils import apply_schema_casting
 
@@ -49,6 +52,8 @@ class TourismOutboundStatisticsCalculation(Component):
 
     def initalize_data_objects(self):
 
+        self.filter_ue_segments = self.config.getboolean(self.COMPONENT_ID, "filter_ue_segments")
+
         # Delete existing trips if needed
         self.delete_existing_trips = self.config.getboolean(self.COMPONENT_ID, "delete_existing_trips")
         if self.delete_existing_trips:
@@ -62,6 +67,10 @@ class TourismOutboundStatisticsCalculation(Component):
             "mcc_iso_timezones_data_bronze": BronzeMccIsoTzMap,
             # tourism trips are handled separately
         }
+
+        # If releveant, add usual environment labels data object to filter users with UE labels in target countries.
+        if self.filter_ue_segments:
+            inputs["usual_environment_labels_data_silver"] = SilverUsualEnvironmentLabelsDataObject
 
         for key, value in inputs.items():
             if self.config.has_option(CONFIG_BRONZE_PATHS_KEY, key):
@@ -167,6 +176,32 @@ class TourismOutboundStatisticsCalculation(Component):
                 )
             )
 
+            # get list of outbound UE from usual environment labels, filter stays to only include users with outbound UE in target countries
+            if self.filter_ue_segments:
+                outbound_ue_df = (
+                    self.input_data_objects[SilverUsualEnvironmentLabelsDataObject.ID]
+                    .df.filter(
+                        ((F.col(ColNames.label) == "ue"))
+                        & (F.col(ColNames.start_date) <= current_month_date_min)
+                        & (F.col(ColNames.end_date) >= current_month_date_max)
+                        & (F.col(ColNames.id_type) == UeGridIdType.ABROAD_STR)
+                    )
+                    .select(ColNames.user_id, ColNames.grid_id, ColNames.user_id_modulo)
+                    .distinct()
+                )
+                # Filter stays to only include users without outbound UE labels
+                current_month_stays_df = current_month_stays_df.join(
+                    outbound_ue_df.select(
+                        F.col(ColNames.user_id).alias("ue_user_id"),
+                        F.col(ColNames.grid_id).alias("ue_mcc"),
+                        F.col(ColNames.user_id_modulo).alias("ue_user_id_modulo"),
+                    ),
+                    (F.col(ColNames.user_id_modulo) == F.col("ue_user_id_modulo"))
+                    & (F.col(ColNames.user_id) == F.col("ue_user_id"))
+                    & (F.col(ColNames.plmn).substr(1, 3) == F.col("ue_mcc")),
+                    "left_anti",
+                ).drop("ue_user_id", "ue_mcc", "ue_user_id_modulo")
+
             # Get previous ongoing trips
             ongoing_trips_df = self.input_data_objects[SilverTourismTripDataObject.ID].df.filter(
                 (F.col(ColNames.is_trip_finished) == False)
@@ -186,6 +221,7 @@ class TourismOutboundStatisticsCalculation(Component):
                     .df.filter(
                         (F.col(ColNames.start_timestamp) >= earliest_start_timestamp)
                         & (F.col(ColNames.end_timestamp) < current_month_date_min)
+                        & (F.col(ColNames.state) == SegmentStates.ABROAD)
                     )
                     .select(
                         F.col(ColNames.user_id),

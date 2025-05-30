@@ -30,7 +30,8 @@ class SilverUsualEnvironmentLabelingQualityMetricsDataObject(ParquetDataObject):
             # partition columns
             StructField(ColNames.start_date, DateType(), nullable=False),
             StructField(ColNames.end_date, DateType(), nullable=False),
+            StructField(ColNames.season, StringType(), nullable=False),
         ]
     )
 
-    PARTITION_COLUMNS = [ColNames.start_date, ColNames.end_date]
+    PARTITION_COLUMNS = [ColNames.start_date, ColNames.end_date, ColNames.season]

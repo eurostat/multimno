@@ -30,7 +30,6 @@ from multimno.core.data_objects.silver.silver_event_flagged_data_object import (
 )
 from multimno.core.data_objects.silver.silver_cell_footprint_data_object import SilverCellFootprintDataObject
 from multimno.core.data_objects.silver.silver_cell_to_group_data_object import SilverCellToGroupDataObject
-from multimno.core.data_objects.silver.silver_group_to_tile_data_object import SilverGroupToTileDataObject
 from multimno.core.data_objects.silver.silver_daily_permanence_score_data_object import (
     SilverDailyPermanenceScoreDataObject,
 )
@@ -87,7 +86,6 @@ class DailyPermanenceScore(Component):
         self.events = None
         self.cell_footprint = None
         self.cell_to_group: DataFrame = None
-        self.group_to_tile: DataFrame = None
         self.time_slots = None
         self.current_date = None
 
@@ -97,7 +95,6 @@ class DailyPermanenceScore(Component):
         input_events_cache_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "event_cache")
         input_cell_footprint_silver_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "cell_footprint_data_silver")
         input_cell_to_group = self.config.get(CONFIG_SILVER_PATHS_KEY, "cell_to_group_data_silver")
-        input_group_to_tile = self.config.get(CONFIG_SILVER_PATHS_KEY, "group_to_tile_data_silver")
         output_dps_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "daily_permanence_score_data_silver")
 
         # Clear destination directory if needed
@@ -113,7 +110,6 @@ class DailyPermanenceScore(Component):
         silver_cell_footprint = SilverCellFootprintDataObject(self.spark, input_cell_footprint_silver_path)
         events_cache = EventCacheDataObject(self.spark, input_events_cache_path)
         cell_to_group = SilverCellToGroupDataObject(self.spark, input_cell_to_group)
-        group_to_tile = SilverGroupToTileDataObject(self.spark, input_group_to_tile)
 
         silver_dps = SilverDailyPermanenceScoreDataObject(self.spark, output_dps_path)
 
@@ -122,7 +118,6 @@ class DailyPermanenceScore(Component):
             silver_cell_footprint.ID: silver_cell_footprint,
             events_cache.ID: events_cache,
             cell_to_group.ID: cell_to_group,
-            group_to_tile.ID: group_to_tile,
         }
 
         self.output_data_objects = {silver_dps.ID: silver_dps}
@@ -154,9 +149,6 @@ class DailyPermanenceScore(Component):
 
         # Assert needed dates in cell to group data:
         self.assert_needed_dates_data_object(SilverCellToGroupDataObject.ID, needed_dates)
-
-        # Assert needed dates in group to tile data:
-        self.assert_needed_dates_data_object(SilverGroupToTileDataObject.ID, needed_dates)
 
     def assert_needed_dates_events(self):
         extended_dates = {d + timedelta(days=1) for d in self.data_period_dates} | {
@@ -318,24 +310,6 @@ class DailyPermanenceScore(Component):
 
         return df
 
-    def filter_group_to_tile(self, current_date: date) -> DataFrame:
-        """
-        Loads group to tile reference table for a specific date.
-
-        Args:
-            current_date (date): current date
-
-        Returns:
-            DataFrame: filtered group to tile dataframe
-        """
-        df = self.input_data_objects[SilverGroupToTileDataObject.ID].df.filter(
-            (F.col(ColNames.year) == F.lit(current_date.year))
-            & (F.col(ColNames.month) == F.lit(current_date.month))
-            & (F.col(ColNames.day) == F.lit(current_date.day))
-        )
-
-        return df
-
     # ------------------ Execute ------------------
     @get_execution_stats
     def execute(self):
@@ -471,13 +445,6 @@ class DailyPermanenceScore(Component):
 
         self.cell_to_group = previous_cell_to_group.union(current_cell_to_group).union(next_cell_to_group)
 
-        # Load group to tile data
-        previous_group_to_tile = self.filter_group_to_tile(previous_date)
-        current_group_to_tile = self.filter_group_to_tile(current_date)
-        next_group_to_tile = self.filter_group_to_tile(next_date)
-
-        self.group_to_tile = previous_group_to_tile.union(current_group_to_tile).union(next_group_to_tile)
-
     def build_time_slots_table(self, current_date) -> DataFrame:
         """
         Build a dataframe with the specified time slots for the current date.
@@ -538,7 +505,7 @@ class DailyPermanenceScore(Component):
         stays_slots = stays_slots.persist(StorageLevel.MEMORY_AND_DISK)
         stays_slots.count()  # for some reason better to force computation
         # collect grid_ids where DPS is 1
-        dps = self.calculate_dps(stays_slots, self.cell_footprint)
+        dps = self.calculate_dps(stays_slots)
 
         dps = (
             dps
@@ -791,7 +758,7 @@ class DailyPermanenceScore(Component):
             )
             .select(
                 F.coalesce(ColNames.user_id, "time_slot_user_id").alias(ColNames.user_id),
-                F.coalesce(ColNames.cell_id, F.lit(UeGridIdType.UNKNOWN)).alias(ColNames.cell_id),
+                F.coalesce(ColNames.cell_id, F.lit(UeGridIdType.UNKNOWN_CELL_ID)).alias(ColNames.cell_id),
                 ColNames.time_slot_initial_time,
                 ColNames.time_slot_end_time,
                 ColNames.stay_duration,
@@ -848,7 +815,7 @@ class DailyPermanenceScore(Component):
 
         return stays
 
-    def calculate_dps(self, stay_intervals: DataFrame, cell_footprint: DataFrame) -> DataFrame:
+    def calculate_dps(self, stay_intervals: DataFrame) -> DataFrame:
         """Calculate Daily Permanence Score (DPS) from user stay intervals.
 
         Processes stay intervals to determine user's presence in grid locations:
@@ -878,6 +845,7 @@ class DailyPermanenceScore(Component):
         )
         stay_intervals_multiple_cells = stay_intervals_multiple_cells.drop(ColNames.cell_id)
 
+        # Calculate groups with DPS=1
         stay_intervals_multiple_cells = (
             stay_intervals_multiple_cells.groupBy(
                 ColNames.year,
@@ -896,13 +864,7 @@ class DailyPermanenceScore(Component):
             )
         )
 
-        # We have now determined what cell footprint intersection groups have DPS = 1, which are exactly the rows
-        # we have kept after the filter. The next step is to join each group with its grid tiles, and collect them
-        # into an array of tile IDs, which will be the DPS column.
-        stay_intervals_multiple_cells = stay_intervals_multiple_cells.join(
-            self.group_to_tile, on=[ColNames.year, ColNames.month, ColNames.day, ColNames.group_id], how="left"
-        ).drop(ColNames.group_id)
-
+        # DPS column will be an array of group IDs that have DPS=1 in this time slot for this user
         stay_intervals_multiple_cells = (
             stay_intervals_multiple_cells.groupBy(
                 ColNames.user_id,
@@ -910,7 +872,7 @@ class DailyPermanenceScore(Component):
                 ColNames.time_slot_end_time,
                 ColNames.user_id_modulo,
             )
-            .agg(F.collect_set("grid_id").alias(ColNames.dps))
+            .agg(F.collect_set(ColNames.group_id).alias(ColNames.dps))
             .select(
                 ColNames.user_id,
                 ColNames.dps,
@@ -924,35 +886,45 @@ class DailyPermanenceScore(Component):
         # ------------ These are time slots to which contribute stay(s) in a single cell ----------
         # Here there is no need to add up the stay duration in different cells, so the calculation of the DPS is
         # straightforward and, if it surpasses the threshold, we just keep the cell footprint of the cell
+        # We will represent save in disk this footprint as the list of cell intersection groups to which this cell
+        # belongs
 
-        # For intervals with single cell no need to explode, just join grid ids as is
+        # For intervals with single cell no need to explode
         stay_intervals_single_cell = local_stay_intervals.filter(
             (F.col("distinct_cell_count") == 1)
-            & (F.col(ColNames.cell_id) != F.lit(UeGridIdType.UNKNOWN).cast(StringType()))
+            & (F.col(ColNames.cell_id) != F.lit(UeGridIdType.UNKNOWN_CELL_ID).cast(StringType()))
         )
-        stay_intervals_single_cell = self.join_footprints(stay_intervals_single_cell, cell_footprint, ["grid_ids"])
+
+        complete_footprint_as_list_of_groups = self.cell_to_group.groupBy(
+            ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id
+        ).agg(F.collect_list(ColNames.group_id).alias("group_ids"))
+        stay_intervals_single_cell = stay_intervals_single_cell.join(
+            complete_footprint_as_list_of_groups,
+            on=[ColNames.year, ColNames.month, ColNames.day, ColNames.cell_id],
+            how="left",
+        )
 
         stay_intervals_single_cell = stay_intervals_single_cell.select(
             ColNames.user_id,
-            F.col("grid_ids").alias(ColNames.dps),
+            F.col("group_ids").alias(ColNames.dps),
             ColNames.time_slot_initial_time,
             ColNames.time_slot_end_time,
             ColNames.user_id_modulo,
             F.lit(UeGridIdType.GRID_STR).alias(ColNames.id_type),
         )
 
-        uknown_intervals = local_stay_intervals.filter(F.col(ColNames.cell_id) == F.lit(UeGridIdType.UNKNOWN))
+        unknown_intervals = local_stay_intervals.filter(F.col(ColNames.cell_id) == F.lit(UeGridIdType.UNKNOWN_CELL_ID))
 
-        uknown_intervals = uknown_intervals.withColumn(
+        unknown_intervals = unknown_intervals.withColumn(
             ColNames.dps,
-            F.array(F.lit(UeGridIdType.UNKNOWN).cast(IntegerType())),
+            F.array(F.lit(UeGridIdType.UNKNOWN_GROUP_ID).cast(StringType())),
         ).select(
             ColNames.user_id,
             ColNames.dps,
             ColNames.time_slot_initial_time,
             ColNames.time_slot_end_time,
             ColNames.user_id_modulo,
-            F.lit(UeGridIdType.UKNOWN_STR).alias(ColNames.id_type),
+            F.lit(UeGridIdType.UNKNOWN_STR).alias(ColNames.id_type),
         )
 
         abroad_intervals = stay_intervals.filter(
@@ -964,7 +936,7 @@ class DailyPermanenceScore(Component):
         )
         abroad_intervals = abroad_intervals.withColumn(
             ColNames.dps,
-            F.array(F.col(ColNames.cell_id).cast(IntegerType())),
+            F.array(F.col(ColNames.cell_id).cast(StringType())),  # this casting should be a noop
         ).select(
             ColNames.user_id,
             ColNames.dps,
@@ -976,7 +948,7 @@ class DailyPermanenceScore(Component):
 
         dps = (
             stay_intervals_single_cell.union(stay_intervals_multiple_cells)
-            .union(uknown_intervals)
+            .union(unknown_intervals)
             .union(abroad_intervals)
         )
 

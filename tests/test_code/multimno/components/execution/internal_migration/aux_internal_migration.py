@@ -498,10 +498,10 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
     geo = generate_input_geozones_grid_map_data()
 
     prev_ue_labels_do = SilverUsualEnvironmentLabelsDataObject(
-        spark, config["Paths.Silver"]["aggregated_usual_environments_silver"]
+        spark, config["Paths.Silver"]["usual_environment_labels_data_silver"]
     )
     new_ue_labels_do = SilverUsualEnvironmentLabelsDataObject(
-        spark, config["Paths.Silver"]["aggregated_usual_environments_silver"]
+        spark, config["Paths.Silver"]["usual_environment_labels_data_silver"]
     )
     geozones_do = SilverGeozonesGridMapDataObject(spark, config["Paths.Silver"]["geozones_grid_map_data_silver"])
 

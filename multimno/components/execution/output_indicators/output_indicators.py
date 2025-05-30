@@ -739,6 +739,10 @@ class OutputIndicators(Component):
                     self.dfs[id_], do_info["output_constructor"].SCHEMA
                 )
 
+                num_partitions = self.config.getint(self.COMPONENT_ID, "num_partitions", fallback=None)
+                if num_partitions is not None and num_partitions > 0:
+                    self.output_data_objects[id_].df = self.output_data_objects[id_].df.repartition(num_partitions)
+
     def check_output_format(self):
         for id_, output_do in self.output_data_objects.items():
             self.logger.info(f"Checking output data object {id_}...")

@@ -463,7 +463,7 @@ def data_test_0001() -> dict:
             mcc=mcc,
             mnc=mnc,
             plmn=plmn,
-            zone_ids_list=["1kmN10E10", "1kmN10E11", "1kmN80E90"],
+            zone_ids_list=["1kmN10E10", "1kmN11E10", "1kmN90E80"],
             zone_weights_list=[0.574999988079071, 0.22500000894069672, 0.20000000298023224],
             is_overnight=False,
             year=year,

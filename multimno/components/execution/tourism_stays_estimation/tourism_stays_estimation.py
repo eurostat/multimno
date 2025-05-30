@@ -292,5 +292,9 @@ class TourismStaysEstimation(Component):
             segments_with_zone_weights_df, SilverTourismStaysDataObject.SCHEMA
         )
 
+        segments_with_zone_weights_df = segments_with_zone_weights_df.repartition(
+            *SilverTourismStaysDataObject.PARTITION_COLUMNS
+        ).sortWithinPartitions(ColNames.user_id, ColNames.start_timestamp)
+
         # Prepare output
         self.output_data_objects[SilverTourismStaysDataObject.ID].df = segments_with_zone_weights_df

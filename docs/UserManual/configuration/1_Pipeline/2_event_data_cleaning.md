@@ -35,7 +35,7 @@ In event_cleaning.ini parameters are as follows:
 - **bounding_box** - dictionary, with following keys 'min_lon', 'max_lon', 'min_lat', and 'max_lat' and integer/float values, to specify coordinates of bounding box, within which records should fall, make sure that records and bounding box are in the same src 
 
 - **number_of_partitions** - an integer, that determines the value of the modulo operator. This value will determine the number expected partitions as to the last partitioning column user_id_modulo. This value does not affect the number of folders in terms of other partitioning columns (day, month, year).
-
+- **do_user_id_rehashing** - boolean, True/False, decides whether to apply user_id rehashing before modulo partitioning. If True, user_id will be hashed using SHA2 algorithm and then modulo operation will be applied to the hash value. This is useful for ensuring that the user_id values are uniformly distributed across the partitions.
 
 ## Configuration example
 
@@ -55,4 +55,5 @@ bounding_box = {
     'max_lat': 90
     }
 number_of_partitions = 256
+do_user_id_rehashing = False
 ```

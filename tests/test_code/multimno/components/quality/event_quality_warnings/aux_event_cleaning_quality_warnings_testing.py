@@ -424,6 +424,7 @@ def set_input_event_cleaning_qm_freq_distr(spark: SparkSession, config: ConfigPa
         "initial_frequency": initial_frequency,
         "final_frequency": final_frequency,
         "date": date,
+        "user_id_modulo": 0,
     }
 
     event_cleaning_qm_freq_distr_df = pd.DataFrame(data_freq_dist)

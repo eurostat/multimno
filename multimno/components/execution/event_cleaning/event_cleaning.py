@@ -76,6 +76,11 @@ class EventCleaning(Component):
         self.local_timezone = self.config.get(GENERAL_CONFIG_KEY, "local_timezone")
         self.local_mcc = self.config.getint(GENERAL_CONFIG_KEY, "local_mcc")
         self.bbox = self.config.geteval(self.COMPONENT_ID, "bounding_box")
+        self.do_user_id_rehashing = self.config.getboolean(
+            self.COMPONENT_ID,
+            "do_user_id_rehashing",
+            fallback=False,
+        )
 
     def initalize_data_objects(self):
         # Input
@@ -154,7 +159,7 @@ class EventCleaning(Component):
         # The concept of device demultiplex is implemented here
         # 1) Creates a modulo column, 2) repartitions according to it 3) sorts data within partitions
 
-        df_events = self.calculate_user_id_modulo(df_events, self.number_of_partitions)
+        df_events = self.calculate_user_id_modulo(df_events, self.number_of_partitions, 14, self.do_user_id_rehashing)
         df_events = df_events.repartition(ColNames.user_id_modulo)
         df_events = df_events.sortWithinPartitions(ColNames.user_id, ColNames.timestamp)
 
@@ -232,7 +237,9 @@ class EventCleaning(Component):
                 ColNames.date: F.to_date(F.lit(self.current_date)),
             }
         )
-
+        frequency_metrics = frequency_metrics.repartition(
+            *SilverEventDataSyntacticQualityMetricsFrequencyDistribution.PARTITION_COLUMNS
+        )
         frequency_metrics = utils.apply_schema_casting(
             frequency_metrics, SilverEventDataSyntacticQualityMetricsFrequencyDistribution.SCHEMA
         )
@@ -610,9 +617,14 @@ class EventCleaning(Component):
             pyspark.sql.dataframe.DataFrame: dataframe with frequency counts
         """
 
-        frequency_metrics = sdf.groupBy(ColNames.user_id, ColNames.cell_id).agg(
+        frequency_metrics = sdf.groupBy(ColNames.user_id_modulo, ColNames.user_id, ColNames.cell_id).agg(
             F.count("*").alias(ColNames.initial_frequency),
             F.sum(F.col("to_preserve").cast("int")).alias(ColNames.final_frequency),
+        )
+
+        frequency_metrics = frequency_metrics.withColumn(
+            ColNames.user_id_modulo,
+            F.when(F.col(ColNames.user_id_modulo).isNull(), F.lit(-1)).otherwise(F.col(ColNames.user_id_modulo)),
         )
 
         return frequency_metrics
@@ -644,33 +656,50 @@ class EventCleaning(Component):
     def calculate_user_id_modulo(
         df: DataFrame,
         modulo_value: int,
-        hex_truncation_end: int = 12,
+        hex_truncation_end: int = 14,
+        do_user_id_rehashing: bool = False,
     ) -> DataFrame:
         """Calculates the extra column user_id_modulo, as the result of the modulo function
         applied on the binary user id column. The modulo value will affect the number of
         partitions in the final output.
 
         Args:
-            df (pyspark.sql.dataframe.DataFrame): df with user_id column
-            modulo_value (int): modulo value to be used when dividing user id.
-            hex_truncation_end (int): to which character truncate the hex, before sending it to conv function
-                and then to modulo. Anything upward of 13 is likely to result in distributional issues,
-                as the modulo value might not correspond to the number of final partitions.
+            df (pyspark.sql.dataframe.DataFrame): DataFrame containing a user_id column
+            modulo_value (int): Divisor for the modulo operation, typically equals the
+                            desired number of partitions
+            hex_truncation_end (int, optional): Number of hex characters to use from the
+                                            user_id. Values above 15 may cause distribution
+                                            issues. Defaults to 14.
+            do_user_id_rehashing (bool, optional): Whether to apply SHA-256 rehashing to
+                                                the user_id for improved distribution.
+                                                Defaults to False.
 
         Returns:
             pyspark.sql.dataframe.DataFrame: dataframe with user_id_modulo column.
         """
 
         # TODO make hex truncation (substring parameters) as configurable by user?
-
-        df = df.withColumn(
-            ColNames.user_id_modulo,
-            F.conv(
-                F.substring(F.hex(F.col(ColNames.user_id)), 1, hex_truncation_end),
-                16,
-                10,
-            ).cast("long")
-            % F.lit(modulo_value).cast("bigint"),
-        )
+        if do_user_id_rehashing:
+            # even though input data msisdn already hashed, we hash it again to make sure uniform distribution and
+            # have a better control
+            df = df.withColumn(
+                ColNames.user_id_modulo,
+                F.conv(
+                    F.substring(F.sha2(F.hex(F.col(ColNames.user_id)), 256), 1, hex_truncation_end),
+                    16,
+                    10,
+                ).cast("long")
+                % F.lit(modulo_value).cast("bigint"),
+            )
+        else:
+            df = df.withColumn(
+                ColNames.user_id_modulo,
+                F.conv(
+                    F.substring(F.hex(F.col(ColNames.user_id)), 1, hex_truncation_end),
+                    16,
+                    10,
+                ).cast("long")
+                % F.lit(modulo_value).cast("bigint"),
+            )
 
         return df

@@ -1,7 +1,13 @@
 #!/bin/bash
 
 # Clear the output of all notebooks
-find . -type f -name \*.ipynb | xargs jupyter nbconvert --clear-output --inplace
+notebooks=$(find . -type f -name "*.ipynb")
+if [ -n "$notebooks" ]; then
+    echo "$notebooks" | xargs jupyter nbconvert --clear-output --inplace
+else
+    echo "No Jupyter notebooks found to clear output."
+fi
+
 
 # Format all Python files of KineoDataops
 black -l 120 multimno tests/test_code/

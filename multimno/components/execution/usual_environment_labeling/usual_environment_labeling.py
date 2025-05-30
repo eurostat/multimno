@@ -12,7 +12,7 @@ import pyspark.sql.functions as F
 
 from multimno.core.component import Component
 
-from multimno.core.settings import CONFIG_SILVER_PATHS_KEY
+from multimno.core.settings import CONFIG_SILVER_PATHS_KEY, CONFIG_PATHS_KEY
 from multimno.core.constants.period_names import Seasons, PeriodCombinations
 from multimno.core.constants.columns import ColNames
 from multimno.core.constants.error_types import UeGridIdType
@@ -122,11 +122,14 @@ class UsualEnvironmentLabeling(Component):
         self.label_home = self.config.getboolean(self.COMPONENT_ID, "label_home", fallback=False)
         self.label_work = self.config.getboolean(self.COMPONENT_ID, "label_work", fallback=False)
 
+        temp_dir = self.config.get(CONFIG_PATHS_KEY, "tmp_dir")
+        self.ue_labels_cache_path = f"{temp_dir}/labels_cache"
+
     def initalize_data_objects(self):
         # Load paths from configuration file:
         input_ltps_silver_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "longterm_permanence_score_data_silver")
         output_uelabels_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "usual_environment_labels_data_silver")
-        self.ue_labels_cache_path = f"{output_uelabels_path}_cache"
+
         output_quality_metrics_path = self.config.get(
             CONFIG_SILVER_PATHS_KEY, "usual_environment_labeling_quality_metrics_data_silver"
         )
@@ -192,6 +195,7 @@ class UsualEnvironmentLabeling(Component):
             # main transformations of this method:
             self.transform()
             self.spark.catalog.clearCache()
+            delete_file_or_folder(self.spark, self.ue_labels_cache_path)
 
         self.logger.info(f"Generating quality metrics...")
         quality_metrics_df = self.compute_quality_metrics()
@@ -393,15 +397,17 @@ class UsualEnvironmentLabeling(Component):
     def transform(self):
         self.logger.info(f"Transform method {self.COMPONENT_ID}")
 
+        ltps_df = self.ltps_df
+
         if self.partition_chunk is not None:
-            self.ltps_df = self.ltps_df.filter(F.col(ColNames.user_id_modulo).isin(self.partition_chunk))
+            ltps_df = ltps_df.filter(F.col(ColNames.user_id_modulo).isin(self.partition_chunk))
         # discard devices that will not be analysed ('rarely observed' or 'discontinuously observed'):
         self.logger.info("Discarding devices...")
-        self.ltps_df = self.discard_devices(self.ltps_df)
+        ltps_df = self.discard_devices(ltps_df)
 
         # calculate tiles that belong to the ue (usual environment) of each device:
         self.logger.info("Calculating usual environment...")
-        ue_tiles_df = self.compute_generic_labeling(self.ue_labeling_config, is_location_labeling=False)
+        ue_tiles_df = self.compute_generic_labeling(ltps_df, self.ue_labeling_config, is_location_labeling=False)
         self.write_label(ue_tiles_df)
 
         for label_config in self.meaningful_location_labeling_config:
@@ -416,7 +422,7 @@ class UsualEnvironmentLabeling(Component):
                 & (F.col(ColNames.label) == "ue")
             ).select(ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id)
 
-            labeled_tiles_df = self.compute_generic_labeling(label_config, is_location_labeling=True)
+            labeled_tiles_df = self.compute_generic_labeling(ltps_df, label_config, is_location_labeling=True)
             self.write_label(labeled_tiles_df)
 
     def write_label(self, labeled_tiles_df: DataFrame):
@@ -524,6 +530,7 @@ class UsualEnvironmentLabeling(Component):
 
     def compute_generic_labeling(
         self,
+        ltps_df,
         labeling_config,
         is_location_labeling,
     ) -> DataFrame:
@@ -532,9 +539,8 @@ class UsualEnvironmentLabeling(Component):
         label types.
 
         Args:
-            label_type (str): label type to compute: 'ue', 'home' or 'work'.
-            apply_ndays_filter (bool): Indicates if the final ndays frequency filter shall be applied in the computation
-                of the specified label type.
+            labeling_config (dict): Configuration for the labeling process
+            is_location_labeling (bool): Whether this is for meaningful location labeling
 
         Returns:
             DataFrame: labeled tiles dataset for the specified label type.
@@ -544,23 +550,32 @@ class UsualEnvironmentLabeling(Component):
         gap_ps_threshold_is_absolute = labeling_config["ps_difference_gap_filter"]["is_absolute"]
         gap_period_combinations = labeling_config["ps_difference_gap_filter"]["relevant_periods"][0]
 
-        # filter ltps df for the current day type and time interval combination:
-        ltps_df = self.ltps_df.filter(
+        # Filter ltps df for the current day type and time interval combination:
+        current_ltps_df = ltps_df.filter(
             (F.col(ColNames.season) == gap_period_combinations[0])
             & (F.col(ColNames.day_type) == gap_period_combinations[1])
             & (F.col(ColNames.time_interval) == gap_period_combinations[2])
         )
 
-        # if this is meaningful location labeling, use only tiles labeled as usual environment
+        # If this is meaningful location labeling, use only tiles labeled as usual environment
         if is_location_labeling:
-            ltps_df = ltps_df.join(self.ue_tiles_df, on=[ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id])
+            current_ltps_df = current_ltps_df.join(
+                self.ue_tiles_df, on=[ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id]
+            )
 
-        # cut tiles at gap to generate preselected tiles
-        preselected_tiles_df = self.cut_tiles_at_gap(ltps_df, gap_ps_threshold, gap_ps_threshold_is_absolute)
+        # Cut tiles at gap to generate preselected tiles
+        preselected_tiles_df = self.cut_tiles_at_gap(current_ltps_df, gap_ps_threshold, gap_ps_threshold_is_absolute)
 
-        labeled_tiles_dfs_list = []
+        # Save preselected tiles to disk
+        preselected_path = f"{self.ue_labels_cache_path}/{label_code}_preselected"
+        # Avoid tiny files
+        preselected_tiles_df = preselected_tiles_df.repartition(ColNames.user_id_modulo)
+        preselected_tiles_df.write.mode("overwrite").format("parquet").save(preselected_path)
+
+        labeled_tiles_dfs_paths = []
         is_first_rule = True
-        for rule in labeling_config["labeling_rules"]:
+
+        for i, rule in enumerate(labeling_config["labeling_rules"]):
             self.logger.info(f"Applying rule: {rule['rule_code']}")
             rule_code = rule["rule_code"]
             rule_threshold = rule["threshold_value"]
@@ -568,34 +583,43 @@ class UsualEnvironmentLabeling(Component):
             rule_check_column = self.CHECK_TO_COLUMN[rule_check_type]
             rule_apply_condition = rule["apply_condition"]
             rule_period_combinations = rule["relevant_periods"][0]
-            # use only tiles which are still unlabeled after the previous rule
-            if not is_first_rule:
-                preselected_tiles_df = labeled_tiles_df.filter(F.col("is_labeled") == False).select(
-                    ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id
-                )
 
-            # filter ltps df for the current day type and time interval combination:
-            ltps_df = self.ltps_df.filter(
+            # Use only tiles which are still unlabeled after the previous rule
+            if not is_first_rule:
+                # Read unlabeled tiles from previous rule
+                previous_unlabeled_path = f"{self.ue_labels_cache_path}/{label_code}_rule_{i-1}_unlabeled"
+                preselected_tiles_df = (
+                    self.spark.read.format("parquet")
+                    .load(previous_unlabeled_path)
+                    .select(ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id)
+                )
+            else:
+                # For first rule, read preselected tiles
+                preselected_tiles_df = self.spark.read.format("parquet").load(preselected_path)
+
+            # Filter ltps df for the current day type and time interval combination:
+            current_ltps_df = ltps_df.filter(
                 (F.col(ColNames.season) == rule_period_combinations[0])
                 & (F.col(ColNames.day_type) == rule_period_combinations[1])
                 & (F.col(ColNames.time_interval) == rule_period_combinations[2])
             )
 
-            device_observation_df = ltps_df.filter(
+            device_observation_df = current_ltps_df.filter(
                 F.col(ColNames.id_type) == UeGridIdType.DEVICE_OBSERVATION_STR
             ).select(ColNames.user_id_modulo, ColNames.user_id, rule_check_column)
 
-            # keep only the tiles that left after gap filtering and previous rules
-            labeled_tiles_df = ltps_df.join(
+            # Keep only the tiles that left after gap filtering and previous rules
+            labeled_tiles_df = current_ltps_df.join(
                 preselected_tiles_df.select(ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id),
                 on=[ColNames.user_id_modulo, ColNames.user_id, ColNames.grid_id],
                 how="right",
             )
-            # might be the case that there are no inputs for current day type and time interval combination
+
+            # Might be the case that there are no inputs for current day type and time interval combination
             # for tiles that were left from previous rules. To keep them for the next rule, need to coallesce
             labeled_tiles_df = labeled_tiles_df.fillna({rule_check_column: 0})
 
-            # apply rule to preselected tiles
+            # Apply rule to preselected tiles
             labeled_tiles_df = self.calculate_device_abs_threshold(
                 device_observation_df, labeled_tiles_df, rule_threshold, rule_check_column
             )
@@ -615,15 +639,32 @@ class UsualEnvironmentLabeling(Component):
                 F.col(ColNames.label_rule),
             )
 
+            # Save labeled and unlabeled tiles to disk
+            labeled_path = f"{self.ue_labels_cache_path}/{label_code}_rule_{i}_labeled"
+            unlabeled_path = f"{self.ue_labels_cache_path}/{label_code}_rule_{i}_unlabeled"
+
+            # Avoid tiny files
+            labeled_tiles_df = labeled_tiles_df.repartition(ColNames.user_id_modulo)
+            # Need to presist before writing twice to avoid recomputing
             labeled_tiles_df = labeled_tiles_df.persist()
-            labeled_tiles_df.count()
-            labeled_tiles_dfs_list.append(labeled_tiles_df.filter(F.col("is_labeled")))
+
+            labeled_tiles_df.filter(F.col("is_labeled")).write.mode("overwrite").format("parquet").save(labeled_path)
+            labeled_tiles_dfs_paths.append(labeled_path)
+            labeled_tiles_df.filter(~F.col("is_labeled")).write.mode("overwrite").format("parquet").save(unlabeled_path)
+
+            labeled_tiles_df.unpersist()
             is_first_rule = False
 
-            # if apply condition is unlabeled device and at least some tiles are labeled stop the process
+            # If apply condition is unlabeled device and at least some tiles are labeled stop the process
             if rule_apply_condition == self.UNLABELED_DEVICES:
-                if labeled_tiles_df.filter(F.col("is_labeled")).count() > 0:
+                # To check if we have labeled tiles without loading full dataset
+                if len(self.spark.read.format("parquet").load(labeled_path).take(1)) > 0:
                     break
+
+        # Read all labeled tiles and union them
+        labeled_tiles_dfs_list = []
+        for path in labeled_tiles_dfs_paths:
+            labeled_tiles_dfs_list.append(self.spark.read.format("parquet").load(path))
 
         labeled_tiles_df = reduce(DataFrame.unionAll, labeled_tiles_dfs_list)
         labeled_tiles_df = labeled_tiles_df.withColumn(ColNames.label, F.lit(label_code))
@@ -814,9 +855,13 @@ class UsualEnvironmentLabeling(Component):
         )
 
         device_quality_metrics_df = device_quality_metrics_df.unionByName(other_rule_metrics_df)
-
+        device_quality_metrics_df = device_quality_metrics_df.filter(F.col(ColNames.label_rule).isNotNull())
         device_quality_metrics_df = device_quality_metrics_df.withColumns(
-            {ColNames.start_date: F.lit(self.start_date), ColNames.end_date: F.lit(self.end_date)}
+            {
+                ColNames.start_date: F.lit(self.start_date),
+                ColNames.end_date: F.lit(self.end_date),
+                ColNames.season: F.lit(self.season),
+            }
         ).withColumnRenamed(ColNames.label_rule, ColNames.labeling_quality_metric)
 
         device_quality_metrics_df = apply_schema_casting(

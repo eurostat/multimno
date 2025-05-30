@@ -2,7 +2,7 @@
 
 """
 
-from pyspark.sql.types import StructType, StructField, StringType, ShortType, ByteType
+from pyspark.sql.types import StructType, StructField, StringType, ShortType, ByteType, LongType
 from multimno.core.data_objects.data_object import ParquetDataObject
 from multimno.core.constants.columns import ColNames
 

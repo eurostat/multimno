@@ -272,8 +272,12 @@ class LongtermPermanenceScore(Component):
             F.sum(ColNames.frequency).cast(IntegerType()).alias(ColNames.total_frequency),
             F.mean(ColNames.frequency).cast(FloatType()).alias(ColNames.frequency_mean),
             F.stddev_samp(ColNames.frequency).cast(FloatType()).alias(ColNames.frequency_std),
-            F.mean(ColNames.regularity_mean).cast(FloatType()).alias(ColNames.regularity_mean),
-            F.stddev_samp(ColNames.regularity_mean).cast(FloatType()).alias(ColNames.regularity_std),
+            # F.mean(ColNames.regularity_mean).cast(FloatType()).alias(ColNames.regularity_mean),
+            # F.stddev_samp(ColNames.regularity_mean).cast(FloatType()).alias(ColNames.regularity_std),
+        )
+
+        df = df.withColumn(ColNames.regularity_mean, F.lit(None).cast(FloatType())).withColumn(
+            ColNames.regularity_std, F.lit(None).cast(FloatType())
         )
 
         return df
@@ -318,19 +322,21 @@ class LongtermPermanenceScore(Component):
         self.logger.info("Starting long-term analyses...")
 
         partition_chunks = self._get_partition_chunks()
-        for i, partition_chunk in enumerate(partition_chunks):
-            self.partition_chunk = partition_chunk
-            self.logger.info(f"Processing partition chunk {i}")
-            self.logger.debug(f"Partition chunk {partition_chunk}")
-            for lt_analysis in self.longterm_analyses:
-                self.current_lt_analysis = lt_analysis
-                self.logger.info(
-                    f"Starting analysis for season `{self.current_lt_analysis['season']}`, "
-                    f"{min(self.current_lt_analysis['months']).strftime('%Y-%m')} to "
-                    f"{max(self.current_lt_analysis['months']).strftime('%Y-%m')}, "
-                    f"day_type `{self.current_lt_analysis['day_type']}` and "
-                    f"time_interval `{self.current_lt_analysis['time_interval']}`..."
-                )
+        for lt_analysis in self.longterm_analyses:
+            self.current_lt_analysis = lt_analysis
+            self.logger.info(
+                f"Starting analysis for season `{self.current_lt_analysis['season']}`, "
+                f"{min(self.current_lt_analysis['months']).strftime('%Y-%m')} to "
+                f"{max(self.current_lt_analysis['months']).strftime('%Y-%m')}, "
+                f"day_type `{self.current_lt_analysis['day_type']}` and "
+                f"time_interval `{self.current_lt_analysis['time_interval']}`..."
+            )
+
+            for i, partition_chunk in enumerate(partition_chunks):
+                self.partition_chunk = partition_chunk
+                self.logger.info(f"Processing partition chunk {i}")
+                self.logger.debug(f"Partition chunk {partition_chunk}")
+
                 self.transform()
                 self.write()
                 self.logger.info("... results saved")

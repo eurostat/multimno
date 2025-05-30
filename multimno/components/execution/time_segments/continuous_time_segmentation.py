@@ -67,6 +67,10 @@ class ContinuousTimeSegmentation(Component):
         )
         self.pad_time = timedelta(seconds=self.config.getint(self.COMPONENT_ID, "pad_time_s"))
 
+        self.max_time_unknown = timedelta(
+            seconds=self.config.getint(self.COMPONENT_ID, "max_time_unknown_s", fallback=604800)
+        )  # Default to 7 days if not specified
+
         self.event_error_flags_to_include = self.config.geteval(self.COMPONENT_ID, "event_error_flags_to_include")
         self.domains_to_include = ContinuousTimeSegmentation._get_domains_to_include(
             self.config.geteval(self.COMPONENT_ID, "domains_to_include")
@@ -218,6 +222,16 @@ class ContinuousTimeSegmentation(Component):
                         == F.lit(current_date)
                     )
                 )
+                # Only include UNKNOWN segments if they're within max_time_unknown of their last event
+                last_time_segments_selection = last_time_segments_selection.filter(
+                    (
+                        (F.col(ColNames.state) != SegmentStates.UNKNOWN)
+                        | (
+                            F.col(ColNames.last_event_timestamp).isNull()
+                            | (F.lit(current_date) - F.col(ColNames.last_event_timestamp) <= self.max_time_unknown)
+                        )
+                    )
+                )
                 # The segments selection can provide zero or more segments. Select the latest one among them as the latest previous segment.
                 self.last_time_segments = (
                     last_time_segments_selection.withColumn(
@@ -235,7 +249,8 @@ class ContinuousTimeSegmentation(Component):
                 # If previous date time segments are present, also include distinct users with ABROAD state in previous date.
                 if self.last_time_segments is not None:
                     distinct_outbound_user_ids_df = (
-                        self.current_input_events_sdf.select(F.col(ColNames.user_id))
+                        self.current_input_events_sdf.filter(F.col(ColNames.domain) == Domains.OUTBOUND)
+                        .select(F.col(ColNames.user_id))
                         .union(
                             self.last_time_segments.where(F.col(ColNames.state) == F.lit(SegmentStates.ABROAD)).select(
                                 F.col(ColNames.user_id)
@@ -244,9 +259,11 @@ class ContinuousTimeSegmentation(Component):
                         .distinct()
                     )
                 else:
-                    distinct_outbound_user_ids_df = self.current_input_events_sdf.select(
-                        F.col(ColNames.user_id)
-                    ).distinct()
+                    distinct_outbound_user_ids_df = (
+                        self.current_input_events_sdf.filter(F.col(ColNames.domain) == Domains.OUTBOUND)
+                        .select(F.col(ColNames.user_id))
+                        .distinct()
+                    )
                 # Retrieve domestic events of these users.
                 additional_domestic_events_df = (
                     self.input_data_objects[SilverEventFlaggedDataObject.ID]
@@ -256,8 +273,9 @@ class ContinuousTimeSegmentation(Component):
                             == F.lit(current_date)
                         )
                         & (F.col(ColNames.error_flag).isin(self.event_error_flags_to_include))
-                        & (F.col(ColNames.domain) == F.lit(Domains.DOMESTIC)).alias("df1")
+                        & (F.col(ColNames.domain) == F.lit(Domains.DOMESTIC))
                     )
+                    .alias("df1")
                     .join(distinct_outbound_user_ids_df.alias("df2"), on=[ColNames.user_id], how="left_semi")
                     .select("df1.*")
                 )
@@ -350,6 +368,7 @@ class ContinuousTimeSegmentation(Component):
             max_time_missing_stay=self.max_time_missing_stay,
             max_time_missing_move=self.max_time_missing_move,
             max_time_missing_abroad=self.max_time_missing_abroad,
+            max_time_unknown=self.max_time_unknown,
             pad_time=self.pad_time,
         )
 
@@ -385,6 +404,7 @@ class ContinuousTimeSegmentation(Component):
         max_time_missing_stay: timedelta,
         max_time_missing_move: timedelta,
         max_time_missing_abroad: timedelta,
+        max_time_unknown: timedelta,
         pad_time: timedelta,
     ) -> pd.DataFrame:
         """Aggregates user stays into continuous time segments based on given parameters.
@@ -419,7 +439,13 @@ class ContinuousTimeSegmentation(Component):
         elif no_events_for_current_date:
             # If no events in D but previous segments exist, create a single UNKNOWN segment for date D
             segments = ContinuousTimeSegmentation._handle_no_events_for_current_date(
-                pdf, no_previous_segments, user_id, current_date_start, current_date_end, max_time_missing_abroad
+                pdf,
+                no_previous_segments,
+                user_id,
+                current_date_start,
+                current_date_end,
+                max_time_missing_abroad,
+                max_time_unknown,
             )
         else:
             # If events in D exist, process them along with data of latest existing time segment to generate segments.
@@ -480,21 +506,9 @@ class ContinuousTimeSegmentation(Component):
         day_start: datetime,
         day_end: datetime,
         max_time_missing_abroad: timedelta,
+        max_time_unknown: timedelta,
     ) -> List[Dict]:
-        """Handles cases where there are no events for the current date.
-        This method creates a time segment for a day without events. If there were previous segments
-        and the last segment was abroad within the maximum allowed time gap, it continues the abroad state.
-        Otherwise, it creates an unknown state segment.
-        Args:
-            pdf (pd.DataFrame): DataFrame containing previous segments information
-            no_previous_segments (bool): Flag indicating if there are previous segments
-            user_id (str): Identifier for the user
-            day_start (datetime): Start timestamp of the day
-            day_end (datetime): End timestamp of the day
-            max_time_missing_abroad (timedelta): Maximum allowed time gap for continuing abroad state
-        Returns:
-            List[Dict]: List containing a single time segment dictionary with the appropriate state
-        """
+        """Handles cases where there are no events for the current date."""
         if not no_previous_segments:
             previous_segment_state = pdf[ColNames.state].iloc[0]
             previous_segment_plmn = pdf["segment_plmn"].iloc[0]
@@ -513,10 +527,16 @@ class ContinuousTimeSegmentation(Component):
                     SegmentStates.ABROAD,
                     user_id,
                 )
-            # If time since the last event timestamp is above threshold, create whole-day UNKNOWN segment
+            # Otherwise create whole-day UNKNOWN segment preserving last_event_timestamp
             else:
                 seg = ContinuousTimeSegmentation._create_time_segment(
-                    day_start, day_end, None, [], None, SegmentStates.UNKNOWN, user_id
+                    day_start,
+                    day_end,
+                    previous_segment_last_event_timestamp,  # Preserve the last timestamp
+                    [],
+                    None,
+                    SegmentStates.UNKNOWN,
+                    user_id,
                 )
         # If no previous time segment, create whole-day UNKNOWN segment
         else:
@@ -629,7 +649,7 @@ class ContinuousTimeSegmentation(Component):
             return ContinuousTimeSegmentation._create_time_segment(
                 day_start,
                 first_event_time - adjusted_pad,
-                None,
+                previous_segment_last_event_timestamp,  # Preserve the timestamp
                 [],
                 None,
                 SegmentStates.UNKNOWN,
@@ -899,7 +919,7 @@ class ContinuousTimeSegmentation(Component):
             unknown_segment = ContinuousTimeSegmentation._create_time_segment(
                 extended_ts[ColNames.end_timestamp],
                 event_timestamp - pad_time,
-                None,
+                current_ts[ColNames.last_event_timestamp],  # Preserve the timestamp
                 [],
                 None,
                 SegmentStates.UNKNOWN,
@@ -1031,7 +1051,7 @@ class ContinuousTimeSegmentation(Component):
         ts = ContinuousTimeSegmentation._create_time_segment(
             start_timestamp=seg[ColNames.end_timestamp],
             end_timestamp=current_date_end,
-            last_event_timestamp=None,
+            last_event_timestamp=seg[ColNames.last_event_timestamp],  # Preserve the timestamp
             cells=[],
             plmn=None,
             state=SegmentStates.UNKNOWN,

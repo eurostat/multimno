@@ -542,81 +542,153 @@ CELL_FOOTPRINT = [
 ]
 
 CELL_TO_GROUP = [
-    dict(cell_id="184056814804988", group_id="184056814804988", year=2023, month=1, day=1),
-    dict(cell_id="532391751586210", group_id="532391751586210,77702257446975", year=2023, month=1, day=1),
-    dict(cell_id="77702257446975", group_id="532391751586210,77702257446975", year=2023, month=1, day=1),
-    dict(cell_id="106927944066972", group_id="106927944066972", year=2023, month=1, day=1),
-    dict(cell_id="532391751586210", group_id="532391751586210", year=2023, month=1, day=1),
-    dict(cell_id="77702257446975", group_id="77702257446975", year=2023, month=1, day=1),
-    dict(cell_id="184056814804988", group_id="184056814804988", year=2023, month=1, day=2),
-    dict(cell_id="532391751586210", group_id="532391751586210,77702257446975", year=2023, month=1, day=2),
-    dict(cell_id="77702257446975", group_id="532391751586210,77702257446975", year=2023, month=1, day=2),
-    dict(cell_id="106927944066972", group_id="106927944066972", year=2023, month=1, day=2),
-    dict(cell_id="532391751586210", group_id="532391751586210", year=2023, month=1, day=2),
-    dict(cell_id="77702257446975", group_id="77702257446975", year=2023, month=1, day=2),
-    dict(cell_id="184056814804988", group_id="184056814804988", year=2023, month=1, day=3),
-    dict(cell_id="532391751586210", group_id="532391751586210,77702257446975", year=2023, month=1, day=3),
-    dict(cell_id="77702257446975", group_id="532391751586210,77702257446975", year=2023, month=1, day=3),
-    dict(cell_id="106927944066972", group_id="106927944066972", year=2023, month=1, day=3),
-    dict(cell_id="532391751586210", group_id="532391751586210", year=2023, month=1, day=3),
-    dict(cell_id="77702257446975", group_id="77702257446975", year=2023, month=1, day=3),
+    dict(
+        cell_id="184056814804988",
+        group_id=1,
+        year=2023,
+        month=1,
+        day=1,
+    ),
+    dict(
+        cell_id="532391751586210",
+        group_id=2,
+        year=2023,
+        month=1,
+        day=1,
+    ),
+    dict(
+        cell_id="106927944066972",
+        group_id=3,
+        year=2023,
+        month=1,
+        day=1,
+    ),
+    dict(
+        cell_id="77702257446975",
+        group_id=2,
+        year=2023,
+        month=1,
+        day=1,
+    ),
+    dict(
+        cell_id="532391751586210",
+        group_id=4,
+        year=2023,
+        month=1,
+        day=1,
+    ),
+    dict(
+        cell_id="77702257446975",
+        group_id=5,
+        year=2023,
+        month=1,
+        day=1,
+    ),
+    dict(
+        cell_id="184056814804988",
+        group_id=1,
+        year=2023,
+        month=1,
+        day=2,
+    ),
+    dict(
+        cell_id="532391751586210",
+        group_id=2,
+        year=2023,
+        month=1,
+        day=2,
+    ),
+    dict(
+        cell_id="106927944066972",
+        group_id=3,
+        year=2023,
+        month=1,
+        day=2,
+    ),
+    dict(
+        cell_id="77702257446975",
+        group_id=2,
+        year=2023,
+        month=1,
+        day=2,
+    ),
+    dict(
+        cell_id="532391751586210",
+        group_id=4,
+        year=2023,
+        month=1,
+        day=2,
+    ),
+    dict(
+        cell_id="77702257446975",
+        group_id=5,
+        year=2023,
+        month=1,
+        day=2,
+    ),
+    dict(
+        cell_id="184056814804988",
+        group_id=1,
+        year=2023,
+        month=1,
+        day=3,
+    ),
+    dict(
+        cell_id="532391751586210",
+        group_id=2,
+        year=2023,
+        month=1,
+        day=3,
+    ),
+    dict(
+        cell_id="532391751586210",
+        group_id=4,
+        year=2023,
+        month=1,
+        day=3,
+    ),
+    dict(
+        cell_id="106927944066972",
+        group_id=3,
+        year=2023,
+        month=1,
+        day=3,
+    ),
+    dict(
+        cell_id="77702257446975",
+        group_id=2,
+        year=2023,
+        month=1,
+        day=3,
+    ),
+    dict(
+        cell_id="77702257446975",
+        group_id=5,
+        year=2023,
+        month=1,
+        day=3,
+    ),
 ]
 
-# 532391751586210
-
-GROUP_TO_TILE = [
-    dict(group_id="532391751586210,77702257446975", grid_id=393220, year=2023, month=1, day=1),
-    dict(group_id="184056814804988", grid_id=196609, year=2023, month=1, day=1),
-    dict(group_id="532391751586210,77702257446975", grid_id=393220, year=2023, month=1, day=2),
-    dict(group_id="184056814804988", grid_id=196609, year=2023, month=1, day=2),
-    dict(group_id="184056814804988", grid_id=196609, year=2023, month=1, day=3),
-    dict(group_id="532391751586210,77702257446975", grid_id=393220, year=2023, month=1, day=3),
-    dict(group_id="532391751586210", grid_id=327683, year=2023, month=1, day=3),
-    dict(group_id="532391751586210", grid_id=327684, year=2023, month=1, day=3),
-    dict(group_id="532391751586210", grid_id=327684, year=2023, month=1, day=1),
-    dict(group_id="532391751586210", grid_id=327683, year=2023, month=1, day=1),
-    dict(group_id="532391751586210", grid_id=327684, year=2023, month=1, day=2),
-    dict(group_id="532391751586210", grid_id=327683, year=2023, month=1, day=2),
-    dict(group_id="106927944066972", grid_id=65538, year=2023, month=1, day=1),
-    dict(group_id="532391751586210", grid_id=393219, year=2023, month=1, day=1),
-    dict(group_id="106927944066972", grid_id=0, year=2023, month=1, day=1),
-    dict(group_id="184056814804988", grid_id=131074, year=2023, month=1, day=1),
-    dict(group_id="184056814804988", grid_id=131073, year=2023, month=1, day=1),
-    dict(group_id="106927944066972", grid_id=1, year=2023, month=1, day=1),
-    dict(group_id="184056814804988", grid_id=196610, year=2023, month=1, day=1),
-    dict(group_id="106927944066972", grid_id=65537, year=2023, month=1, day=1),
-    dict(group_id="184056814804988", grid_id=262146, year=2023, month=1, day=1),
-    dict(group_id="106927944066972", grid_id=131072, year=2023, month=1, day=1),
-    dict(group_id="184056814804988", grid_id=262146, year=2023, month=1, day=2),
-    dict(group_id="106927944066972", grid_id=131072, year=2023, month=1, day=2),
-    dict(group_id="106927944066972", grid_id=0, year=2023, month=1, day=2),
-    dict(group_id="106927944066972", grid_id=65537, year=2023, month=1, day=2),
-    dict(group_id="106927944066972", grid_id=65538, year=2023, month=1, day=2),
-    dict(group_id="184056814804988", grid_id=131074, year=2023, month=1, day=2),
-    dict(group_id="106927944066972", grid_id=1, year=2023, month=1, day=2),
-    dict(group_id="184056814804988", grid_id=196610, year=2023, month=1, day=2),
-    dict(group_id="184056814804988", grid_id=131073, year=2023, month=1, day=2),
-    dict(group_id="532391751586210", grid_id=393219, year=2023, month=1, day=2),
-    dict(group_id="184056814804988", grid_id=131073, year=2023, month=1, day=3),
-    dict(group_id="106927944066972", grid_id=131072, year=2023, month=1, day=3),
-    dict(group_id="106927944066972", grid_id=65538, year=2023, month=1, day=3),
-    dict(group_id="532391751586210", grid_id=393219, year=2023, month=1, day=3),
-    dict(group_id="106927944066972", grid_id=1, year=2023, month=1, day=3),
-    dict(group_id="184056814804988", grid_id=131074, year=2023, month=1, day=3),
-    dict(group_id="106927944066972", grid_id=65537, year=2023, month=1, day=3),
-    dict(group_id="184056814804988", grid_id=196610, year=2023, month=1, day=3),
-    dict(group_id="106927944066972", grid_id=0, year=2023, month=1, day=3),
-    dict(group_id="184056814804988", grid_id=262146, year=2023, month=1, day=3),
-    dict(group_id="106927944066972", grid_id=65536, year=2023, month=1, day=1),
-    dict(group_id="106927944066972", grid_id=65536, year=2023, month=1, day=2),
-    dict(group_id="106927944066972", grid_id=65536, year=2023, month=1, day=3),
-    dict(group_id="77702257446975", grid_id=65539, year=2023, month=1, day=1),
-    dict(group_id="77702257446975", grid_id=131075, year=2023, month=1, day=1),
-    dict(group_id="77702257446975", grid_id=131075, year=2023, month=1, day=2),
-    dict(group_id="77702257446975", grid_id=65539, year=2023, month=1, day=2),
-    dict(group_id="77702257446975", grid_id=65539, year=2023, month=1, day=3),
-    dict(group_id="77702257446975", grid_id=131075, year=2023, month=1, day=3),
-]
+# GROUP_TO_TILE = [
+#     Row(group_id=4, grid_id=327683),
+#     Row(group_id=5, grid_id=65539),
+#     Row(group_id=3, grid_id=65538),
+#     Row(group_id=4, grid_id=327684),
+#     Row(group_id=3, grid_id=65537),
+#     Row(group_id=1, grid_id=262146),
+#     Row(group_id=2, grid_id=393220),
+#     Row(group_id=3, grid_id=1),
+#     Row(group_id=1, grid_id=131074),
+#     Row(group_id=3, grid_id=131072),
+#     Row(group_id=1, grid_id=196610),
+#     Row(group_id=1, grid_id=196609),
+#     Row(group_id=1, grid_id=131073),
+#     Row(group_id=5, grid_id=131075),
+#     Row(group_id=3, grid_id=65536),
+#     Row(group_id=4, grid_id=393219),
+#     Row(group_id=3, grid_id=0),
+# ]
 
 CACHE_EVENTS = [
     # User 1
@@ -1287,7 +1359,10 @@ EVENTS = [
 DPS = [
     {
         "user_id": 1,
-        "dps": [327684, 327683, 393219, 393220],
+        "dps": [
+            "4",
+            "2",
+        ],
         "time_slot_initial_time": "2023-01-02T00:00:00",
         "time_slot_end_time": "2023-01-02T01:00:00",
         "year": 2023,
@@ -1298,7 +1373,10 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [393220, 393219, 327683, 327684],
+        "dps": [
+            "4",
+            "2",
+        ],
         "time_slot_initial_time": "2023-01-02T01:00:00",
         "time_slot_end_time": "2023-01-02T02:00:00",
         "year": 2023,
@@ -1309,7 +1387,10 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [393220, 393219, 327683, 327684],
+        "dps": [
+            "4",
+            "2",
+        ],
         "time_slot_initial_time": "2023-01-02T02:00:00",
         "time_slot_end_time": "2023-01-02T03:00:00",
         "year": 2023,
@@ -1320,7 +1401,10 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [393220, 393219, 327683, 327684],
+        "dps": [
+            "4",
+            "2",
+        ],
         "time_slot_initial_time": "2023-01-02T03:00:00",
         "time_slot_end_time": "2023-01-02T04:00:00",
         "year": 2023,
@@ -1331,7 +1415,10 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [393220, 327683, 393219, 327684],
+        "dps": [
+            "4",
+            "2",
+        ],
         "time_slot_initial_time": "2023-01-02T04:00:00",
         "time_slot_end_time": "2023-01-02T05:00:00",
         "year": 2023,
@@ -1342,7 +1429,10 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [327684, 327683, 393219, 393220],
+        "dps": [
+            "4",
+            "2",
+        ],
         "time_slot_initial_time": "2023-01-02T05:00:00",
         "time_slot_end_time": "2023-01-02T06:00:00",
         "year": 2023,
@@ -1353,7 +1443,10 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [393220, 327683, 393219, 327684],
+        "dps": [
+            "4",
+            "2",
+        ],
         "time_slot_initial_time": "2023-01-02T06:00:00",
         "time_slot_end_time": "2023-01-02T07:00:00",
         "year": 2023,
@@ -1364,7 +1457,10 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [327684, 327683, 393219, 393220],
+        "dps": [
+            "4",
+            "2",
+        ],
         "time_slot_initial_time": "2023-01-02T07:00:00",
         "time_slot_end_time": "2023-01-02T08:00:00",
         "year": 2023,
@@ -1375,7 +1471,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [393220],
+        "dps": ["2"],
         "time_slot_initial_time": "2023-01-02T08:00:00",
         "time_slot_end_time": "2023-01-02T09:00:00",
         "year": 2023,
@@ -1386,7 +1482,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T09:00:00",
         "time_slot_end_time": "2023-01-02T10:00:00",
         "year": 2023,
@@ -1397,7 +1493,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T10:00:00",
         "time_slot_end_time": "2023-01-02T11:00:00",
         "year": 2023,
@@ -1408,7 +1504,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T11:00:00",
         "time_slot_end_time": "2023-01-02T12:00:00",
         "year": 2023,
@@ -1419,7 +1515,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T12:00:00",
         "time_slot_end_time": "2023-01-02T13:00:00",
         "year": 2023,
@@ -1430,7 +1526,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T13:00:00",
         "time_slot_end_time": "2023-01-02T14:00:00",
         "year": 2023,
@@ -1441,7 +1537,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T14:00:00",
         "time_slot_end_time": "2023-01-02T15:00:00",
         "year": 2023,
@@ -1452,7 +1548,10 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [65539, 131075, 393220],
+        "dps": [
+            "5",
+            "2",
+        ],
         "time_slot_initial_time": "2023-01-02T17:00:00",
         "time_slot_end_time": "2023-01-02T18:00:00",
         "year": 2023,
@@ -1463,7 +1562,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T18:00:00",
         "time_slot_end_time": "2023-01-02T19:00:00",
         "year": 2023,
@@ -1474,7 +1573,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T19:00:00",
         "time_slot_end_time": "2023-01-02T20:00:00",
         "year": 2023,
@@ -1485,7 +1584,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T20:00:00",
         "time_slot_end_time": "2023-01-02T21:00:00",
         "year": 2023,
@@ -1496,7 +1595,7 @@ DPS = [
     },
     {
         "user_id": 1,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T23:00:00",
         "time_slot_end_time": "2023-01-03T00:00:00",
         "year": 2023,
@@ -1507,7 +1606,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T01:00:00",
         "time_slot_end_time": "2023-01-02T02:00:00",
         "year": 2023,
@@ -1518,7 +1617,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T02:00:00",
         "time_slot_end_time": "2023-01-02T03:00:00",
         "year": 2023,
@@ -1529,7 +1628,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T03:00:00",
         "time_slot_end_time": "2023-01-02T04:00:00",
         "year": 2023,
@@ -1540,7 +1639,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T04:00:00",
         "time_slot_end_time": "2023-01-02T05:00:00",
         "year": 2023,
@@ -1551,7 +1650,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T05:00:00",
         "time_slot_end_time": "2023-01-02T06:00:00",
         "year": 2023,
@@ -1562,7 +1661,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T06:00:00",
         "time_slot_end_time": "2023-01-02T07:00:00",
         "year": 2023,
@@ -1573,7 +1672,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T07:00:00",
         "time_slot_end_time": "2023-01-02T08:00:00",
         "year": 2023,
@@ -1584,7 +1683,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [393220],
+        "dps": ["2"],
         "time_slot_initial_time": "2023-01-02T08:00:00",
         "time_slot_end_time": "2023-01-02T09:00:00",
         "year": 2023,
@@ -1595,7 +1694,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T10:00:00",
         "time_slot_end_time": "2023-01-02T11:00:00",
         "year": 2023,
@@ -1606,7 +1705,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T11:00:00",
         "time_slot_end_time": "2023-01-02T12:00:00",
         "year": 2023,
@@ -1617,7 +1716,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T12:00:00",
         "time_slot_end_time": "2023-01-02T13:00:00",
         "year": 2023,
@@ -1628,7 +1727,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T13:00:00",
         "time_slot_end_time": "2023-01-02T14:00:00",
         "year": 2023,
@@ -1639,7 +1738,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T14:00:00",
         "time_slot_end_time": "2023-01-02T15:00:00",
         "year": 2023,
@@ -1650,7 +1749,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T15:00:00",
         "time_slot_end_time": "2023-01-02T16:00:00",
         "year": 2023,
@@ -1661,7 +1760,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T16:00:00",
         "time_slot_end_time": "2023-01-02T17:00:00",
         "year": 2023,
@@ -1672,7 +1771,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T17:00:00",
         "time_slot_end_time": "2023-01-02T18:00:00",
         "year": 2023,
@@ -1683,7 +1782,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T18:00:00",
         "time_slot_end_time": "2023-01-02T19:00:00",
         "year": 2023,
@@ -1694,7 +1793,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T19:00:00",
         "time_slot_end_time": "2023-01-02T20:00:00",
         "year": 2023,
@@ -1705,7 +1804,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T20:00:00",
         "time_slot_end_time": "2023-01-02T21:00:00",
         "year": 2023,
@@ -1716,7 +1815,7 @@ DPS = [
     },
     {
         "user_id": 2,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T22:00:00",
         "time_slot_end_time": "2023-01-02T23:00:00",
         "year": 2023,
@@ -1727,7 +1826,7 @@ DPS = [
     },
     {
         "user_id": 3,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T01:00:00",
         "time_slot_end_time": "2023-01-02T02:00:00",
         "year": 2023,
@@ -1738,7 +1837,7 @@ DPS = [
     },
     {
         "user_id": 3,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T02:00:00",
         "time_slot_end_time": "2023-01-02T03:00:00",
         "year": 2023,
@@ -1749,7 +1848,7 @@ DPS = [
     },
     {
         "user_id": 3,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T03:00:00",
         "time_slot_end_time": "2023-01-02T04:00:00",
         "year": 2023,
@@ -1760,7 +1859,7 @@ DPS = [
     },
     {
         "user_id": 3,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T04:00:00",
         "time_slot_end_time": "2023-01-02T05:00:00",
         "year": 2023,
@@ -1771,7 +1870,7 @@ DPS = [
     },
     {
         "user_id": 3,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T05:00:00",
         "time_slot_end_time": "2023-01-02T06:00:00",
         "year": 2023,
@@ -1782,7 +1881,7 @@ DPS = [
     },
     {
         "user_id": 3,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T06:00:00",
         "time_slot_end_time": "2023-01-02T07:00:00",
         "year": 2023,
@@ -1793,7 +1892,7 @@ DPS = [
     },
     {
         "user_id": 3,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T07:00:00",
         "time_slot_end_time": "2023-01-02T08:00:00",
         "year": 2023,
@@ -1804,7 +1903,7 @@ DPS = [
     },
     {
         "user_id": 3,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T10:00:00",
         "time_slot_end_time": "2023-01-02T11:00:00",
         "year": 2023,
@@ -1815,7 +1914,7 @@ DPS = [
     },
     {
         "user_id": 3,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T11:00:00",
         "time_slot_end_time": "2023-01-02T12:00:00",
         "year": 2023,
@@ -1826,7 +1925,7 @@ DPS = [
     },
     {
         "user_id": 3,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T12:00:00",
         "time_slot_end_time": "2023-01-02T13:00:00",
         "year": 2023,
@@ -1837,7 +1936,7 @@ DPS = [
     },
     {
         "user_id": 3,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T13:00:00",
         "time_slot_end_time": "2023-01-02T14:00:00",
         "year": 2023,
@@ -1848,7 +1947,7 @@ DPS = [
     },
     {
         "user_id": 3,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T14:00:00",
         "time_slot_end_time": "2023-01-02T15:00:00",
         "year": 2023,
@@ -1859,7 +1958,7 @@ DPS = [
     },
     {
         "user_id": 3,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T15:00:00",
         "time_slot_end_time": "2023-01-02T16:00:00",
         "year": 2023,
@@ -1870,7 +1969,7 @@ DPS = [
     },
     {
         "user_id": 3,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T16:00:00",
         "time_slot_end_time": "2023-01-02T17:00:00",
         "year": 2023,
@@ -1881,7 +1980,7 @@ DPS = [
     },
     {
         "user_id": 3,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T17:00:00",
         "time_slot_end_time": "2023-01-02T18:00:00",
         "year": 2023,
@@ -1892,7 +1991,7 @@ DPS = [
     },
     {
         "user_id": 3,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T19:00:00",
         "time_slot_end_time": "2023-01-02T20:00:00",
         "year": 2023,
@@ -1903,7 +2002,7 @@ DPS = [
     },
     {
         "user_id": 3,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T18:00:00",
         "time_slot_end_time": "2023-01-02T19:00:00",
         "year": 2023,
@@ -1914,7 +2013,7 @@ DPS = [
     },
     {
         "user_id": 3,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T20:00:00",
         "time_slot_end_time": "2023-01-02T21:00:00",
         "year": 2023,
@@ -1925,7 +2024,7 @@ DPS = [
     },
     {
         "user_id": 3,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T22:00:00",
         "time_slot_end_time": "2023-01-02T23:00:00",
         "year": 2023,
@@ -1937,7 +2036,7 @@ DPS = [
     # abroad user
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T00:00:00",
         "time_slot_end_time": "2023-01-02T01:00:00",
         "year": 2023,
@@ -1948,7 +2047,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T01:00:00",
         "time_slot_end_time": "2023-01-02T02:00:00",
         "year": 2023,
@@ -1959,7 +2058,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T02:00:00",
         "time_slot_end_time": "2023-01-02T03:00:00",
         "year": 2023,
@@ -1970,7 +2069,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T03:00:00",
         "time_slot_end_time": "2023-01-02T04:00:00",
         "year": 2023,
@@ -1981,7 +2080,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T04:00:00",
         "time_slot_end_time": "2023-01-02T05:00:00",
         "year": 2023,
@@ -1992,7 +2091,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T05:00:00",
         "time_slot_end_time": "2023-01-02T06:00:00",
         "year": 2023,
@@ -2003,7 +2102,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T06:00:00",
         "time_slot_end_time": "2023-01-02T07:00:00",
         "year": 2023,
@@ -2014,7 +2113,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T07:00:00",
         "time_slot_end_time": "2023-01-02T08:00:00",
         "year": 2023,
@@ -2025,7 +2124,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T08:00:00",
         "time_slot_end_time": "2023-01-02T09:00:00",
         "year": 2023,
@@ -2036,7 +2135,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [222],
+        "dps": ["222"],
         "time_slot_initial_time": "2023-01-02T09:00:00",
         "time_slot_end_time": "2023-01-02T10:00:00",
         "year": 2023,
@@ -2047,7 +2146,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [222],
+        "dps": ["222"],
         "time_slot_initial_time": "2023-01-02T10:00:00",
         "time_slot_end_time": "2023-01-02T11:00:00",
         "year": 2023,
@@ -2058,7 +2157,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [222],
+        "dps": ["222"],
         "time_slot_initial_time": "2023-01-02T11:00:00",
         "time_slot_end_time": "2023-01-02T12:00:00",
         "year": 2023,
@@ -2069,7 +2168,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [222],
+        "dps": ["222"],
         "time_slot_initial_time": "2023-01-02T12:00:00",
         "time_slot_end_time": "2023-01-02T13:00:00",
         "year": 2023,
@@ -2080,7 +2179,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T13:00:00",
         "time_slot_end_time": "2023-01-02T14:00:00",
         "year": 2023,
@@ -2091,7 +2190,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T14:00:00",
         "time_slot_end_time": "2023-01-02T15:00:00",
         "year": 2023,
@@ -2102,7 +2201,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T15:00:00",
         "time_slot_end_time": "2023-01-02T16:00:00",
         "year": 2023,
@@ -2113,7 +2212,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T16:00:00",
         "time_slot_end_time": "2023-01-02T17:00:00",
         "year": 2023,
@@ -2124,7 +2223,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T17:00:00",
         "time_slot_end_time": "2023-01-02T18:00:00",
         "year": 2023,
@@ -2135,7 +2234,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T18:00:00",
         "time_slot_end_time": "2023-01-02T19:00:00",
         "year": 2023,
@@ -2146,7 +2245,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T19:00:00",
         "time_slot_end_time": "2023-01-02T20:00:00",
         "year": 2023,
@@ -2157,7 +2256,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T20:00:00",
         "time_slot_end_time": "2023-01-02T21:00:00",
         "year": 2023,
@@ -2168,7 +2267,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T21:00:00",
         "time_slot_end_time": "2023-01-02T22:00:00",
         "year": 2023,
@@ -2179,7 +2278,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T22:00:00",
         "time_slot_end_time": "2023-01-02T23:00:00",
         "year": 2023,
@@ -2190,7 +2289,7 @@ DPS = [
     },
     {
         "user_id": 4,
-        "dps": [-99],
+        "dps": ["-99"],
         "time_slot_initial_time": "2023-01-02T23:00:00",
         "time_slot_end_time": "2023-01-03T00:00:00",
         "year": 2023,

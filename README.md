@@ -53,7 +53,7 @@ The repository contains the following directories:
 
 The multimno documentation is divided into two main documents.
 
-- [Technical documentation](https://cros.ec.europa.eu/group/6/files/2490/download): PDF file deatiling the software requirements, design and data objects.
+- [Technical documentation](https://cros.ec.europa.eu/group/6/files/2598/download): PDF file deatiling the software requirements, design and data objects.
 - [User/Developer manual](https://eurostat.github.io/multimno/latest/): Webpage containing the user and developer manuals, including the contribute guide.
 
 ## 📓 User Manual
@@ -97,7 +97,8 @@ Please verify that your system fullfils the [System Requirements.](docs/system_r
 
 # 📦 Synthetic data
 
-MNO synthetic data is given in the repository under the `sample_data/lakehouse/bronze` directory. This data 
+MNO synthetic data is given in the repository so users can try a full pipeline locally in their computer. 
+The data is located at `sample_data/lakehouse/bronze` directory. This data 
 has been generated synthetically and contains the following specs:  
 
 - 🌍 **Spatial scope:** All data has been generated in a bounding box that covers the metropolitan area of Madrid.
@@ -111,6 +112,9 @@ has been generated synthetically and contains the following specs:
 - 📆 **Temporal scope :** Data has been generated for 9 days, from 2023-01-01 to 2023-01-09 both included.
 - 🚶‍♂️**Users:** 100 different users.
 - 📡**Network:** 500 different cells.
+
+The repository contains the code for generating synthetic data as multimno components so they can be launched as any 
+other component in the pipeline. Configuration files can be found at: `/opt/app/pipe_configs/configurations/00_synthetic`
   
 # 🏁 Quickstart
 

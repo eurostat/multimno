@@ -112,7 +112,7 @@ class InternalMigration(Component):
         # Input paths
         input_enriched_grid_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "enriched_grid_data_silver")
         input_grid_map_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "geozones_grid_map_data_silver")
-        input_ue_labels_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "aggregated_usual_environments_silver")
+        input_ue_labels_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "usual_environment_labels_data_silver")
 
         # Output paths
         output_do_path = self.config.get(CONFIG_SILVER_PATHS_KEY, "internal_migration_silver")
@@ -245,7 +245,6 @@ class InternalMigration(Component):
             .where(F.col("overlap_index") < migration_threshold)
             .select(ColNames.user_id_modulo, ColNames.user_id)
         )
-        migrating_users.cache()
 
         return migrating_users, quality_metrics
 
@@ -300,7 +299,9 @@ class InternalMigration(Component):
         return prev_zones, new_zones
 
     def transform(self):
-        grid_to_zone = self.input_data_objects[SilverGeozonesGridMapDataObject.ID].df
+        grid_to_zone = self.input_data_objects[SilverGeozonesGridMapDataObject.ID].df.filter(
+            F.col(ColNames.dataset_id) == self.zoning_dataset
+        )
         zone_to_grid_map_sdf = grid_to_zone.withColumn(
             ColNames.zone_id,
             F.element_at(F.split(F.col(ColNames.hierarchical_id), pattern="\\|"), self.current_level),

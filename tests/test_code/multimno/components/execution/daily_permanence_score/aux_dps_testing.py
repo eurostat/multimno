@@ -13,13 +13,13 @@ from pyspark.sql.types import (
     ByteType,
     BooleanType,
     ArrayType,
-    LongType,
 )
 
 from multimno.core.constants.columns import ColNames
 from multimno.core.data_objects.silver.silver_cell_footprint_data_object import SilverCellFootprintDataObject
 from multimno.core.data_objects.silver.silver_cell_to_group_data_object import SilverCellToGroupDataObject
-from multimno.core.data_objects.silver.silver_group_to_tile_data_object import SilverGroupToTileDataObject
+
+# from multimno.core.data_objects.silver.silver_group_to_tile_data_object import SilverGroupToTileDataObject
 from multimno.core.data_objects.silver.silver_event_flagged_data_object import SilverEventFlaggedDataObject
 from multimno.core.data_objects.silver.silver_daily_permanence_score_data_object import (
     SilverDailyPermanenceScoreDataObject,
@@ -31,7 +31,6 @@ from tests.test_code.multimno.components.execution.daily_permanence_score.refere
     CACHE_EVENTS,
     CELL_FOOTPRINT,
     CELL_TO_GROUP,
-    GROUP_TO_TILE,
     DPS,
 )
 
@@ -85,7 +84,7 @@ CACHE_EVENTS_AUX_SCHEMA = StructType(
 DPS_AUX_SCHEMA = StructType(
     [
         StructField(ColNames.user_id, StringType(), nullable=False),
-        StructField(ColNames.dps, ArrayType(LongType()), nullable=False),
+        StructField(ColNames.dps, ArrayType(StringType()), nullable=False),
         StructField(ColNames.time_slot_initial_time, StringType(), nullable=False),
         StructField(ColNames.time_slot_end_time, StringType(), nullable=False),
         StructField(ColNames.year, ShortType(), nullable=False),
@@ -162,8 +161,8 @@ def generate_input_cell_to_group_df(spark: SparkSession):
     return spark.createDataFrame([Row(**el) for el in CELL_TO_GROUP], SilverCellToGroupDataObject.SCHEMA)
 
 
-def generate_input_group_to_tile_df(spark: SparkSession):
-    return spark.createDataFrame([Row(**el) for el in GROUP_TO_TILE], SilverGroupToTileDataObject.SCHEMA)
+# def generate_input_group_to_tile_df(spark: SparkSession):
+#     return spark.createDataFrame([Row(**el) for el in GROUP_TO_TILE], SilverGroupToTileDataObject.SCHEMA)
 
 
 def set_input_data(spark: SparkSession, config: ConfigParser):
@@ -188,12 +187,12 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
     input_data.df = input_cell_to_group_df
     input_data.write()
 
-    # Group to tile data
-    test_data_path = config["Paths.Silver"]["group_to_tile_data_silver"]
-    input_group_to_tile_df = generate_input_group_to_tile_df(spark)
-    input_data = SilverGroupToTileDataObject(spark, test_data_path)
-    input_data.df = input_group_to_tile_df
-    input_data.write()
+    # # Group to tile data
+    # test_data_path = config["Paths.Silver"]["group_to_tile_data_silver"]
+    # input_group_to_tile_df = generate_input_group_to_tile_df(spark)
+    # input_data = SilverGroupToTileDataObject(spark, test_data_path)
+    # input_data.df = input_group_to_tile_df
+    # input_data.write()
 
     # Event data
     test_data_path = config["Paths.Silver"]["event_data_silver_flagged"]
@@ -291,12 +290,12 @@ def set_event_load_testing_data(spark: SparkSession, config: ConfigParser):
     input_data.df = input_cell_to_group_df
     input_data.write()
 
-    # Group to tile data
-    test_data_path = config["Paths.Silver"]["group_to_tile_data_silver"]
-    input_group_to_tile_df = generate_input_group_to_tile_df(spark)
-    input_data = SilverGroupToTileDataObject(spark, test_data_path)
-    input_data.df = input_group_to_tile_df
-    input_data.write()
+    # # Group to tile data
+    # test_data_path = config["Paths.Silver"]["group_to_tile_data_silver"]
+    # input_group_to_tile_df = generate_input_group_to_tile_df(spark)
+    # input_data = SilverGroupToTileDataObject(spark, test_data_path)
+    # input_data.df = input_group_to_tile_df
+    # input_data.write()
 
     # Get event data
     input_events_df, input_cache_df = get_event_load_testing_data(spark)

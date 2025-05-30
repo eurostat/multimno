@@ -6,10 +6,10 @@ weight: 1
 
 ## Introduction
 
-The **multimno** software is a python application using the [PySpark library](https://spark.apache.org/docs/latest/api/python/index.html#:~:text=PySpark%20is%20the%20Python%20API,for%20interactively%20analyzing%20your%20data.) to harness the power of Apache Spark, a fast and general-purpose cluster-computing system. PySpark provides an interface for Apache Spark in Python, enabling developers to utilize Spark's high-level APIs and distributed computing capabilities while working in the Python programming language. The Spark framework is critical to this application as it handles the distribution of data and computation across the cluster, ensures fault tolerance, and optimizes execution for performance gains. Deployment of a PySpark application can be done in two ways:
+The **multimno** software is a python application using the [PySpark library](https://spark.apache.org/docs/latest/api/python/index.html#:~:text=PySpark%20is%20the%20Python%20API,for%20interactively%20analyzing%20your%20data.) to harness the power of Apache Spark, a fast and general-purpose cluster-computing system. PySpark provides an interface for Apache Spark in Python, enabling developers to utilize Spark's high-level APIs and distributed computing capabilities while working in the Python programming language. The Spark framework is critical to this application as it handles the distribution of data and computation across the cluster, ensures fault tolerance, and optimizes execution for performance gains. Deployment of a PySpark application can be done in two ways:  
 
 1) **Cluster mode:** On a Cluster, where Spark distributes tasks across the nodes, allowing for parallel processing and efficient handling of large-scale data workloads.
-**Recommended for production environments.**
+**Recommended for production environments.**  
 2) **Local mode:** On a single node, where Spark runs on a single machine. **Recommended for development and testing environments.** 
 
 
@@ -52,7 +52,7 @@ The application uses the Apache Sedona engine to perform spatial calculations. I
 the jar files must be downloaded to the cluster. These files can be downloaded at execution time through the maven repository, specifying 
 them in the spark configuration, or they can be downloaded manually into the `$SPARK_HOME/jars` dir of every node in the cluster.
 
-Reference - Sedona installation: https://sedona.apache.org/1.6.1/setup/cluster/
+Reference - Sedona installation: [https://sedona.apache.org/1.6.1/setup/cluster/](https://sedona.apache.org/1.6.1/setup/cluster/)
 
 #### Python Dependencies
 

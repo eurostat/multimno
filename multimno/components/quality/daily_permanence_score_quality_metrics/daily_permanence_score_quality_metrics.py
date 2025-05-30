@@ -117,7 +117,7 @@ class DailyPermanenceScoreQualityMetrics(Component):
 
         # Find out the number of devices with too many unknown time intervals
         unknown_devices = (
-            self.current_dps.filter(F.col(ColNames.id_type) == F.lit(UeGridIdType.UKNOWN_STR))  # unknown timeslots
+            self.current_dps.filter(F.col(ColNames.id_type) == F.lit(UeGridIdType.UNKNOWN_STR))  # unknown timeslots
             .groupBy(ColNames.user_id_modulo, ColNames.user_id)
             .agg((F.count("*") * F.lit(100 / day_time_slots)).alias("pct_unknown_timeslots"))  # pct of unknown slots
             .filter(F.col("pct_unknown_timeslots") >= F.lit(self.unknown_intervals_pct_threshold))  # filter

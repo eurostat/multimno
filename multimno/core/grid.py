@@ -90,8 +90,8 @@ class InspireGridGenerator:
                 [n_bottomright, e_bottomright, n_topleft, e_topleft] order
 
         Returns:
-            list[float]: The projected extent, in [n_bottomleft, e_bottomleft, n_topright, y_topright] order.
-            list[float]: Raster cover bounds, in [n_topleft, e_topleft, n_bottomright, y_bottomright] order.
+            list[float]: The projected extent, in [n_bottomleft, e_bottomleft, n_topright, e_topright] order.
+            list[float]: Raster cover bounds, in [n_topleft, e_topleft, n_bottomright, e_bottomright] order.
         """
         cover_n_bottomleft = min(extent[0], auxiliar_coords[0])  # min lat
         cover_e_bottomleft = min(extent[1], auxiliar_coords[3])  # min lon
@@ -106,7 +106,7 @@ class InspireGridGenerator:
         cover_e_bottomright = max(extent[3], auxiliar_coords[1])  # max lon
 
         return (
-            [cover_e_bottomleft, cover_n_bottomleft, cover_e_topright, cover_n_topright],
+            [cover_n_bottomleft, cover_e_bottomleft, cover_e_topright, cover_n_topright],
             [cover_n_topleft, cover_e_topleft, cover_n_bottomright, cover_e_bottomright],
         )
 
@@ -242,7 +242,7 @@ class InspireGridGenerator:
 
         Returns:
             list[float]: The extent of the polygon DataFrame. Order: [x_min, y_min, x_max, y_max] where x and y
-                refer to the first and second coordinates of the geometry, respectively.
+                refer to the horizontal (longitude) and vertical (latitude) coordinates of the geometry, respectively.
         """
         polygon_sdf = polygon_sdf.withColumn("bbox", STF.ST_Envelope(polygon_sdf["geometry"]))
         polygon_sdf = (
@@ -281,11 +281,14 @@ class InspireGridGenerator:
         centroids of grid tiles, and creates the internal unsigned 4-byte identifier used internally by the pipeline.
 
         The 4-byte identifier consists of two parts:
-            The two most significant bytes represent the northing coordinate (X, or first coordinate of EPSG:3035)
-            The two least significant bytes represent the easting coordinate (Y, or second coordinate of EPSG:3035)
+            The two most significant bytes represent the easting coordinate (horizontal coordinate of EPSG:3035)
+            The two least significant bytes represent the northing coordinate (vertical coordinate of EPSG:3035)
+
+        Sedona represents the X and Y coordinates as the horizontal and vertical coordinates, respectively. It does
+        not follow the coordinate order of the CRS.
 
         In order to fit all the necessary tiles into 4 bytes, we do a traslation of the coordinate system to have
-        a different origin, defined by (n_origin, e_origin)
+        a different origin, defined by (e_origin, n_origin)
 
         Args:
             sdf (DataFrame): DataFrame containing grid tile centroids to which we want to add the grid ID.
@@ -299,13 +302,13 @@ class InspireGridGenerator:
             self.grid_id_col,
             (
                 F.shiftleft(
-                    ((STF.ST_X(F.col(self.geometry_col)) - n_origin - self.resolution / 2) / self.resolution).cast(
+                    ((STF.ST_X(F.col(self.geometry_col)) - e_origin - self.resolution / 2) / self.resolution).cast(
                         IntegerType()
                     ),
                     16,
                 )
                 + (
-                    ((STF.ST_Y(F.col(self.geometry_col)) - e_origin - self.resolution / 2) / self.resolution).cast(
+                    ((STF.ST_Y(F.col(self.geometry_col)) - n_origin - self.resolution / 2) / self.resolution).cast(
                         IntegerType()
                     )
                 )
@@ -316,8 +319,8 @@ class InspireGridGenerator:
         sdf = sdf.withColumn(
             ColNames.origin,
             (
-                F.shiftleft(F.lit(n_origin / self.resolution).cast(LongType()), 32)
-                + F.lit(e_origin / self.resolution).cast(LongType())
+                F.shiftleft(F.lit(e_origin / self.resolution).cast(LongType()), 32)
+                + F.lit(n_origin / self.resolution).cast(LongType())
             ).cast(LongType()),
         )
         return sdf
@@ -327,11 +330,14 @@ class InspireGridGenerator:
         grid tiles, and creates the internal unsigned 4-byte identifier used internally by the pipeline.
 
         The 4-byte identifier consists of two parts:
-            The two most significant bytes represent the northing coordinate (X, or first coordinate of EPSG:3035)
-            The two least significant bytes represent the easting coordinate (Y, or second coordinate of EPSG:3035)
+            The two most significant bytes represent the easting coordinate (horizontal coordinate of EPSG:3035)
+            The two least significant bytes represent the northing coordinate (vertical coordinate of EPSG:3035)
+
+        Sedona represents the X and Y coordinates as the horizontal and vertical coordinates, respectively. It does
+        not follow the coordinate order of the CRS.
 
         In order to fit all the necessary tiles into 4 bytes, we do a traslation of the coordinate system to have
-        a different origin, defined by (n_origin, e_origin)
+        a different origin, defined by (e_origin, n_origin)
 
         Args:
             sdf (DataFrame): DataFrame containing grid tile centroids to which we want to add the grid ID.
@@ -345,9 +351,9 @@ class InspireGridGenerator:
             self.grid_id_col,
             (
                 F.shiftleft(
-                    ((STF.ST_XMin(F.col(self.geometry_col)) - n_origin) / self.resolution).cast(IntegerType()), 16
+                    ((STF.ST_XMin(F.col(self.geometry_col)) - e_origin) / self.resolution).cast(IntegerType()), 16
                 )
-                + (((STF.ST_YMin(F.col(self.geometry_col)) - e_origin) / self.resolution).cast(IntegerType()))
+                + (((STF.ST_YMin(F.col(self.geometry_col)) - n_origin) / self.resolution).cast(IntegerType()))
             ),
         )
 
@@ -355,8 +361,8 @@ class InspireGridGenerator:
         sdf = sdf.withColumn(
             ColNames.origin,
             (
-                F.shiftleft(F.lit(n_origin / self.resolution).cast(LongType()), 32)
-                + F.lit(e_origin / self.resolution).cast(LongType())
+                F.shiftleft(F.lit(e_origin / self.resolution).cast(LongType()), 32)
+                + F.lit(n_origin / self.resolution).cast(LongType())
             ).cast(LongType()),
         )
         return sdf
@@ -509,9 +515,9 @@ class InspireGridGenerator:
         By default, the function will use a ColNames.origin column of `sdf`. Only if the `origin` parameter is passed,
         the existence of this column will not be checked, and `origin` will be used as the origin of the 4-byte grid ID
         definition even if the column exists. This origin will be treated as an 8-byte integer, where the first (most
-        significant) 4 bytes hold the northing origin divided by 100 and the last (least significant) 4 bytes hold the
-        easting origin divided by 100. That is, taking the first 4 bytes and multiplying by 100 gets the a northing
-        value in metres (analogous for easting).
+        significant) 4 bytes hold the easting origin divided by 100 and the last (least significant) 4 bytes hold the
+        northing origin divided by 100. That is, taking the first 4 bytes and multiplying by 100 gets the easting
+        value in metres (analogous for northing).
 
         Args:
             sdf (DataFrame): DataFrame containing the grid ID column, and a `ColNames.origin` column, to which the
@@ -547,10 +553,10 @@ class InspireGridGenerator:
             origin_column = F.col(ColNames.origin)
 
         sdf = sdf.withColumn(
-            "northing",
+            "easting",
             F.shiftrightunsigned(grid_id_col, 16).cast(LongType()) + F.shiftrightunsigned(origin_column, 32),
         ).withColumn(
-            "easting",
+            "northing",
             F.col(grid_id_col).bitwiseAND((1 << 16) - 1).cast(LongType()) + origin_column.bitwiseAND((1 << 32) - 1),
         )
 
@@ -598,15 +604,15 @@ class InspireGridGenerator:
         if coarse_grid_id_col is None:
             coarse_grid_id_col = self.grid_id_col
 
-        sdf = sdf.withColumn("northing", F.shiftrightunsigned(ColNames.grid_id, 16)).withColumn(
-            "easting", F.col(ColNames.grid_id).bitwiseAND((1 << 16) - 1)
+        sdf = sdf.withColumn("easting", F.shiftrightunsigned(ColNames.grid_id, 16)).withColumn(
+            "northing", F.col(ColNames.grid_id).bitwiseAND((1 << 16) - 1)
         )
 
         sdf = sdf.withColumn("northing", F.col("northing") - F.col("northing") % factor).withColumn(
             "easting", F.col("easting") - F.col("easting") % factor
         )
 
-        sdf = sdf.withColumn(coarse_grid_id_col, F.shiftleft(F.col("northing"), 16) + F.col("easting"))
+        sdf = sdf.withColumn(coarse_grid_id_col, F.shiftleft(F.col("easting"), 16) + F.col("northing"))
 
         sdf = sdf.drop("northing", "easting")
 
@@ -699,6 +705,8 @@ class InspireGridGenerator:
 
         # Create geometries. Multiply INSPIRE ID northing and easting values by the resolution unit, and add half
         # the grid size to get the centroid of each tile
+
+        # Sedona has (X, Y) = (Easting, Northing) for EPSG 3035
         sdf = sdf.withColumn(
             geometry_col,
             STC.ST_Point(
@@ -746,18 +754,20 @@ class InspireGridGenerator:
             except ValueError:
                 raise ValueError(f"Unexpected INSPIRE grid resolution string `{resolution_str}`")
             resolution_unit = 1000
+            sdf = sdf.withColumn(
+                "northing", F.regexp_extract(inspire_id_col, r"N(\d+)E", 1).cast(LongType()) * resolution_unit
+            ).withColumn("easting", F.regexp_extract(inspire_id_col, r"E(\d+)", 1).cast(LongType()) * resolution_unit)
         elif resolution_str[-1:] == "m":
             try:
                 grid_size = int(resolution_str[:-1])
             except ValueError:
                 raise ValueError(f"Unexpected INSPIRE grid resolution string `{resolution_str}`")
-            resolution_unit = 100
+            resolution_unit = 1
+            sdf = sdf.withColumn(
+                "northing", F.regexp_extract(inspire_id_col, r"N(\d+)E", 1).cast(LongType()) * grid_size
+            ).withColumn("easting", F.regexp_extract(inspire_id_col, r"E(\d+)", 1).cast(LongType()) * grid_size)
         else:
             raise ValueError(f"Unexpected INSPIRE grid resolution string `{resolution_str}`")
-
-        sdf = sdf.withColumn(
-            "northing", F.regexp_extract(inspire_id_col, r"N(\d+)E", 1).cast(LongType()) * resolution_unit
-        ).withColumn("easting", F.regexp_extract(inspire_id_col, r"E(\d+)", 1).cast(LongType()) * resolution_unit)
 
         # Sedona has (X, Y) = (Easting, Northing) for EPSG 3035
         sdf = sdf.withColumn(
@@ -791,9 +801,9 @@ class InspireGridGenerator:
         By default, the function will use a ColNames.origin column of `sdf`. Only if the `origin` parameter is passed,
         the existence of this column will not be checked, and `origin` will be used as the origin of the 4-byte grid ID
         definition even if the column exists. This origin will be treated as an 8-byte integer, where the first (most
-        significant) 4 bytes hold the northing origin divided by 100 and the last (least significant) 4 bytes hold the
-        easting origin divided by 100. That is, taking the first 4 bytes and multiplying by 100 gets the a northing
-        value in metres (analogous for easting).
+        significant) 4 bytes hold the easting origin divided by 100 and the last (least significant) 4 bytes hold the
+        northing origin divided by 100. That is, taking the first 4 bytes and multiplying by 100 gets the easting
+        value in metres (analogous for northing).
 
         Args:
             sdf (DataFrame): DataFrame containing the internal 4-byte grid IDs.
@@ -826,7 +836,7 @@ class InspireGridGenerator:
                 raise ValueError(f"`sdf` must contain a {ColNames.origin} column, or `origin` parameter must be passed")
             origin_column = F.col(ColNames.origin)
 
-        # For Sedona, (X, Y) == (Northing, Easting) in EPSG 3035
+        # For Sedona, (X, Y) == (Easting, Northing) in EPSG 3035
         sdf = sdf.withColumn(
             geometry_col,
             STC.ST_Point(
@@ -855,9 +865,9 @@ class InspireGridGenerator:
         By default, the function will use a ColNames.origin column of `sdf`. Only if the `origin` parameter is passed,
         the existence of this column will not be checked, and `origin` will be used as the origin of the 4-byte grid ID
         definition even if the column exists. This origin will be treated as an 8-byte integer, where the first (most
-        significant) 4 bytes hold the northing origin divided by 100 and the last (least significant) 4 bytes hold the
-        easting origin divided by 100. That is, taking the first 4 bytes and multiplying by 100 gets the a northing
-        value in metres (analogous for easting).
+        significant) 4 bytes hold the easting origin divided by 100 and the last (least significant) 4 bytes hold the
+        northing origin divided by 100. That is, taking the first 4 bytes and multiplying by 100 gets the easting
+        value in metres (analogous for northing).
 
         Args:
             sdf (DataFrame): DataFrame containing the internal 4-byte grid IDs.
@@ -886,11 +896,11 @@ class InspireGridGenerator:
             origin_column = F.col(ColNames.origin)
 
         sdf = sdf.withColumn(
-            "northing",
+            "easting",
             (F.shiftrightunsigned(ColNames.grid_id, 16).cast(LongType()) + F.shiftrightunsigned(origin_column, 32))
             * self.resolution,
         ).withColumn(
-            "easting",
+            "northing",
             (
                 F.col(ColNames.grid_id).bitwiseAND((1 << 16) - 1).cast(LongType())
                 + origin_column.bitwiseAND((1 << 32) - 1)
@@ -898,14 +908,14 @@ class InspireGridGenerator:
             * self.resolution,
         )
 
-        # For Sedona, (X, Y) == (Northing, Easting) in EPSG 3035
+        # For Sedona, (X, Y) == (Easting, Northing) in EPSG 3035
         sdf = sdf.withColumn(
             geometry_col,
             STC.ST_PolygonFromEnvelope(
-                F.col("northing"),  # min_x (min_northing)
-                F.col("easting"),  # min_y (min_easting)
-                F.col("northing") + grid_resolution,  # max_x (max_northing)
-                F.col("easting") + grid_resolution,  # max_y (max_easting)
+                F.col("easting"),  # min_x (min_easting)
+                F.col("northing"),  # min_y (min_northing)
+                F.col("easting") + grid_resolution,  # max_x (max_easting)
+                F.col("northing") + grid_resolution,  # max_y (max_northing)
             ),
         )
 

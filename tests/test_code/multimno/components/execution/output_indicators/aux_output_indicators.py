@@ -893,7 +893,7 @@ def generate_expected_deleted_usual_environment_100m_data() -> list[Row]:
 
     expected_output_data = [
         # Row(
-        #     grid_id="100mN15209E18961",
+        #     grid_id="100mN18961E15209",
         #     weighted_device_count=-1.0,
         #     dataset_id=dataset_id,
         #     level=1,
@@ -903,7 +903,7 @@ def generate_expected_deleted_usual_environment_100m_data() -> list[Row]:
         #     season="all",
         # ),
         # Row(
-        #     grid_id="100mN15209E18961",
+        #     grid_id="100mN18961E15209",
         #     weighted_device_count=-1.0,
         #     dataset_id=dataset_id,
         #     level=1,
@@ -913,7 +913,7 @@ def generate_expected_deleted_usual_environment_100m_data() -> list[Row]:
         #     season="all",
         # ),
         Row(
-            zone_id="100mN15209E18963",
+            zone_id="100mN18963E15209",
             weighted_device_count=25.0,
             dataset_id=dataset_id,
             level=1,
@@ -923,7 +923,7 @@ def generate_expected_deleted_usual_environment_100m_data() -> list[Row]:
             season="all",
         ),
         Row(
-            zone_id="100mN15209E18963",
+            zone_id="100mN18963E15209",
             weighted_device_count=25.0,
             dataset_id=dataset_id,
             level=1,
@@ -933,7 +933,7 @@ def generate_expected_deleted_usual_environment_100m_data() -> list[Row]:
             season="all",
         ),
         Row(
-            zone_id="100mN15209E18969",
+            zone_id="100mN18969E15209",
             weighted_device_count=40.0,
             dataset_id=dataset_id,
             level=1,
@@ -943,7 +943,7 @@ def generate_expected_deleted_usual_environment_100m_data() -> list[Row]:
             season="all",
         ),
         Row(
-            zone_id="100mN15209E18969",
+            zone_id="100mN18969E15209",
             weighted_device_count=40.0,
             dataset_id=dataset_id,
             level=1,
@@ -953,7 +953,7 @@ def generate_expected_deleted_usual_environment_100m_data() -> list[Row]:
             season="all",
         ),
         Row(
-            zone_id="100mN15211E18961",
+            zone_id="100mN18961E15211",
             weighted_device_count=20.0,
             dataset_id=dataset_id,
             level=1,
@@ -963,7 +963,7 @@ def generate_expected_deleted_usual_environment_100m_data() -> list[Row]:
             season="all",
         ),
         Row(
-            zone_id="100mN15211E18961",
+            zone_id="100mN18961E15211",
             weighted_device_count=20.0,
             dataset_id=dataset_id,
             level=1,
@@ -973,7 +973,7 @@ def generate_expected_deleted_usual_environment_100m_data() -> list[Row]:
             season="all",
         ),
         # Row(
-        #     zone_id="100mN15211E18966",
+        #     zone_id="100mN18966E15211",
         #     weighted_device_count=-1.0,
         #     dataset_id=dataset_id,
         #     level=1,
@@ -983,7 +983,7 @@ def generate_expected_deleted_usual_environment_100m_data() -> list[Row]:
         #     season="all",
         # ),
         # Row(
-        #     zone_id="100mN15211E18966",
+        #     zone_id="100mN18966E15211",
         #     weighted_device_count=-1.0,
         #     dataset_id=dataset_id,
         #     level=1,
@@ -1003,7 +1003,7 @@ def generate_expected_obfuscated_usual_environment_1km_data() -> list[Row]:
 
     expected_output_data = [
         Row(
-            zone_id="1kmN1520E1896",
+            zone_id="1kmN1896E1520",
             weighted_device_count=-1.0,
             dataset_id=dataset_id,
             level=1,
@@ -1013,7 +1013,7 @@ def generate_expected_obfuscated_usual_environment_1km_data() -> list[Row]:
             season="all",
         ),
         Row(
-            zone_id="1kmN1521E1896",
+            zone_id="1kmN1896E1521",
             weighted_device_count=-1.0,
             dataset_id=dataset_id,
             level=1,
@@ -1023,7 +1023,7 @@ def generate_expected_obfuscated_usual_environment_1km_data() -> list[Row]:
             season="all",
         ),
         Row(
-            zone_id="1kmN1520E1896",
+            zone_id="1kmN1896E1520",
             weighted_device_count=70.0,
             dataset_id=dataset_id,
             level=1,
@@ -1033,7 +1033,7 @@ def generate_expected_obfuscated_usual_environment_1km_data() -> list[Row]:
             season="all",
         ),
         Row(
-            zone_id="1kmN1521E1896",
+            zone_id="1kmN1896E1521",
             weighted_device_count=30.0,
             dataset_id=dataset_id,
             level=1,
@@ -1043,7 +1043,7 @@ def generate_expected_obfuscated_usual_environment_1km_data() -> list[Row]:
             season="all",
         ),
         Row(
-            zone_id="1kmN1520E1896",
+            zone_id="1kmN1896E1520",
             weighted_device_count=65.0,
             dataset_id=dataset_id,
             level=1,
@@ -1053,7 +1053,7 @@ def generate_expected_obfuscated_usual_environment_1km_data() -> list[Row]:
             season="all",
         ),
         Row(
-            zone_id="1kmN1521E1896",
+            zone_id="1kmN1896E1521",
             weighted_device_count=20.0,
             dataset_id=dataset_id,
             level=1,
@@ -1505,7 +1505,7 @@ def generate_expected_obfuscated_present_population_100m_data() -> list[Row]:
 
     return [
         Row(
-            zone_id="100mN15209E18961",
+            zone_id="100mN18961E15209",
             population=-1.0,
             timestamp=t1,
             dataset_id="INSPIRE_100m",
@@ -1515,7 +1515,7 @@ def generate_expected_obfuscated_present_population_100m_data() -> list[Row]:
             day=t1.day,
         ),
         Row(
-            zone_id="100mN15209E18963",
+            zone_id="100mN18963E15209",
             population=25.0,
             timestamp=t1,
             dataset_id="INSPIRE_100m",
@@ -1525,7 +1525,7 @@ def generate_expected_obfuscated_present_population_100m_data() -> list[Row]:
             day=t1.day,
         ),
         Row(
-            zone_id="100mN15209E18969",
+            zone_id="100mN18969E15209",
             population=40.0,
             timestamp=t1,
             dataset_id="INSPIRE_100m",
@@ -1535,7 +1535,7 @@ def generate_expected_obfuscated_present_population_100m_data() -> list[Row]:
             day=t1.day,
         ),
         Row(
-            zone_id="100mN15211E18961",
+            zone_id="100mN18961E15211",
             population=20.0,
             timestamp=t1,
             dataset_id="INSPIRE_100m",
@@ -1545,7 +1545,7 @@ def generate_expected_obfuscated_present_population_100m_data() -> list[Row]:
             day=t1.day,
         ),
         Row(
-            zone_id="100mN15211E18966",
+            zone_id="100mN18966E15211",
             population=-1.0,
             timestamp=t1,
             dataset_id="INSPIRE_100m",
@@ -1563,7 +1563,7 @@ def generate_expected_deleted_present_population_1km_data() -> list[Row]:
 
     return [
         Row(
-            zone_id="1kmN1520E1896",
+            zone_id="1kmN1896E1520",
             population=70.0,
             timestamp=t1,
             dataset_id="INSPIRE_1km",
@@ -1573,7 +1573,7 @@ def generate_expected_deleted_present_population_1km_data() -> list[Row]:
             day=t1.day,
         ),
         Row(
-            zone_id="1kmN1521E1896",
+            zone_id="1kmN1896E1521",
             population=30.0,
             timestamp=t1,
             dataset_id="INSPIRE_1km",

@@ -29,7 +29,8 @@ class SilverEventDataSyntacticQualityMetricsFrequencyDistribution(ParquetDataObj
             StructField(ColNames.initial_frequency, IntegerType(), nullable=False),
             StructField(ColNames.final_frequency, IntegerType(), nullable=False),
             StructField(ColNames.date, DateType(), nullable=False),
+            StructField(ColNames.user_id_modulo, IntegerType(), nullable=False),
         ]
     )
 
-    PARTITION_COLUMNS = [ColNames.date]
+    PARTITION_COLUMNS = [ColNames.date, ColNames.user_id_modulo]

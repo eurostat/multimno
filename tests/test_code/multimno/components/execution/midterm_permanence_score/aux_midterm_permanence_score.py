@@ -23,6 +23,7 @@ from multimno.core.data_objects.bronze.bronze_holiday_calendar_data_object impor
 from multimno.core.data_objects.silver.silver_daily_permanence_score_data_object import (
     SilverDailyPermanenceScoreDataObject,
 )
+from multimno.core.data_objects.silver.silver_group_to_tile_data_object import SilverGroupToTileDataObject
 
 from multimno.core.data_objects.silver.silver_midterm_permanence_score_data_object import (
     SilverMidtermPermanenceScoreDataObject,
@@ -46,7 +47,7 @@ def get_dps_testing_df(spark: SparkSession):
             ColNames.user_id: get_user_id_hashed("1"),
             ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 2, 8, 0, 0),
             ColNames.time_slot_end_time: datetime.datetime(2023, 1, 2, 9, 0, 0),
-            ColNames.dps: [0],
+            ColNames.dps: [1],
             ColNames.year: 2023,
             ColNames.month: 1,
             ColNames.day: 2,
@@ -57,7 +58,7 @@ def get_dps_testing_df(spark: SparkSession):
             ColNames.user_id: get_user_id_hashed("1"),
             ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 2, 9, 0, 0),
             ColNames.time_slot_end_time: datetime.datetime(2023, 1, 2, 10, 0, 0),
-            ColNames.dps: [0],
+            ColNames.dps: [1],
             ColNames.year: 2023,
             ColNames.month: 1,
             ColNames.day: 2,
@@ -68,7 +69,7 @@ def get_dps_testing_df(spark: SparkSession):
             ColNames.user_id: get_user_id_hashed("1"),
             ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 2, 9, 0, 0),
             ColNames.time_slot_end_time: datetime.datetime(2023, 1, 2, 10, 0, 0),
-            ColNames.dps: [0],
+            ColNames.dps: [1],
             ColNames.year: 2023,
             ColNames.month: 1,
             ColNames.day: 2,
@@ -79,7 +80,7 @@ def get_dps_testing_df(spark: SparkSession):
             ColNames.user_id: get_user_id_hashed("1"),
             ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 3, 17, 0, 0),
             ColNames.time_slot_end_time: datetime.datetime(2023, 1, 3, 18, 0, 0),
-            ColNames.dps: [0],
+            ColNames.dps: [1],
             ColNames.year: 2023,
             ColNames.month: 1,
             ColNames.day: 3,
@@ -90,7 +91,7 @@ def get_dps_testing_df(spark: SparkSession):
             ColNames.user_id: get_user_id_hashed("1"),
             ColNames.time_slot_initial_time: datetime.datetime(2023, 1, 3, 18, 0, 0),
             ColNames.time_slot_end_time: datetime.datetime(2023, 1, 3, 19, 0, 0),
-            ColNames.dps: [0],
+            ColNames.dps: [1],
             ColNames.year: 2023,
             ColNames.month: 1,
             ColNames.day: 3,
@@ -125,6 +126,12 @@ def get_holiday_testing_df(spark):
     return holiday_df
 
 
+def get_input_group_to_tile_df(spark: SparkSession):
+    data = [{ColNames.group_id: 1, ColNames.grid_id: 0}]
+
+    return spark.createDataFrame(data, SilverGroupToTileDataObject.SCHEMA)
+
+
 # --- Expected ---
 
 
@@ -135,8 +142,8 @@ def get_expected_midterm_df(spark):
             ColNames.grid_id: 0,
             ColNames.mps: 5,
             ColNames.frequency: 2,
-            ColNames.regularity_mean: 14.666667,
-            ColNames.regularity_std: 17.953644,
+            ColNames.regularity_mean: None,
+            ColNames.regularity_std: None,
             ColNames.year: 2023,
             ColNames.month: 1,
             ColNames.day_type: "all",
@@ -158,12 +165,15 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
     """"""
     dps_test_data_path = config["Paths.Silver"]["daily_permanence_score_data_silver"]
     holiday_data_path = config["Paths.Bronze"]["holiday_calendar_data_bronze"]
+    group_to_tile_path = config["Paths.Silver"]["group_to_tile_data_silver"]
 
     # ---------------- Daily permanence score data object -----------------
     dps_df = get_dps_testing_df(spark)
 
     # ---------------- Holiday calendar data object -----------------
     holiday_df = get_holiday_testing_df(spark)
+
+    group_to_tile = get_input_group_to_tile_df(spark)
 
     # ---------------- Writing -----------------
 
@@ -177,6 +187,10 @@ def set_input_data(spark: SparkSession, config: ConfigParser):
     holiday_do = BronzeHolidayCalendarDataObject(spark, holiday_data_path)
     holiday_do.df = holiday_df
     holiday_do.write()
+
+    group_to_tile_do = SilverGroupToTileDataObject(spark, group_to_tile_path)
+    group_to_tile_do.df = group_to_tile
+    group_to_tile_do.write()
 
 
 # --------- Expected Fixture ---------
@@ -194,7 +208,10 @@ def get_metrics_calculation_input_and_expected(spark: SparkSession):
     # Data
     user_id = "1"
     user_id_modulo = 1
-    grid_ids = [0, 1]
+    group_ids = [
+        1,
+        "1111111111111111111111111111111111111111111111111111111111111111",
+    ]
     mps_values = [1, 2]
     dates_vales = [
         [dt.date(2021, 2, 2), dt.date(2021, 2, 3)],  # Two days in study month
@@ -209,18 +226,18 @@ def get_metrics_calculation_input_and_expected(spark: SparkSession):
         {
             ColNames.user_id_modulo: user_id_modulo,
             ColNames.user_id: get_user_id_hashed(user_id),
-            ColNames.grid_id: grid_id,
+            ColNames.group_id: group_id,
             ColNames.mps: mps,
             dates_col: dates,
         }
-        for grid_id, mps, dates in zip(grid_ids, mps_values, dates_vales)
+        for group_id, mps, dates in zip(group_ids, mps_values, dates_vales)
     ]
 
     schema = StructType(
         [
             StructField(ColNames.user_id_modulo, IntegerType(), True),
             StructField(ColNames.user_id, BinaryType(), True),
-            StructField(ColNames.grid_id, IntegerType(), True),
+            StructField(ColNames.group_id, StringType(), True),
             StructField(ColNames.mps, IntegerType(), True),
             StructField(dates_col, ArrayType(DateType()), True),
         ]
@@ -238,15 +255,15 @@ def get_metrics_calculation_input_and_expected(spark: SparkSession):
         {
             ColNames.user_id_modulo: user_id_modulo,
             ColNames.user_id: get_user_id_hashed(user_id),
-            ColNames.grid_id: grid_id,
+            ColNames.group_id: group_id,
             ColNames.mps: mps,
             ColNames.frequency: frequency,
             ColNames.regularity_mean: regularity_mean,
             ColNames.regularity_std: regularity_std,
             ColNames.id_type: id_type,
         }
-        for grid_id, mps, frequency, regularity_mean, regularity_std in zip(
-            grid_ids, mps_values, frequency, regularity_mean, regularity_std
+        for group_id, mps, frequency, regularity_mean, regularity_std in zip(
+            group_ids, mps_values, frequency, regularity_mean, regularity_std
         )
     ]
 
@@ -254,7 +271,7 @@ def get_metrics_calculation_input_and_expected(spark: SparkSession):
         [
             StructField(ColNames.user_id_modulo, IntegerType(), True),
             StructField(ColNames.user_id, BinaryType(), True),
-            StructField(ColNames.grid_id, IntegerType(), True),
+            StructField(ColNames.group_id, StringType(), True),
             StructField(ColNames.mps, IntegerType(), True),
             StructField(ColNames.frequency, IntegerType(), False),
             StructField(ColNames.regularity_mean, DoubleType(), True),

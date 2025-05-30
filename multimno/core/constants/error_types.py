@@ -50,10 +50,10 @@ class SemanticErrorType:
 
 
 class UeGridIdType:
-
-    UNKNOWN = -99
-    DEVICE_OBSERVATION = -1
-    UKNOWN_STR = "unknown"
+    UNKNOWN_CELL_ID = "-99"
+    UNKNOWN_GROUP_ID = "-99"
+    DEVICE_OBSERVATION_GRID_ID = -1
+    UNKNOWN_STR = "unknown"
     DEVICE_OBSERVATION_STR = "device_observation"
     GRID_STR = "grid"
     ABROAD_STR = "abroad"

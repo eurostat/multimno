@@ -105,17 +105,11 @@ def expected_events(spark):
 @pytest.fixture(scope="module")
 def expected_frequency_distribution(spark):
     expected_data = [
-        [
-            "341098809306858",
-            sha256(b"1").digest(),
-            2,
-            1,
-            date(2023, 1, 1),
-        ],
-        [None, sha256(b"1").digest(), 8, 2, date(2023, 1, 1)],
-        [1, sha256(b"1").digest(), 1, 0, date(2023, 1, 1)],
-        ["100000000000000", None, 1, 0, date(2023, 1, 1)],
-        ["100000000000000", sha256(b"1").digest(), 2, 1, date(2023, 1, 1)],
+        ["341098809306858", sha256(b"1").digest(), 2, 1, date(2023, 1, 1), 0],
+        [None, sha256(b"1").digest(), 8, 2, date(2023, 1, 1), 0],
+        [1, sha256(b"1").digest(), 1, 0, date(2023, 1, 1), 0],
+        ["100000000000000", None, 1, 0, date(2023, 1, 1), -1],
+        ["100000000000000", sha256(b"1").digest(), 2, 1, date(2023, 1, 1), 0],
     ]
 
     expected_data_df = spark.createDataFrame(

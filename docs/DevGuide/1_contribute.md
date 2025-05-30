@@ -46,11 +46,12 @@ practices that shall be followed to develop new code for the multimno repository
 
 ## Opening a pull request
 
-Before opening a pull request in the multimno repository verify:
-* Latest development changes are merged into the branch that performs the pull request. 
-* All tests pass successfully.
-* All the new code is documented following the Google style docstrings.
-* New tests for the code developed are included and pass successfully.
+Before opening a pull request in the multimno repository verify:  
+
+* Latest development changes are merged into the branch that performs the pull request.   
+* All tests pass successfully.  
+* All the new code is documented following the Google style docstrings.  
+* New tests for the code developed are included and pass successfully.  
 
 Use the github web to create a pull request. The pull request must deliver your developed branch to the **development**
 branch of the multimno repository. Associate the PR(pull request) to the previously created issue.

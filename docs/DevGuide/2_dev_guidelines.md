@@ -170,14 +170,17 @@ following command:
 black -l 120 multimno tests/test_code/
 ```
 
-### Clean jupyter notebooks
+### Clean jupyter notebooks (if any)
+
+If any jupyter notebooks have been added, it is important that outputs are cleaned to avoid adding unecessary information to the git history.
 
 ```bash
-find ./notebooks/ -type f -name \*.ipynb | xargs jupyter nbconvert --clear-output --inplace
+find ./ -type f -name \*.ipynb | xargs jupyter nbconvert --clear-output --inplace
 ```
 
 
 ### Code Security Scan
+A static code analysis should be performed to identify common security issues in the codebase. The recommended tool for this purpose is `bandit`, which scans Python code for vulnerabilities and insecure coding practices.
 
 ```bash
 bandit -r multimno
@@ -185,6 +188,11 @@ bandit -r multimno
 
 
 ## 🧪 Testing
+
+Tests can be executed manually using the command line or through the integrated testing tools in Visual Studio Code. This ensures that all components function as expected before code is merged. 
+
+For each component, the testing framework generates both synthetic input data and the corresponding expected output data. The component is then executed using the synthetic data, and the output produced is compared against the expected results. Assertions are made to ensure that the generated data matches the expected data exactly. This approach guarantees that each component behaves as intended and provides a robust foundation for safely evolving and refactoring the codebase over time.
+
 
 ### Launch Tests
 
@@ -202,6 +210,9 @@ pytest tests/test_code/multimno
 
 ### Generate test & coverage reports
 
+Test and coverage reports can be generated to assess the quality and completeness of the test suite. Reports are stored in the designated documentation directory for review.
+
+
 Launch the command
 
 ```bash
@@ -215,6 +226,8 @@ Test reports will be stored in the dir: `docs/autodoc`
 
 
 ### See coverage in IDE (VsCode extension)
+Test coverage can be visualized directly within Visual Studio Code using the Coverage Gutters extension. This provides immediate feedback on which parts of the codebase are covered by tests.
+
 1) Launch tests with coverage to generate the coverage report (xml)
 ```bash
 pytest --cov-report="xml" --cov=multimno tests/test_code/multimno
