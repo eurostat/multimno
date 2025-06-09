@@ -37,15 +37,15 @@ The repository contains the following directories:
 
 | Directory         | Type                                         | Description                                                                                                  |
 | ----------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **.devcontainer** | $${\color{#ac8e03}Development}$$             | Directory with config files for setting up a dev-environment using [Dev-Containers.](https://containers.dev) |
-| **.vscode**       | $${\color{#ac8e03}Development}$$             | Directory containing config files for developers using VsCode.                                               |
-| **docs**          | $${\color{#7030a0}Technical-Documentation}$$ | Documentation source files that will be used for the documentation site. Mainly markdown files.              |
-| **license**          | $${\color{#7030a0}Technical-Documentation}$$ | Directory containing the Software Bill of Materials (SBOM) and associated licensing documentation for software dependencies.     |
-| **multimno**      | $${\color{#ff0000}Open-source-software}$$    | Main directory of the repository. It contains the Python source code of the application.                     |
-| **pipe_configs**  | $${\color{#0070c0}Data}$$                    | Directory containing examples of configuration files for the execution of the pipeline.                      |
-| **sample_data**   | $${\color{#0070c0}Data}$$                    | Directory containing Synthetic MNO-Data to be used to test the software.                                     |
-| **resources**     | $${\color{#ff0000}Open-source-software}$$    | Directory containing requirements files and development related configuration and script files.              |
-| **tests**         | $${\color{#00b050}Testing}$$                 | Directory containing test code and test files for the testing execution.                                     |
+| **.devcontainer** | ![#ac8e03](https://placehold.co/15x15/ac8e03/ac8e03.png) Development             | Directory with config files for setting up a dev-environment using [Dev-Containers.](https://containers.dev) |
+| **.vscode**       | ![#ac8e03](https://placehold.co/15x15/ac8e03/ac8e03.png) Development             | Directory containing config files for developers using VsCode.                                               |
+| **docs**          | ![#7030a0](https://placehold.co/15x15/7030a0/7030a0.png) Technical-Documentation | Documentation source files that will be used for the documentation site. Mainly markdown files.              |
+| **license**       | ![#7030a0](https://placehold.co/15x15/7030a0/7030a0.png) Technical-Documentation | Directory containing the Software Bill of Materials (SBOM) and associated licensing documentation for software dependencies.     |
+| **multimno**      | ![#7030a0](https://placehold.co/15x15/ff0000/ff0000.png) Open-source-software    | Main directory of the repository. It contains the Python source code of the application.                     |
+| **pipe_configs**  | ![#0070c0](https://placehold.co/15x15/0070c0/0070c0.png) Data                    | Directory containing examples of configuration files for the execution of the pipeline.                      |
+| **sample_data**   | ![#0070c0](https://placehold.co/15x15/0070c0/0070c0.png) Data                | Directory containing Synthetic MNO-Data to be used to test the software.                                     |
+| **resources**     | ![#7030a0](https://placehold.co/15x15/ff0000/ff0000.png) Open-source-software     | Directory containing requirements files and development related configuration and script files.              |
+| **tests**         | ![#7030a0](https://placehold.co/15x15/00b050/00b050.png) Testing              | Directory containing test code and test files for the testing execution.                                     |
 
 ---
 
