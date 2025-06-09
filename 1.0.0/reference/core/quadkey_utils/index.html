@@ -1,0 +1,4139 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="../log/" rel="prev"/>
+<link href="../settings/" rel="next"/>
+<link href="../../../assets/images/favicon.png" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.6.12" name="generator"/>
+<title>quadkey_utils - MultiMNO</title>
+<link href="../../../assets/stylesheets/main.2afb09e1.min.css" rel="stylesheet"/>
+<link href="../../../assets/stylesheets/palette.06af60db.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<link href="../../../assets/_mkdocstrings.css" rel="stylesheet"/>
+<script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+<link href="../../../assets/stylesheets/panzoom.css" rel="stylesheet"/><meta content='{"selectors": [".mermaid", ".d2"]}' name="panzoom-data"/><meta content="material" name="panzoom-theme"/></head>
+<body data-md-color-accent="indigo" data-md-color-primary="indigo" data-md-color-scheme="default" dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#core.quadkey_utils">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<div data-md-color-scheme="default" data-md-component="outdated" hidden="">
+</div>
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="MultiMNO" class="md-header__button md-logo" data-md-component="logo" href="../../.." title="MultiMNO">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            MultiMNO
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              quadkey_utils
+            
+          </span>
+</div>
+</div>
+</div>
+<form class="md-header__option" data-md-component="palette">
+<input aria-label="Switch to dark mode" class="md-option" data-md-color-accent="indigo" data-md-color-media="" data-md-color-primary="indigo" data-md-color-scheme="default" id="__palette_0" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_1" hidden="" title="Switch to dark mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+</label>
+<input aria-label="Switch to light mode" class="md-option" data-md-color-accent="indigo" data-md-color-media="" data-md-color-primary="indigo" data-md-color-scheme="slate" id="__palette_1" name="__palette" type="radio"/>
+<label class="md-header__button md-icon" for="__palette_0" hidden="" title="Switch to light mode">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"></path></svg>
+</label>
+</form>
+<script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="md-header__source">
+<a class="md-source" data-md-component="source" href="https://github.com/eurostat/multimno" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
+</div>
+<div class="md-source__repository">
+    MultiMNO
+  </div>
+</a>
+</div>
+</nav>
+<nav aria-label="Tabs" class="md-tabs" data-md-component="tabs">
+<div class="md-grid">
+<ul class="md-tabs__list">
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../..">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../UserManual/">
+        
+  
+  
+    
+  
+  User Manual
+
+      </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../DevGuide/">
+        
+  
+  
+    
+  
+  Dev Guide
+
+      </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../pipeline/">
+        
+  
+  
+    
+  
+  Pipeline
+
+      </a>
+</li>
+<li class="md-tabs__item md-tabs__item--active">
+<a class="md-tabs__link" href="../../components/">
+          
+  
+  
+  Reference
+
+        </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../system_requirements/">
+        
+  
+  
+    
+  
+  System Requirements
+
+      </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../LICENSE/">
+        
+  
+  
+    
+  
+  License
+
+      </a>
+</li>
+<li class="md-tabs__item">
+<a class="md-tabs__link" href="../../../autodoc/test_report/">
+        
+  
+  
+    
+  
+  Test Report
+
+      </a>
+</li>
+</ul>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="MultiMNO" class="md-nav__button md-logo" data-md-component="logo" href="../../.." title="MultiMNO">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+</a>
+    MultiMNO
+  </label>
+<div class="md-nav__source">
+<a class="md-source" data-md-component="source" href="https://github.com/eurostat/multimno" title="Go to repository">
+<div class="md-source__icon md-icon">
+<svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"></path></svg>
+</div>
+<div class="md-source__repository">
+    MultiMNO
+  </div>
+</a>
+</div>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../..">
+<span class="md-ellipsis">
+    Home
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../UserManual/">
+<span class="md-ellipsis">
+    User Manual
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_2">
+<span class="md-nav__icon md-icon"></span>
+            User Manual
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_1" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../UserManual/configuration/">
+<span class="md-ellipsis">
+    Configuration
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_2_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_1">
+<span class="md-nav__icon md-icon"></span>
+            Configuration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_1_1" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/">
+<span class="md-ellipsis">
+    1 Pipeline
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_2_1_1" id="__nav_2_1_1_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_2_1_1_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_2_1_1">
+<span class="md-nav__icon md-icon"></span>
+            1 Pipeline
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/0_general_configuration/">
+<span class="md-ellipsis">
+    General Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/1_inspire_grid_generation/">
+<span class="md-ellipsis">
+    InspireGridGeneration Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/2_event_data_cleaning/">
+<span class="md-ellipsis">
+    EventCleaning Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/3_network_cleaning/">
+<span class="md-ellipsis">
+    NetworkCleaning Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/4_cell_footprint_estimation/">
+<span class="md-ellipsis">
+    CellFootprintEstimation Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/5_cell_connection_probability/">
+<span class="md-ellipsis">
+    CellConnectionProbabilityEstimation Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/5_cell_footprint_intersections/">
+<span class="md-ellipsis">
+    CellFootprintIntersections Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/6_event_semantic_cleaning/">
+<span class="md-ellipsis">
+    SemanticCleaning Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/7_device_activity_statistics/">
+<span class="md-ellipsis">
+    DeviceActivityStatistics
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/8_continuous_time_segmentation/">
+<span class="md-ellipsis">
+    ContinuousTimeSegmentation Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/9_present_population_estimation/">
+<span class="md-ellipsis">
+    PresentPopulationEstimation Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/10_daily_permanence_score/">
+<span class="md-ellipsis">
+    DailyPermanenceScore Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/11_midterm_permanence_score/">
+<span class="md-ellipsis">
+    MidtermPermanenceScore Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/12_longterm_permanence_score/">
+<span class="md-ellipsis">
+    LongtermPermanenceScore Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/13_usual_environment_labeling/">
+<span class="md-ellipsis">
+    UsualEnvironmentLabeling Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/14_usual_environment_aggregation/">
+<span class="md-ellipsis">
+    UsualEnvironmentAggregation Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/15_internal_migration/">
+<span class="md-ellipsis">
+    InternalMigration Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/16_tourism_stays_estimation/">
+<span class="md-ellipsis">
+    TourismStaysEstimation Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/17_output_indicators/">
+<span class="md-ellipsis">
+    OutputIndicators Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/20_multimno_aggregation/">
+<span class="md-ellipsis">
+    MultiMNOAggregation Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/21_tourism_statistics_calculation/">
+<span class="md-ellipsis">
+    TourismStatisticsCalculation Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/1_Pipeline/22_tourism_outbound_statistics_calculation/">
+<span class="md-ellipsis">
+    TourismOutboundStatisticsCalculation Configuration
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_1_2" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../UserManual/configuration/2_Optional/">
+<span class="md-ellipsis">
+    2 Optional
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_2_1_2" id="__nav_2_1_2_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_2_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_2_1_2">
+<span class="md-nav__icon md-icon"></span>
+            2 Optional
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/2_Optional/1_grid_enrichment/">
+<span class="md-ellipsis">
+    GridEnrichment Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/2_Optional/2_geozones_to_grid_mapping/">
+<span class="md-ellipsis">
+    GeozonesGridMapping Configuration
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_1_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../UserManual/configuration/3_QualityWarnings/">
+<span class="md-ellipsis">
+    3 QualityWarnings
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_2_1_3" id="__nav_2_1_3_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_2_1_3_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_2_1_3">
+<span class="md-nav__icon md-icon"></span>
+            3 QualityWarnings
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/3_QualityWarnings/1_network_quality_warnings/">
+<span class="md-ellipsis">
+    NetworkQualityWarnings Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/3_QualityWarnings/2_event_quality_warnings/">
+<span class="md-ellipsis">
+    EventQualityWarnings Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/3_QualityWarnings/3_semantic_quality_warnings/">
+<span class="md-ellipsis">
+    SemanticQualityWarnings Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/3_QualityWarnings/4_cell_footprint_quality_metrics/">
+<span class="md-ellipsis">
+    CellFootprintQualityMetrics Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/3_QualityWarnings/5_daily_permanence_score_quality_metrics/">
+<span class="md-ellipsis">
+    DailyPermanenceScoreQualityMetrics Configuration
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_2_1_4" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../UserManual/configuration/4_SyntheticMnoData/">
+<span class="md-ellipsis">
+    4 SyntheticMnoData
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_2_1_4" id="__nav_2_1_4_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_2_1_4_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_2_1_4">
+<span class="md-nav__icon md-icon"></span>
+            4 SyntheticMnoData
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/4_SyntheticMnoData/1_synthetic_diaries/">
+<span class="md-ellipsis">
+    SyntheticDiaries Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/4_SyntheticMnoData/2_synthetic_network/">
+<span class="md-ellipsis">
+    SyntheticNetwork Configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/configuration/4_SyntheticMnoData/3_synthetic_events/">
+<span class="md-ellipsis">
+    SyntheticEvents Configuration
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/setup_guide/">
+<span class="md-ellipsis">
+    Setup Guide
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/execution/">
+<span class="md-ellipsis">
+    Execution
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../UserManual/cloud_usage/">
+<span class="md-ellipsis">
+    Cloud Deployment &amp; Execution
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../DevGuide/">
+<span class="md-ellipsis">
+    Dev Guide
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            Dev Guide
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../DevGuide/1_contribute/">
+<span class="md-ellipsis">
+    Contribute
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../DevGuide/2_dev_guidelines/">
+<span class="md-ellipsis">
+    Developer Guidelines
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../pipeline/">
+<span class="md-ellipsis">
+    Pipeline
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_5" type="checkbox"/>
+<label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+<span class="md-ellipsis">
+    Reference
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<nav aria-expanded="true" aria-labelledby="__nav_5_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_5">
+<span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/">
+<span class="md-ellipsis">
+    components
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_1">
+<span class="md-nav__icon md-icon"></span>
+            components
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/">
+<span class="md-ellipsis">
+    execution
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1" id="__nav_5_1_1_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_5_1_1">
+<span class="md-nav__icon md-icon"></span>
+            execution
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_1" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/cell_connection_probability/">
+<span class="md-ellipsis">
+    cell_connection_probability
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_1" id="__nav_5_1_1_1_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_1_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_1">
+<span class="md-nav__icon md-icon"></span>
+            cell_connection_probability
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/cell_connection_probability/cell_connection_probability/">
+<span class="md-ellipsis">
+    cell_connection_probability
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_2" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/cell_footprint/">
+<span class="md-ellipsis">
+    cell_footprint
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_2" id="__nav_5_1_1_2_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_2_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_2">
+<span class="md-nav__icon md-icon"></span>
+            cell_footprint
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/cell_footprint/cell_footprint_estimation/">
+<span class="md-ellipsis">
+    cell_footprint_estimation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/cell_footprint_intersections/">
+<span class="md-ellipsis">
+    cell_footprint_intersections
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_3" id="__nav_5_1_1_3_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_3_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_3">
+<span class="md-nav__icon md-icon"></span>
+            cell_footprint_intersections
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/cell_footprint_intersections/cell_footprint_intersections/">
+<span class="md-ellipsis">
+    cell_footprint_intersections
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_4" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/cell_proximity_estimation/">
+<span class="md-ellipsis">
+    cell_proximity_estimation
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_4" id="__nav_5_1_1_4_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_4_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_4">
+<span class="md-nav__icon md-icon"></span>
+            cell_proximity_estimation
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/cell_proximity_estimation/cell_proximity_estimation/">
+<span class="md-ellipsis">
+    cell_proximity_estimation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_5" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/daily_permanence_score/">
+<span class="md-ellipsis">
+    daily_permanence_score
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_5" id="__nav_5_1_1_5_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_5_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_5">
+<span class="md-nav__icon md-icon"></span>
+            daily_permanence_score
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/daily_permanence_score/daily_permanence_score/">
+<span class="md-ellipsis">
+    daily_permanence_score
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_6" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/device_activity_statistics/">
+<span class="md-ellipsis">
+    device_activity_statistics
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_6" id="__nav_5_1_1_6_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_6_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_6">
+<span class="md-nav__icon md-icon"></span>
+            device_activity_statistics
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/device_activity_statistics/device_activity_statistics/">
+<span class="md-ellipsis">
+    device_activity_statistics
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_7" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/event_cleaning/">
+<span class="md-ellipsis">
+    event_cleaning
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_7" id="__nav_5_1_1_7_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_7_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_7">
+<span class="md-nav__icon md-icon"></span>
+            event_cleaning
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/event_cleaning/event_cleaning/">
+<span class="md-ellipsis">
+    event_cleaning
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/event_semantic_cleaning/">
+<span class="md-ellipsis">
+    event_semantic_cleaning
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_8" id="__nav_5_1_1_8_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_8_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_8">
+<span class="md-nav__icon md-icon"></span>
+            event_semantic_cleaning
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/event_semantic_cleaning/event_semantic_cleaning/">
+<span class="md-ellipsis">
+    event_semantic_cleaning
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_9" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/geozones_grid_mapping/">
+<span class="md-ellipsis">
+    geozones_grid_mapping
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_9" id="__nav_5_1_1_9_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_9_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_9">
+<span class="md-nav__icon md-icon"></span>
+            geozones_grid_mapping
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/geozones_grid_mapping/geozones_grid_mapping/">
+<span class="md-ellipsis">
+    geozones_grid_mapping
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_10" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/grid_enrichment/">
+<span class="md-ellipsis">
+    grid_enrichment
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_10" id="__nav_5_1_1_10_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_10_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_10">
+<span class="md-nav__icon md-icon"></span>
+            grid_enrichment
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/grid_enrichment/grid_enrichment/">
+<span class="md-ellipsis">
+    grid_enrichment
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_11" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/internal_migration/">
+<span class="md-ellipsis">
+    internal_migration
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_11" id="__nav_5_1_1_11_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_11_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_11">
+<span class="md-nav__icon md-icon"></span>
+            internal_migration
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/internal_migration/internal_migration/">
+<span class="md-ellipsis">
+    internal_migration
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_12" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/longterm_permanence_score/">
+<span class="md-ellipsis">
+    longterm_permanence_score
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_12" id="__nav_5_1_1_12_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_12_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_12">
+<span class="md-nav__icon md-icon"></span>
+            longterm_permanence_score
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/longterm_permanence_score/longterm_permanence_score/">
+<span class="md-ellipsis">
+    longterm_permanence_score
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_13" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/midterm_permanence_score/">
+<span class="md-ellipsis">
+    midterm_permanence_score
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_13" id="__nav_5_1_1_13_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_13_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_13">
+<span class="md-nav__icon md-icon"></span>
+            midterm_permanence_score
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/midterm_permanence_score/midterm_permanence_score/">
+<span class="md-ellipsis">
+    midterm_permanence_score
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_14" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/multimno_aggregation/">
+<span class="md-ellipsis">
+    multimno_aggregation
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_14" id="__nav_5_1_1_14_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_14_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_14">
+<span class="md-nav__icon md-icon"></span>
+            multimno_aggregation
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/multimno_aggregation/multimno_aggregation/">
+<span class="md-ellipsis">
+    multimno_aggregation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_15" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/network_cleaning/">
+<span class="md-ellipsis">
+    network_cleaning
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_15" id="__nav_5_1_1_15_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_15_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_15">
+<span class="md-nav__icon md-icon"></span>
+            network_cleaning
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/network_cleaning/network_cleaning/">
+<span class="md-ellipsis">
+    network_cleaning
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_16" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/output_indicators/">
+<span class="md-ellipsis">
+    output_indicators
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_16" id="__nav_5_1_1_16_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_16_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_16">
+<span class="md-nav__icon md-icon"></span>
+            output_indicators
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/output_indicators/output_indicators/">
+<span class="md-ellipsis">
+    output_indicators
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_17" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/present_population/">
+<span class="md-ellipsis">
+    present_population
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_17" id="__nav_5_1_1_17_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_17_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_17">
+<span class="md-nav__icon md-icon"></span>
+            present_population
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/present_population/present_population_estimation/">
+<span class="md-ellipsis">
+    present_population_estimation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_18" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/time_segments/">
+<span class="md-ellipsis">
+    time_segments
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_18" id="__nav_5_1_1_18_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_18_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_18">
+<span class="md-nav__icon md-icon"></span>
+            time_segments
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/time_segments/continuous_time_segmentation/">
+<span class="md-ellipsis">
+    continuous_time_segmentation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_19" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/tourism_outbound_statistics/">
+<span class="md-ellipsis">
+    tourism_outbound_statistics
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_19" id="__nav_5_1_1_19_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_19_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_19">
+<span class="md-nav__icon md-icon"></span>
+            tourism_outbound_statistics
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/tourism_outbound_statistics/tourism_outbound_statistics_calculation/">
+<span class="md-ellipsis">
+    tourism_outbound_statistics_calculation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_20" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/tourism_statistics/">
+<span class="md-ellipsis">
+    tourism_statistics
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_20" id="__nav_5_1_1_20_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_20_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_20">
+<span class="md-nav__icon md-icon"></span>
+            tourism_statistics
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/tourism_statistics/tourism_statistics_calculation/">
+<span class="md-ellipsis">
+    tourism_statistics_calculation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_21" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/tourism_stays_estimation/">
+<span class="md-ellipsis">
+    tourism_stays_estimation
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_21" id="__nav_5_1_1_21_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_21_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_21">
+<span class="md-nav__icon md-icon"></span>
+            tourism_stays_estimation
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/tourism_stays_estimation/tourism_stays_estimation/">
+<span class="md-ellipsis">
+    tourism_stays_estimation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_22" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/usual_environment_aggregation/">
+<span class="md-ellipsis">
+    usual_environment_aggregation
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_22" id="__nav_5_1_1_22_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_22_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_22">
+<span class="md-nav__icon md-icon"></span>
+            usual_environment_aggregation
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/usual_environment_aggregation/usual_environment_aggregation/">
+<span class="md-ellipsis">
+    usual_environment_aggregation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_1_23" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/execution/usual_environment_labeling/">
+<span class="md-ellipsis">
+    usual_environment_labeling
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_1_23" id="__nav_5_1_1_23_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_1_23_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_1_23">
+<span class="md-nav__icon md-icon"></span>
+            usual_environment_labeling
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/execution/usual_environment_labeling/usual_environment_labeling/">
+<span class="md-ellipsis">
+    usual_environment_labeling
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_2" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/ingestion/">
+<span class="md-ellipsis">
+    ingestion
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_2" id="__nav_5_1_2_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_5_1_2">
+<span class="md-nav__icon md-icon"></span>
+            ingestion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_2_1" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/ingestion/data_filtering/">
+<span class="md-ellipsis">
+    data_filtering
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_2_1" id="__nav_5_1_2_1_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_2_1_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_2_1">
+<span class="md-nav__icon md-icon"></span>
+            data_filtering
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/ingestion/data_filtering/data_filtering/">
+<span class="md-ellipsis">
+    data_filtering
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_2_2" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/ingestion/grid_generation/">
+<span class="md-ellipsis">
+    grid_generation
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_2_2" id="__nav_5_1_2_2_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_2_2_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_2_2">
+<span class="md-nav__icon md-icon"></span>
+            grid_generation
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/ingestion/grid_generation/inspire_grid_generation/">
+<span class="md-ellipsis">
+    inspire_grid_generation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_2_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/ingestion/spatial_data_ingestion/">
+<span class="md-ellipsis">
+    spatial_data_ingestion
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_2_3" id="__nav_5_1_2_3_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_2_3_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_2_3">
+<span class="md-nav__icon md-icon"></span>
+            spatial_data_ingestion
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/ingestion/spatial_data_ingestion/gisco_data_ingestion/">
+<span class="md-ellipsis">
+    gisco_data_ingestion
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/ingestion/spatial_data_ingestion/overture_data_ingestion/">
+<span class="md-ellipsis">
+    overture_data_ingestion
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/ingestion/spatial_data_ingestion/overture_data_transformation/">
+<span class="md-ellipsis">
+    overture_data_transformation
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_2_4" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/ingestion/synthetic/">
+<span class="md-ellipsis">
+    synthetic
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_2_4" id="__nav_5_1_2_4_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_2_4_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_2_4">
+<span class="md-nav__icon md-icon"></span>
+            synthetic
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/ingestion/synthetic/synthetic_diaries/">
+<span class="md-ellipsis">
+    synthetic_diaries
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/ingestion/synthetic/synthetic_events/">
+<span class="md-ellipsis">
+    synthetic_events
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/ingestion/synthetic/synthetic_network/">
+<span class="md-ellipsis">
+    synthetic_network
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/quality/">
+<span class="md-ellipsis">
+    quality
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_3" id="__nav_5_1_3_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_3_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_5_1_3">
+<span class="md-nav__icon md-icon"></span>
+            quality
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_3_1" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/quality/cell_footprint_quality_metrics/">
+<span class="md-ellipsis">
+    cell_footprint_quality_metrics
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_3_1" id="__nav_5_1_3_1_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_3_1_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_3_1">
+<span class="md-nav__icon md-icon"></span>
+            cell_footprint_quality_metrics
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/quality/cell_footprint_quality_metrics/cell_footprint_quality_metrics/">
+<span class="md-ellipsis">
+    cell_footprint_quality_metrics
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_3_2" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/quality/daily_permanence_score_quality_metrics/">
+<span class="md-ellipsis">
+    daily_permanence_score_quality_metrics
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_3_2" id="__nav_5_1_3_2_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_3_2_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_3_2">
+<span class="md-nav__icon md-icon"></span>
+            daily_permanence_score_quality_metrics
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/quality/daily_permanence_score_quality_metrics/daily_permanence_score_quality_metrics/">
+<span class="md-ellipsis">
+    daily_permanence_score_quality_metrics
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_3_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/quality/event_quality_warnings/">
+<span class="md-ellipsis">
+    event_quality_warnings
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_3_3" id="__nav_5_1_3_3_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_3_3_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_3_3">
+<span class="md-nav__icon md-icon"></span>
+            event_quality_warnings
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/quality/event_quality_warnings/event_quality_warnings/">
+<span class="md-ellipsis">
+    event_quality_warnings
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_3_4" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/quality/network_quality_warnings/">
+<span class="md-ellipsis">
+    network_quality_warnings
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_3_4" id="__nav_5_1_3_4_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_3_4_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_3_4">
+<span class="md-nav__icon md-icon"></span>
+            network_quality_warnings
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/quality/network_quality_warnings/network_quality_warnings/">
+<span class="md-ellipsis">
+    network_quality_warnings
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_1_3_5" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../components/quality/semantic_quality_warnings/">
+<span class="md-ellipsis">
+    semantic_quality_warnings
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_1_3_5" id="__nav_5_1_3_5_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_1_3_5_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_1_3_5">
+<span class="md-nav__icon md-icon"></span>
+            semantic_quality_warnings
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../components/quality/semantic_quality_warnings/semantic_quality_warnings/">
+<span class="md-ellipsis">
+    semantic_quality_warnings
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--active md-nav__item--nested">
+<input checked="" class="md-nav__toggle md-toggle" id="__nav_5_2" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../">
+<span class="md-ellipsis">
+    core
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="true" aria-labelledby="__nav_5_2_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_5_2">
+<span class="md-nav__icon md-icon"></span>
+            core
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2_1" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../constants/">
+<span class="md-ellipsis">
+    constants
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_2_1" id="__nav_5_2_1_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_1_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_5_2_1">
+<span class="md-nav__icon md-icon"></span>
+            constants
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../constants/columns/">
+<span class="md-ellipsis">
+    columns
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../constants/conditions/">
+<span class="md-ellipsis">
+    conditions
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../constants/domain_names/">
+<span class="md-ellipsis">
+    domain_names
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../constants/error_types/">
+<span class="md-ellipsis">
+    error_types
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../constants/measure_definitions/">
+<span class="md-ellipsis">
+    measure_definitions
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../constants/network_default_thresholds/">
+<span class="md-ellipsis">
+    network_default_thresholds
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../constants/period_names/">
+<span class="md-ellipsis">
+    period_names
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../constants/reserved_dataset_ids/">
+<span class="md-ellipsis">
+    reserved_dataset_ids
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../constants/semantic_qw_default_thresholds/">
+<span class="md-ellipsis">
+    semantic_qw_default_thresholds
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../constants/spatial/">
+<span class="md-ellipsis">
+    spatial
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../constants/transformations/">
+<span class="md-ellipsis">
+    transformations
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../constants/warnings/">
+<span class="md-ellipsis">
+    warnings
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2_2" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../data_objects/">
+<span class="md-ellipsis">
+    data_objects
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_2_2" id="__nav_5_2_2_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_2_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_5_2_2">
+<span class="md-nav__icon md-icon"></span>
+            data_objects
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2_2_1" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../data_objects/bronze/">
+<span class="md-ellipsis">
+    bronze
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_2_2_1" id="__nav_5_2_2_1_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_2_1_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_2_2_1">
+<span class="md-nav__icon md-icon"></span>
+            bronze
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/bronze/bronze_admin_units_data_object/">
+<span class="md-ellipsis">
+    bronze_admin_units_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/bronze/bronze_buildings_data_object/">
+<span class="md-ellipsis">
+    bronze_buildings_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/bronze/bronze_countries_data_object/">
+<span class="md-ellipsis">
+    bronze_countries_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/bronze/bronze_event_data_object/">
+<span class="md-ellipsis">
+    bronze_event_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/bronze/bronze_geographic_zones_data_object/">
+<span class="md-ellipsis">
+    bronze_geographic_zones_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/bronze/bronze_holiday_calendar_data_object/">
+<span class="md-ellipsis">
+    bronze_holiday_calendar_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/bronze/bronze_inbound_estimation_factors_data_object/">
+<span class="md-ellipsis">
+    bronze_inbound_estimation_factors_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/bronze/bronze_landuse_data_object/">
+<span class="md-ellipsis">
+    bronze_landuse_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/bronze/bronze_mcc_iso_tz_map/">
+<span class="md-ellipsis">
+    bronze_mcc_iso_tz_map
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/bronze/bronze_network_physical_data_object/">
+<span class="md-ellipsis">
+    bronze_network_physical_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/bronze/bronze_synthetic_diaries_data_object/">
+<span class="md-ellipsis">
+    bronze_synthetic_diaries_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/bronze/bronze_transportation_data_object/">
+<span class="md-ellipsis">
+    bronze_transportation_data_object
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2_2_2" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../data_objects/landing/">
+<span class="md-ellipsis">
+    landing
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_2_2_2" id="__nav_5_2_2_2_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_2_2_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_2_2_2">
+<span class="md-nav__icon md-icon"></span>
+            landing
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/landing/landing_geoparquet_data_object/">
+<span class="md-ellipsis">
+    landing_geoparquet_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/landing/landing_http_geojson_data_object/">
+<span class="md-ellipsis">
+    landing_http_geojson_data_object
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle" id="__nav_5_2_2_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../data_objects/silver/">
+<span class="md-ellipsis">
+    silver
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_5_2_2_3" id="__nav_5_2_2_3_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_5_2_2_3_label" class="md-nav" data-md-level="4">
+<label class="md-nav__title" for="__nav_5_2_2_3">
+<span class="md-nav__icon md-icon"></span>
+            silver
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/event_cache_data_object/">
+<span class="md-ellipsis">
+    event_cache_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_aggregated_usual_environments_data_object/">
+<span class="md-ellipsis">
+    silver_aggregated_usual_environments_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_aggregated_usual_environments_zones_data_object/">
+<span class="md-ellipsis">
+    silver_aggregated_usual_environments_zones_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_cell_connection_probabilities_data_object/">
+<span class="md-ellipsis">
+    silver_cell_connection_probabilities_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_cell_distance_data_object/">
+<span class="md-ellipsis">
+    silver_cell_distance_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_cell_footprint_data_object/">
+<span class="md-ellipsis">
+    silver_cell_footprint_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_cell_footprint_quality_metrics_data_object/">
+<span class="md-ellipsis">
+    silver_cell_footprint_quality_metrics_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_cell_intersection_groups_data_object/">
+<span class="md-ellipsis">
+    silver_cell_intersection_groups_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_cell_to_group_data_object/">
+<span class="md-ellipsis">
+    silver_cell_to_group_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_daily_permanence_score_data_object/">
+<span class="md-ellipsis">
+    silver_daily_permanence_score_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_daily_permanence_score_quality_metrics_data_object/">
+<span class="md-ellipsis">
+    silver_daily_permanence_score_quality_metrics_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_device_activity_statistics/">
+<span class="md-ellipsis">
+    silver_device_activity_statistics
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_enriched_grid_data_object/">
+<span class="md-ellipsis">
+    silver_enriched_grid_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_event_data_object/">
+<span class="md-ellipsis">
+    silver_event_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_event_data_syntactic_quality_metrics_by_column/">
+<span class="md-ellipsis">
+    silver_event_data_syntactic_quality_metrics_by_column
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_event_data_syntactic_quality_metrics_frequency_distribution/">
+<span class="md-ellipsis">
+    silver_event_data_syntactic_quality_metrics_frequency_distribution
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_event_data_syntactic_quality_warnings_for_plots/">
+<span class="md-ellipsis">
+    silver_event_data_syntactic_quality_warnings_for_plots
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_event_data_syntactic_quality_warnings_log_table/">
+<span class="md-ellipsis">
+    silver_event_data_syntactic_quality_warnings_log_table
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_event_flagged_data_object/">
+<span class="md-ellipsis">
+    silver_event_flagged_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_geozones_grid_map_data_object/">
+<span class="md-ellipsis">
+    silver_geozones_grid_map_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_grid_data_object/">
+<span class="md-ellipsis">
+    silver_grid_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_group_to_tile_data_object/">
+<span class="md-ellipsis">
+    silver_group_to_tile_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_internal_migration_data_object/">
+<span class="md-ellipsis">
+    silver_internal_migration_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_internal_migration_quality_metrics_data_object/">
+<span class="md-ellipsis">
+    silver_internal_migration_quality_metrics_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_longterm_permanence_score_data_object/">
+<span class="md-ellipsis">
+    silver_longterm_permanence_score_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_midterm_permanence_score_data_object/">
+<span class="md-ellipsis">
+    silver_midterm_permanence_score_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_network_data_object/">
+<span class="md-ellipsis">
+    silver_network_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_network_data_syntactic_quality_metrics_by_column/">
+<span class="md-ellipsis">
+    silver_network_data_syntactic_quality_metrics_by_column
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_network_data_top_frequent_errors_data_object/">
+<span class="md-ellipsis">
+    silver_network_data_top_frequent_errors_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_network_row_error_metrics/">
+<span class="md-ellipsis">
+    silver_network_row_error_metrics
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_network_syntactic_quality_warnings_log_table/">
+<span class="md-ellipsis">
+    silver_network_syntactic_quality_warnings_log_table
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_network_syntactic_quality_warnings_plot_data/">
+<span class="md-ellipsis">
+    silver_network_syntactic_quality_warnings_plot_data
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_present_population_data_object/">
+<span class="md-ellipsis">
+    silver_present_population_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_present_population_zone_data_object/">
+<span class="md-ellipsis">
+    silver_present_population_zone_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_semantic_quality_metrics/">
+<span class="md-ellipsis">
+    silver_semantic_quality_metrics
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_semantic_quality_warnings_log_table/">
+<span class="md-ellipsis">
+    silver_semantic_quality_warnings_log_table
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_semantic_quality_warnings_plot_data/">
+<span class="md-ellipsis">
+    silver_semantic_quality_warnings_plot_data
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_time_segments_data_object/">
+<span class="md-ellipsis">
+    silver_time_segments_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_tourism_outbound_nights_spent_data_object/">
+<span class="md-ellipsis">
+    silver_tourism_outbound_nights_spent_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_tourism_stays_data_object/">
+<span class="md-ellipsis">
+    silver_tourism_stays_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_tourism_trip_avg_destinations_nights_spent_data_object/">
+<span class="md-ellipsis">
+    silver_tourism_trip_avg_destinations_nights_spent_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_tourism_trip_data_object/">
+<span class="md-ellipsis">
+    silver_tourism_trip_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_tourism_zone_departures_nights_spent_data_object/">
+<span class="md-ellipsis">
+    silver_tourism_zone_departures_nights_spent_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_usual_environment_labeling_quality_metrics_data_object/">
+<span class="md-ellipsis">
+    silver_usual_environment_labeling_quality_metrics_data_object
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/silver/silver_usual_environment_labels_data_object/">
+<span class="md-ellipsis">
+    silver_usual_environment_labels_data_object
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../data_objects/data_object/">
+<span class="md-ellipsis">
+    data_object
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../component/">
+<span class="md-ellipsis">
+    component
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../configuration/">
+<span class="md-ellipsis">
+    configuration
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../exceptions/">
+<span class="md-ellipsis">
+    exceptions
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../grid/">
+<span class="md-ellipsis">
+    grid
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../io_interface/">
+<span class="md-ellipsis">
+    io_interface
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../log/">
+<span class="md-ellipsis">
+    log
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--active">
+<input class="md-nav__toggle md-toggle" id="__toc" type="checkbox"/>
+<label class="md-nav__link md-nav__link--active" for="__toc">
+<span class="md-ellipsis">
+    quadkey_utils
+    
+  </span>
+<span class="md-nav__icon md-icon"></span>
+</label>
+<a class="md-nav__link md-nav__link--active" href="./">
+<span class="md-ellipsis">
+    quadkey_utils
+    
+  </span>
+</a>
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core.quadkey_utils">
+<span class="md-ellipsis">
+      quadkey_utils
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core.quadkey_utils.assign_quadkey">
+<span class="md-ellipsis">
+      assign_quadkey
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core.quadkey_utils.get_children_quadkeys">
+<span class="md-ellipsis">
+      get_children_quadkeys
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core.quadkey_utils.get_quadkeys_for_bbox">
+<span class="md-ellipsis">
+      get_quadkeys_for_bbox
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core.quadkey_utils.latlon_to_quadkey">
+<span class="md-ellipsis">
+      latlon_to_quadkey
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core.quadkey_utils.latlon_to_tilexy">
+<span class="md-ellipsis">
+      latlon_to_tilexy
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core.quadkey_utils.quadkey_to_extent">
+<span class="md-ellipsis">
+      quadkey_to_extent
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core.quadkey_utils.quadkey_to_tile">
+<span class="md-ellipsis">
+      quadkey_to_tile
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core.quadkey_utils.quadkeys_to_extent_dataframe">
+<span class="md-ellipsis">
+      quadkeys_to_extent_dataframe
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#core.quadkey_utils.tilexy_to_quadkey">
+<span class="md-ellipsis">
+      tilexy_to_quadkey
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../settings/">
+<span class="md-ellipsis">
+    settings
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../spark_session/">
+<span class="md-ellipsis">
+    spark_session
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../utils/">
+<span class="md-ellipsis">
+    utils
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../main_multimno/">
+<span class="md-ellipsis">
+    main_multimno
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../orchestrator_multimno/">
+<span class="md-ellipsis">
+    orchestrator_multimno
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../system_requirements/">
+<span class="md-ellipsis">
+    System Requirements
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../LICENSE/">
+<span class="md-ellipsis">
+    License
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../autodoc/test_report/">
+<span class="md-ellipsis">
+    Test Report
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1>quadkey_utils</h1>
+<div class="doc doc-object doc-module">
+<a id="core.quadkey_utils"></a>
+<div class="doc doc-contents first">
+<p>This module contains utility functions to work with quadkey geo indexing for the multimno package.</p>
+<div class="doc doc-children">
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="core.quadkey_utils.assign_quadkey">
+<code class="highlight language-python"><span class="n">assign_quadkey</span><span class="p">(</span><span class="n">sdf</span><span class="p">,</span> <span class="n">crs_in</span><span class="p">,</span> <span class="n">zoom_level</span><span class="p">)</span></code>
+</h2>
+<div class="doc doc-contents">
+<p>Assigns a quadkey to each row in a DataFrame based on the centroid of its geometry.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>sdf</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame" title="pyspark.sql.DataFrame">DataFrame</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The DataFrame to assign quadkeys to. The DataFrame must contain a geometry column.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>crs_in</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The CRS of the dataframe to project to 4326 before assigning quadkeys.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>zoom_level</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The zoom level to use when assigning quadkeys.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>DataFrame</code></td> <td>
+<code><a class="autorefs autorefs-external" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame" title="pyspark.sql.DataFrame">DataFrame</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>A DataFrame containing the same rows as the input DataFrame, but with an additional quadkey column.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="quote">
+<summary>Source code in <code>multimno/core/quadkey_utils.py</code></summary>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">324</span>
+<span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
+<span class="normal">331</span>
+<span class="normal">332</span>
+<span class="normal">333</span>
+<span class="normal">334</span>
+<span class="normal">335</span>
+<span class="normal">336</span>
+<span class="normal">337</span>
+<span class="normal">338</span>
+<span class="normal">339</span>
+<span class="normal">340</span>
+<span class="normal">341</span>
+<span class="normal">342</span>
+<span class="normal">343</span>
+<span class="normal">344</span>
+<span class="normal">345</span>
+<span class="normal">346</span>
+<span class="normal">347</span>
+<span class="normal">348</span>
+<span class="normal">349</span>
+<span class="normal">350</span>
+<span class="normal">351</span>
+<span class="normal">352</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">assign_quadkey</span><span class="p">(</span><span class="n">sdf</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">crs_in</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">zoom_level</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Assigns a quadkey to each row in a DataFrame based on the centroid of its geometry.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        sdf (DataFrame): The DataFrame to assign quadkeys to. The DataFrame must contain a geometry column.</span>
+<span class="sd">        crs_in (int): The CRS of the dataframe to project to 4326 before assigning quadkeys.</span>
+<span class="sd">        zoom_level (int): The zoom level to use when assigning quadkeys.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataFrame: A DataFrame containing the same rows as the input DataFrame, but with an additional quadkey column.</span>
+<span class="sd">    """</span>
+
+    <span class="n">quadkey_udf</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">udf</span><span class="p">(</span><span class="n">latlon_to_quadkey</span><span class="p">,</span> <span class="n">StringType</span><span class="p">())</span>
+    <span class="n">sdf</span> <span class="o">=</span> <span class="n">sdf</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">"centroid"</span><span class="p">,</span> <span class="n">STF</span><span class="o">.</span><span class="n">ST_Centroid</span><span class="p">(</span><span class="n">ColNames</span><span class="o">.</span><span class="n">geometry</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">crs_in</span> <span class="o">!=</span> <span class="mi">4326</span><span class="p">:</span>
+        <span class="n">sdf</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">project_to_crs</span><span class="p">(</span><span class="n">sdf</span><span class="p">,</span> <span class="n">crs_in</span><span class="p">,</span> <span class="mi">4326</span><span class="p">,</span> <span class="s2">"centroid"</span><span class="p">)</span>
+
+    <span class="n">sdf</span> <span class="o">=</span> <span class="n">sdf</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+        <span class="s2">"quadkey"</span><span class="p">,</span>
+        <span class="n">quadkey_udf</span><span class="p">(</span>
+            <span class="n">STF</span><span class="o">.</span><span class="n">ST_Y</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"centroid"</span><span class="p">)),</span>
+            <span class="n">STF</span><span class="o">.</span><span class="n">ST_X</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"centroid"</span><span class="p">)),</span>
+            <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="n">zoom_level</span><span class="p">),</span>
+        <span class="p">),</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">"centroid"</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sdf</span>
+</code></pre></div></td></tr></table></div>
+</details>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="core.quadkey_utils.get_children_quadkeys">
+<code class="highlight language-python"><span class="n">get_children_quadkeys</span><span class="p">(</span><span class="n">quadkey</span><span class="p">,</span> <span class="n">target_level</span><span class="p">)</span></code>
+</h2>
+<div class="doc doc-contents">
+<p>Generates all child quadkeys at a specified resolution level for a given quadkey.</p>
+<p>This function takes a parent quadkey and a target level of detail, then returns
+all child quadkeys that are contained within the parent quadkey's area at the
+specified target level.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>quadkey</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The parent quadkey.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>target_level</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The target level of detail (zoom level) for the child quadkeys.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/typing.html#typing.List" title="typing.List">List</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>List[str]: A list of all child quadkeys at the specified target level.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Raises:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#ValueError">ValueError</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>If target_level is less than the level of the input quadkey.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="quote">
+<summary>Source code in <code>multimno/core/quadkey_utils.py</code></summary>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_children_quadkeys</span><span class="p">(</span><span class="n">quadkey</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_level</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Generates all child quadkeys at a specified resolution level for a given quadkey.</span>
+
+<span class="sd">    This function takes a parent quadkey and a target level of detail, then returns</span>
+<span class="sd">    all child quadkeys that are contained within the parent quadkey's area at the</span>
+<span class="sd">    specified target level.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        quadkey (str): The parent quadkey.</span>
+<span class="sd">        target_level (int): The target level of detail (zoom level) for the child quadkeys.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List[str]: A list of all child quadkeys at the specified target level.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If target_level is less than the level of the input quadkey.</span>
+<span class="sd">    """</span>
+    <span class="c1"># Get the level of the input quadkey</span>
+    <span class="n">current_level</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">quadkey</span><span class="p">)</span>
+
+    <span class="c1"># Check that target_level is greater than or equal to current_level</span>
+    <span class="k">if</span> <span class="n">target_level</span> <span class="o">&lt;</span> <span class="n">current_level</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Target level (</span><span class="si">{</span><span class="n">target_level</span><span class="si">}</span><span class="s2">) must be greater than or equal to the current level (</span><span class="si">{</span><span class="n">current_level</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="p">)</span>
+
+    <span class="c1"># If target_level is the same as current_level, return the input quadkey</span>
+    <span class="k">if</span> <span class="n">target_level</span> <span class="o">==</span> <span class="n">current_level</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">quadkey</span><span class="p">]</span>
+
+    <span class="c1"># Initialize the list of child quadkeys with the input quadkey</span>
+    <span class="n">child_quadkeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">quadkey</span><span class="p">]</span>
+
+    <span class="c1"># For each level between current_level and target_level</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">target_level</span> <span class="o">-</span> <span class="n">current_level</span><span class="p">):</span>
+        <span class="c1"># Initialize a new list to hold the next level of child quadkeys</span>
+        <span class="n">next_level_quadkeys</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># For each quadkey in the current list</span>
+        <span class="k">for</span> <span class="n">qk</span> <span class="ow">in</span> <span class="n">child_quadkeys</span><span class="p">:</span>
+            <span class="c1"># Generate the four children of this quadkey</span>
+            <span class="n">next_level_quadkeys</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">qk</span> <span class="o">+</span> <span class="s2">"0"</span><span class="p">,</span> <span class="n">qk</span> <span class="o">+</span> <span class="s2">"1"</span><span class="p">,</span> <span class="n">qk</span> <span class="o">+</span> <span class="s2">"2"</span><span class="p">,</span> <span class="n">qk</span> <span class="o">+</span> <span class="s2">"3"</span><span class="p">])</span>
+
+        <span class="c1"># Update the list of child quadkeys</span>
+        <span class="n">child_quadkeys</span> <span class="o">=</span> <span class="n">next_level_quadkeys</span>
+
+    <span class="k">return</span> <span class="n">child_quadkeys</span>
+</code></pre></div></td></tr></table></div>
+</details>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="core.quadkey_utils.get_quadkeys_for_bbox">
+<code class="highlight language-python"><span class="n">get_quadkeys_for_bbox</span><span class="p">(</span><span class="n">extent</span><span class="p">,</span> <span class="n">level_of_detail</span><span class="p">)</span></code>
+</h2>
+<div class="doc doc-contents">
+<p>Generates a list of quadkeys for a bounding box at a specific zoom level.</p>
+<p>This function takes a bounding box defined by its lon min, lat min, lon max, and lat max extents,
+and a zoom level, and generates a list of quadkeys that cover the bounding box at the specified zoom level.
+The quadkeys are strings of digits that represent specific tiles in a quadtree-based spatial index.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>extent</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>A tuple representing the bounding box. The tuple contains four elements:
+(west, south, east, north), which are the western, southern, eastern, and northern extents
+of the bounding box, respectively. Each extent is a float representing a geographic coordinate in degrees.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>level_of_detail</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The zoom level.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>list</code></td> <td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/typing.html#typing.List" title="typing.List">List</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>A list of quadkeys that cover the bounding box at the specified zoom level. Each quadkey is a string.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="quote">
+<summary>Source code in <code>multimno/core/quadkey_utils.py</code></summary>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_quadkeys_for_bbox</span><span class="p">(</span><span class="n">extent</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">level_of_detail</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Generates a list of quadkeys for a bounding box at a specific zoom level.</span>
+
+<span class="sd">    This function takes a bounding box defined by its lon min, lat min, lon max, and lat max extents,</span>
+<span class="sd">    and a zoom level, and generates a list of quadkeys that cover the bounding box at the specified zoom level.</span>
+<span class="sd">    The quadkeys are strings of digits that represent specific tiles in a quadtree-based spatial index.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        extent (tuple): A tuple representing the bounding box. The tuple contains four elements:</span>
+<span class="sd">            (west, south, east, north), which are the western, southern, eastern, and northern extents</span>
+<span class="sd">            of the bounding box, respectively. Each extent is a float representing a geographic coordinate in degrees.</span>
+<span class="sd">        level_of_detail (int): The zoom level.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: A list of quadkeys that cover the bounding box at the specified zoom level. Each quadkey is a string.</span>
+<span class="sd">    """</span>
+    <span class="n">west</span><span class="p">,</span> <span class="n">south</span><span class="p">,</span> <span class="n">east</span><span class="p">,</span> <span class="n">north</span> <span class="o">=</span> <span class="n">extent</span>
+    <span class="n">min_tile_x</span><span class="p">,</span> <span class="n">min_tile_y</span> <span class="o">=</span> <span class="n">latlon_to_tilexy</span><span class="p">(</span><span class="n">north</span><span class="p">,</span> <span class="n">west</span><span class="p">,</span> <span class="n">level_of_detail</span><span class="p">)</span>
+    <span class="n">max_tile_x</span><span class="p">,</span> <span class="n">max_tile_y</span> <span class="o">=</span> <span class="n">latlon_to_tilexy</span><span class="p">(</span><span class="n">south</span><span class="p">,</span> <span class="n">east</span><span class="p">,</span> <span class="n">level_of_detail</span><span class="p">)</span>
+    <span class="n">quadkeys</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">min_tile_x</span><span class="p">,</span> <span class="n">max_tile_x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">min_tile_y</span><span class="p">,</span> <span class="n">max_tile_y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">quadkeys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tilexy_to_quadkey</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">level_of_detail</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">quadkeys</span>
+</code></pre></div></td></tr></table></div>
+</details>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="core.quadkey_utils.latlon_to_quadkey">
+<code class="highlight language-python"><span class="n">latlon_to_quadkey</span><span class="p">(</span><span class="n">latitude</span><span class="p">,</span> <span class="n">longitude</span><span class="p">,</span> <span class="n">level_of_detail</span><span class="p">)</span></code>
+</h2>
+<div class="doc doc-contents">
+<p>Converts a geographic coordinate to a quadkey at a specific zoom level.</p>
+<p>This function takes a latitude and longitude in degrees, and a zoom level, and converts them to a quadkey.
+The quadkey is a string of digits that represents a specific tile in a quadtree-based spatial index.
+The conversion process involves first converting the geographic coordinate to tile coordinates,
+and then converting the tile coordinates to a quadkey.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>latitude</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The latitude of the geographic coordinate, in degrees.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>longitude</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The longitude of the geographic coordinate, in degrees.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>level_of_detail</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The zoom level.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>str</code></td> <td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The quadkey representing the geographic coordinate at the specified zoom level.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="quote">
+<summary>Source code in <code>multimno/core/quadkey_utils.py</code></summary>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">latlon_to_quadkey</span><span class="p">(</span><span class="n">latitude</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">longitude</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">level_of_detail</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Converts a geographic coordinate to a quadkey at a specific zoom level.</span>
+
+<span class="sd">    This function takes a latitude and longitude in degrees, and a zoom level, and converts them to a quadkey.</span>
+<span class="sd">    The quadkey is a string of digits that represents a specific tile in a quadtree-based spatial index.</span>
+<span class="sd">    The conversion process involves first converting the geographic coordinate to tile coordinates,</span>
+<span class="sd">    and then converting the tile coordinates to a quadkey.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        latitude (float): The latitude of the geographic coordinate, in degrees.</span>
+<span class="sd">        longitude (float): The longitude of the geographic coordinate, in degrees.</span>
+<span class="sd">        level_of_detail (int): The zoom level.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: The quadkey representing the geographic coordinate at the specified zoom level.</span>
+<span class="sd">    """</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">latlon_to_tilexy</span><span class="p">(</span><span class="n">latitude</span><span class="p">,</span> <span class="n">longitude</span><span class="p">,</span> <span class="n">level_of_detail</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tilexy_to_quadkey</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">level_of_detail</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+</details>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="core.quadkey_utils.latlon_to_tilexy">
+<code class="highlight language-python"><span class="n">latlon_to_tilexy</span><span class="p">(</span><span class="n">latitude</span><span class="p">,</span> <span class="n">longitude</span><span class="p">,</span> <span class="n">level_of_detail</span><span class="p">)</span></code>
+</h2>
+<div class="doc doc-contents">
+<p>Converts a geographic coordinate to tile coordinates at a specific zoom level.</p>
+<p>This function takes a latitude and longitude in degrees, and a zoom level, and converts them to
+tile coordinates (tile_x, tile_y) at the specified zoom level. The tile coordinates are in the
+tile system used by Bing Maps, OpenStreetMap, MapBox and other map providers.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>latitude</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The latitude of the geographic coordinate, in degrees.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>longitude</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The longitude of the geographic coordinate, in degrees.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>level_of_detail</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The zoom level.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>tuple</code></td> <td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>A tuple representing the tile coordinates of the geographic coordinate at the specified</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td></td> <td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>zoom level. The tuple contains two elements: (tile_x, tile_y).</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="quote">
+<summary>Source code in <code>multimno/core/quadkey_utils.py</code></summary>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">latlon_to_tilexy</span><span class="p">(</span><span class="n">latitude</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">longitude</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">level_of_detail</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Converts a geographic coordinate to tile coordinates at a specific zoom level.</span>
+
+<span class="sd">    This function takes a latitude and longitude in degrees, and a zoom level, and converts them to</span>
+<span class="sd">    tile coordinates (tile_x, tile_y) at the specified zoom level. The tile coordinates are in the</span>
+<span class="sd">    tile system used by Bing Maps, OpenStreetMap, MapBox and other map providers.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        latitude (float): The latitude of the geographic coordinate, in degrees.</span>
+<span class="sd">        longitude (float): The longitude of the geographic coordinate, in degrees.</span>
+<span class="sd">        level_of_detail (int): The zoom level.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: A tuple representing the tile coordinates of the geographic coordinate at the specified</span>
+<span class="sd">        zoom level. The tuple contains two elements: (tile_x, tile_y).</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="o">-</span><span class="mi">90</span> <span class="o">&lt;=</span> <span class="n">latitude</span> <span class="o">&lt;=</span> <span class="mi">90</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Latitude must be in the range [-90, 90], got </span><span class="si">{</span><span class="n">latitude</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="o">-</span><span class="mi">180</span> <span class="o">&lt;=</span> <span class="n">longitude</span> <span class="o">&lt;=</span> <span class="mi">180</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Longitude must be in the range [-180, 180], got </span><span class="si">{</span><span class="n">longitude</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">latitude</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">latitude</span><span class="p">)</span>
+    <span class="n">longitude</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">longitude</span><span class="p">)</span>
+
+    <span class="n">sinLatitude</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">latitude</span><span class="p">)</span>
+    <span class="n">pixelX</span> <span class="o">=</span> <span class="p">((</span><span class="n">longitude</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span> <span class="o">*</span> <span class="mi">256</span> <span class="o">*</span> <span class="mi">2</span><span class="o">**</span><span class="n">level_of_detail</span>
+    <span class="n">pixelY</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="mi">1</span> <span class="o">+</span> <span class="n">sinLatitude</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">sinLatitude</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span> <span class="o">*</span> <span class="mi">256</span> <span class="o">*</span> <span class="mi">2</span><span class="o">**</span><span class="n">level_of_detail</span>
+    <span class="n">tileX</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">pixelX</span> <span class="o">/</span> <span class="mi">256</span><span class="p">))</span>
+    <span class="n">tileY</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">pixelY</span> <span class="o">/</span> <span class="mi">256</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">tileX</span><span class="p">,</span> <span class="n">tileY</span>
+</code></pre></div></td></tr></table></div>
+</details>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="core.quadkey_utils.quadkey_to_extent">
+<code class="highlight language-python"><span class="n">quadkey_to_extent</span><span class="p">(</span><span class="n">quadkey</span><span class="p">)</span></code>
+</h2>
+<div class="doc doc-contents">
+<p>Converts a quadkey to a geographic extent (bounding box).</p>
+<p>This function takes a quadkey and converts it to a geographic extent represented as a tuple of
+(longitude_min, latitude_min, longitude_max, latitude_max).</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>quadkey</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The quadkey to convert. A quadkey is a string of digits that represents a</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>tuple</code></td> <td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="typing.Tuple">Tuple</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a>]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>A tuple representing the geographic extent of the quadkey. The tuple contains four
+elements: (longitude_min, latitude_min, longitude_max, latitude_max).</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="quote">
+<summary>Source code in <code>multimno/core/quadkey_utils.py</code></summary>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span>
+<span class="normal">87</span>
+<span class="normal">88</span>
+<span class="normal">89</span>
+<span class="normal">90</span>
+<span class="normal">91</span>
+<span class="normal">92</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">quadkey_to_extent</span><span class="p">(</span><span class="n">quadkey</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Converts a quadkey to a geographic extent (bounding box).</span>
+
+<span class="sd">    This function takes a quadkey and converts it to a geographic extent represented as a tuple of</span>
+<span class="sd">    (longitude_min, latitude_min, longitude_max, latitude_max).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        quadkey (str): The quadkey to convert. A quadkey is a string of digits that represents a</span>
+<span class="sd">        specific tile in a quadtree-based spatial index.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: A tuple representing the geographic extent of the quadkey. The tuple contains four</span>
+<span class="sd">            elements: (longitude_min, latitude_min, longitude_max, latitude_max).</span>
+<span class="sd">    """</span>
+    <span class="n">tile_x</span><span class="p">,</span> <span class="n">tile_y</span><span class="p">,</span> <span class="n">zoom_level</span> <span class="o">=</span> <span class="n">quadkey_to_tile</span><span class="p">(</span><span class="n">quadkey</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mf">2.0</span><span class="o">**</span><span class="n">zoom_level</span>
+    <span class="n">lon_min</span> <span class="o">=</span> <span class="n">tile_x</span> <span class="o">/</span> <span class="n">n</span> <span class="o">*</span> <span class="mf">360.0</span> <span class="o">-</span> <span class="mf">180.0</span>
+    <span class="n">lat_min</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">atan</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sinh</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">tile_y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span><span class="p">))))</span>
+    <span class="n">lon_max</span> <span class="o">=</span> <span class="p">(</span><span class="n">tile_x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span> <span class="o">*</span> <span class="mf">360.0</span> <span class="o">-</span> <span class="mf">180.0</span>
+    <span class="n">lat_max</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">atan</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sinh</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">tile_y</span> <span class="o">/</span> <span class="n">n</span><span class="p">))))</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">lon_min</span><span class="p">,</span> <span class="n">lat_min</span><span class="p">,</span> <span class="n">lon_max</span><span class="p">,</span> <span class="n">lat_max</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+</details>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="core.quadkey_utils.quadkey_to_tile">
+<code class="highlight language-python"><span class="n">quadkey_to_tile</span><span class="p">(</span><span class="n">quadkey</span><span class="p">)</span></code>
+</h2>
+<div class="doc doc-contents">
+<p>Converts a quadkey to tile coordinates and zoom level.</p>
+<p>This function takes a quadkey and converts it to tile coordinates (tile_x, tile_y) and zoom level.
+A quadkey is a string of digits that represents a specific tile in a quadtree-based spatial index.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>quadkey</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The quadkey to convert.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>tuple</code></td> <td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>A tuple representing the tile coordinates and zoom level of the quadkey. The tuple contains three</p>
+</div>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td><code>elements</code></td> <td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>(tile_x, tile_y, zoom_level).</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Raises:</span></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/exceptions.html#ValueError">ValueError</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>If the quadkey contains an invalid character.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="quote">
+<summary>Source code in <code>multimno/core/quadkey_utils.py</code></summary>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">quadkey_to_tile</span><span class="p">(</span><span class="n">quadkey</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Converts a quadkey to tile coordinates and zoom level.</span>
+
+<span class="sd">    This function takes a quadkey and converts it to tile coordinates (tile_x, tile_y) and zoom level.</span>
+<span class="sd">    A quadkey is a string of digits that represents a specific tile in a quadtree-based spatial index.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        quadkey (str): The quadkey to convert.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: A tuple representing the tile coordinates and zoom level of the quadkey. The tuple contains three</span>
+<span class="sd">        elements: (tile_x, tile_y, zoom_level).</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If the quadkey contains an invalid character.</span>
+<span class="sd">    """</span>
+    <span class="n">tile_x</span> <span class="o">=</span> <span class="n">tile_y</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">zoom_level</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">quadkey</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">zoom_level</span><span class="p">):</span>
+        <span class="n">bit</span> <span class="o">=</span> <span class="n">zoom_level</span> <span class="o">-</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">bit</span>
+        <span class="k">if</span> <span class="n">quadkey</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"0"</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="n">quadkey</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"1"</span><span class="p">:</span>
+            <span class="n">tile_x</span> <span class="o">|=</span> <span class="n">mask</span>
+        <span class="k">elif</span> <span class="n">quadkey</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"2"</span><span class="p">:</span>
+            <span class="n">tile_y</span> <span class="o">|=</span> <span class="n">mask</span>
+        <span class="k">elif</span> <span class="n">quadkey</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"3"</span><span class="p">:</span>
+            <span class="n">tile_x</span> <span class="o">|=</span> <span class="n">mask</span>
+            <span class="n">tile_y</span> <span class="o">|=</span> <span class="n">mask</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Invalid quadkey character."</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tile_x</span><span class="p">,</span> <span class="n">tile_y</span><span class="p">,</span> <span class="n">zoom_level</span>
+</code></pre></div></td></tr></table></div>
+</details>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="core.quadkey_utils.quadkeys_to_extent_dataframe">
+<code class="highlight language-python"><span class="n">quadkeys_to_extent_dataframe</span><span class="p">(</span><span class="n">spark</span><span class="p">,</span> <span class="n">quadkeys</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="mi">4326</span><span class="p">)</span></code>
+</h2>
+<div class="doc doc-contents">
+<p>Converts a list of quadkeys to a Spark DataFrame with geometry polygons representing their extents.</p>
+<p>This function takes a list of quadkeys and creates a DataFrame where each row contains
+a quadkey and its corresponding geometry (polygon) based on the geographic extent.
+Uses ST_PolygonFromEnvelope for efficient polygon creation.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>spark</code>
+</td>
+<td>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The Spark session</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>quadkeys</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/typing.html#typing.List" title="typing.List">List</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>]</code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>List of quadkeys to convert to geometries</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>crs</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>Coordinate reference system for the output geometries, defaults to WGS84</p>
+</div>
+</td>
+<td>
+<code>4326</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>DataFrame</code></td> <td>
+<code><a class="autorefs autorefs-external" href="https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.DataFrame.html#pyspark.sql.DataFrame" title="pyspark.sql.DataFrame">DataFrame</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>A Spark DataFrame with columns 'quadkey' and 'geometry'</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="quote">
+<summary>Source code in <code>multimno/core/quadkey_utils.py</code></summary>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">quadkeys_to_extent_dataframe</span><span class="p">(</span><span class="n">spark</span><span class="p">,</span> <span class="n">quadkeys</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">crs</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="mi">4326</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Converts a list of quadkeys to a Spark DataFrame with geometry polygons representing their extents.</span>
+
+<span class="sd">    This function takes a list of quadkeys and creates a DataFrame where each row contains</span>
+<span class="sd">    a quadkey and its corresponding geometry (polygon) based on the geographic extent.</span>
+<span class="sd">    Uses ST_PolygonFromEnvelope for efficient polygon creation.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        spark: The Spark session</span>
+<span class="sd">        quadkeys (List[str]): List of quadkeys to convert to geometries</span>
+<span class="sd">        crs (str): Coordinate reference system for the output geometries, defaults to WGS84</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        DataFrame: A Spark DataFrame with columns 'quadkey' and 'geometry'</span>
+<span class="sd">    """</span>
+
+    <span class="c1"># Create rows with quadkey and extent coordinates</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">quadkey</span> <span class="ow">in</span> <span class="n">quadkeys</span><span class="p">:</span>
+        <span class="n">lon_min</span><span class="p">,</span> <span class="n">lat_min</span><span class="p">,</span> <span class="n">lon_max</span><span class="p">,</span> <span class="n">lat_max</span> <span class="o">=</span> <span class="n">quadkey_to_extent</span><span class="p">(</span><span class="n">quadkey</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">quadkey</span><span class="p">,</span> <span class="p">[</span><span class="n">lon_min</span><span class="p">,</span> <span class="n">lat_min</span><span class="p">,</span> <span class="n">lon_max</span><span class="p">,</span> <span class="n">lat_max</span><span class="p">]))</span>
+
+    <span class="c1"># Create DataFrame schema</span>
+    <span class="n">schema</span> <span class="o">=</span> <span class="n">StructType</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">StructField</span><span class="p">(</span><span class="s2">"quadkey"</span><span class="p">,</span> <span class="n">StringType</span><span class="p">(),</span> <span class="kc">False</span><span class="p">),</span> <span class="n">StructField</span><span class="p">(</span><span class="s2">"extent"</span><span class="p">,</span> <span class="n">ArrayType</span><span class="p">(</span><span class="n">DoubleType</span><span class="p">()),</span> <span class="kc">False</span><span class="p">)]</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Create DataFrame from data and schema</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">createDataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">schema</span><span class="p">)</span>
+
+    <span class="c1"># Convert extent arrays to Sedona geometries using ST_PolygonFromEnvelope</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span>
+        <span class="s2">"geometry"</span><span class="p">,</span>
+        <span class="n">STC</span><span class="o">.</span><span class="n">ST_PolygonFromEnvelope</span><span class="p">(</span>
+            <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"extent"</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>  <span class="c1"># xmin</span>
+            <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"extent"</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>  <span class="c1"># ymin</span>
+            <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"extent"</span><span class="p">)[</span><span class="mi">2</span><span class="p">],</span>  <span class="c1"># xmax</span>
+            <span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"extent"</span><span class="p">)[</span><span class="mi">3</span><span class="p">],</span>  <span class="c1"># ymax</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Transform to the desired CRS if needed</span>
+    <span class="k">if</span> <span class="n">crs</span> <span class="o">!=</span> <span class="mi">4326</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">"geometry"</span><span class="p">,</span> <span class="n">STF</span><span class="o">.</span><span class="n">ST_Transform</span><span class="p">(</span><span class="s2">"geometry"</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s2">"epsg:4326"</span><span class="p">),</span> <span class="n">F</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="sa">f</span><span class="s2">"epsg:</span><span class="si">{</span><span class="n">crs</span><span class="si">}</span><span class="s2">"</span><span class="p">)))</span>
+
+    <span class="c1"># Return the DataFrame with quadkey and geometry columns, dropping the intermediate array</span>
+    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">"quadkey"</span><span class="p">,</span> <span class="s2">"geometry"</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+</details>
+</div>
+</div>
+<div class="doc doc-object doc-function">
+<h2 class="doc doc-heading" id="core.quadkey_utils.tilexy_to_quadkey">
+<code class="highlight language-python"><span class="n">tilexy_to_quadkey</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">level_of_detail</span><span class="p">)</span></code>
+</h2>
+<div class="doc doc-contents">
+<p>Converts tile coordinates to a quadkey at a specific zoom level.</p>
+<p>This function takes tile coordinates (x, y) and a zoom level, and converts them to a quadkey.
+The quadkey is a string of digits that represents a specific tile in a quadtree-based spatial index.
+The conversion process involves bitwise operations on the tile coordinates.</p>
+<p><span class="doc-section-title">Parameters:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td>
+<code>x</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The x-coordinate of the tile.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>y</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The y-coordinate of the tile.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+<tr class="doc-section-item">
+<td>
+<code>level_of_detail</code>
+</td>
+<td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The zoom level.</p>
+</div>
+</td>
+<td>
+<em>required</em>
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="doc-section-title">Returns:</span></p>
+<table>
+<thead>
+<tr>
+<th>Name</th> <th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="doc-section-item">
+<td><code>str</code></td> <td>
+<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>
+</td>
+<td>
+<div class="doc-md-description">
+<p>The quadkey representing the tile at the specified zoom level.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="quote">
+<summary>Source code in <code>multimno/core/quadkey_utils.py</code></summary>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">tilexy_to_quadkey</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">level_of_detail</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Converts tile coordinates to a quadkey at a specific zoom level.</span>
+
+<span class="sd">    This function takes tile coordinates (x, y) and a zoom level, and converts them to a quadkey.</span>
+<span class="sd">    The quadkey is a string of digits that represents a specific tile in a quadtree-based spatial index.</span>
+<span class="sd">    The conversion process involves bitwise operations on the tile coordinates.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x (int): The x-coordinate of the tile.</span>
+<span class="sd">        y (int): The y-coordinate of the tile.</span>
+<span class="sd">        level_of_detail (int): The zoom level.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: The quadkey representing the tile at the specified zoom level.</span>
+<span class="sd">    """</span>
+    <span class="n">quadkey</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">level_of_detail</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">digit</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">&amp;</span> <span class="n">mask</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">digit</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">y</span> <span class="o">&amp;</span> <span class="n">mask</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">digit</span> <span class="o">+=</span> <span class="mi">2</span>
+        <span class="n">quadkey</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">digit</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">quadkey</span>
+</code></pre></div></td></tr></table></div>
+</details>
+</div>
+</div>
+</div>
+</div>
+</div>
+</article>
+</div>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"base": "../../..", "features": ["toc.integrate", "navigation.path", "navigation.tabs", "navigation.tabs.sticky"], "search": "../../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+<script src="../../../assets/javascripts/bundle.c8b220af.min.js"></script>
+<script src="../../../assets/javascripts/panzoom.min.js"></script><script src="../../../assets/javascripts/zoompan.js"></script></body>
+</html>
